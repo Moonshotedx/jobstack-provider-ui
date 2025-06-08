@@ -14,6 +14,7 @@ import { Route as rootRoute } from './routes/__root'
 import { Route as IndexImport } from './routes/index'
 import { Route as DemoTanstackQueryImport } from './routes/demo.tanstack-query'
 import { Route as DemoStoreImport } from './routes/demo.store'
+import { Route as AuthActionImport } from './routes/auth.$action'
 
 // Create/Update Routes
 
@@ -35,6 +36,12 @@ const DemoStoreRoute = DemoStoreImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
+const AuthActionRoute = AuthActionImport.update({
+  id: '/auth/$action',
+  path: '/auth/$action',
+  getParentRoute: () => rootRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -44,6 +51,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
+    }
+    '/auth/$action': {
+      id: '/auth/$action'
+      path: '/auth/$action'
+      fullPath: '/auth/$action'
+      preLoaderRoute: typeof AuthActionImport
       parentRoute: typeof rootRoute
     }
     '/demo/store': {
@@ -67,12 +81,14 @@ declare module '@tanstack/react-router' {
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth/$action': typeof AuthActionRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth/$action': typeof AuthActionRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
@@ -80,27 +96,35 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRoute
   '/': typeof IndexRoute
+  '/auth/$action': typeof AuthActionRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/demo/store' | '/demo/tanstack-query'
+  fullPaths: '/' | '/auth/$action' | '/demo/store' | '/demo/tanstack-query'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/demo/store' | '/demo/tanstack-query'
-  id: '__root__' | '/' | '/demo/store' | '/demo/tanstack-query'
+  to: '/' | '/auth/$action' | '/demo/store' | '/demo/tanstack-query'
+  id:
+    | '__root__'
+    | '/'
+    | '/auth/$action'
+    | '/demo/store'
+    | '/demo/tanstack-query'
   fileRoutesById: FileRoutesById
 }
 
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthActionRoute: typeof AuthActionRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthActionRoute: AuthActionRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
@@ -116,12 +140,16 @@ export const routeTree = rootRoute
       "filePath": "__root.tsx",
       "children": [
         "/",
+        "/auth/$action",
         "/demo/store",
         "/demo/tanstack-query"
       ]
     },
     "/": {
       "filePath": "index.tsx"
+    },
+    "/auth/$action": {
+      "filePath": "auth.$action.tsx"
     },
     "/demo/store": {
       "filePath": "demo.store.tsx"
