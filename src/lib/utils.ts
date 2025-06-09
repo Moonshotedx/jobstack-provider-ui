@@ -12,5 +12,5 @@ export async function doesSessionExist() {
 
 export async function logout() {
   await Session.signOut();
-  window.location.href = '/auth'; // or to wherever your logic page is
+  window.location.href = '/auth/login'; // or to wherever your logic page is
 }
