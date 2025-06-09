@@ -5,6 +5,7 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 import SuperTokens from 'supertokens-web-js';
 import Session from 'supertokens-web-js/recipe/session';
 import EmailPassword from 'supertokens-web-js/recipe/emailpassword'
+import { Toaster } from "@/components/ui/sonner"
 
 SuperTokens.init({
   appInfo: {
@@ -49,9 +50,12 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <TanStackQueryProvider.Provider>
-        <RouterProvider router={router} />
-      </TanStackQueryProvider.Provider>
+      <div className='w-dvw h-dvh bg-background'>
+        <TanStackQueryProvider.Provider>
+          <Toaster position='top-center' richColors theme='light' />
+          <RouterProvider router={router} />
+        </TanStackQueryProvider.Provider>
+      </div>
     </StrictMode>,
   )
 }

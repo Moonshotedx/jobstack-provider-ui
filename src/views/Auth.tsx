@@ -2,185 +2,183 @@ import { signUp, doesEmailExist, signIn } from "supertokens-web-js/recipe/emailp
 import { Button } from "@/components/ui/button"
 import {
   Card,
-  CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { type FormEvent, useState } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useParams, useRouter } from "@tanstack/react-router";
+import { toast } from "sonner";
+
+const SignUpSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  confirmPassword: z.string()
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords do not match",
+  path: ["confirmPassword"],
+});
+
+const SignInSchema = z.object({
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+type SignUpInputs = z.infer<typeof SignUpSchema>;
+type SignInInputs = z.infer<typeof SignInSchema>;
 
 async function handleSignUp(email: string, password: string) {
   try {
-    let response = await doesEmailExist({
-      email
-    });
+    const emailCheck = await doesEmailExist({ email });
+    if (emailCheck.doesExist) {
+      toast.warning("Email already exists. Please sign in instead");
+    } else {
+      const response = await signUp({
+        formFields: [
+          { id: "email", value: email },
+          { id: "password", value: password }
+        ]
+      });
 
-    if (response.doesExist) {
-      window.alert("Email already exists. Please sign in instead")
+      if (response.status === "FIELD_ERROR") {
+        response.formFields.forEach(f => toast.error(f.error));
+      } else if (response.status === "SIGN_UP_NOT_ALLOWED") {
+        toast.error(response.reason);
+      } else {
+        window.location.href = "/profile";
+      }
     }
   } catch (err: any) {
-    if (err.isSuperTokensGeneralError === true) {
-      // this may be a custom error message sent from the API by you.
-      window.alert(err.message);
-    } else {
-      window.alert("Oops! Something went wrong.");
-    }
-  }
-  try {
-    let response = await signUp({
-      formFields: [{
-        id: "email",
-        value: email
-      }, {
-        id: "password",
-        value: password
-      }]
-    })
-
-    if (response.status === "FIELD_ERROR") {
-      response.formFields.forEach(formField => {
-        if (formField.id === "email") {
-          window.alert(formField.error)
-        } else if (formField.id === "password") {
-          window.alert(formField.error)
-        }
-      })
-    } else if (response.status === "SIGN_UP_NOT_ALLOWED") {
-      window.alert(response.reason)
-    } else {
-      window.location.href = "/homepage"
-    }
-  } catch (err: any) {
-    if (err.isSuperTokensGeneralError === true) {
-      window.alert(err.message);
-    } else {
-      window.alert("Oops! Something went wrong.");
-    }
+    toast.error(err?.message ?? "Something went wrong.");
   }
 }
 
 async function handleSignIn(email: string, password: string) {
   try {
-    let response = await signIn({
-      formFields: [{
-        id: "email",
-        value: email
-      }, {
-        id: "password",
-        value: password
-      }]
-    })
+    const response = await signIn({
+      formFields: [
+        { id: "email", value: email },
+        { id: "password", value: password }
+      ]
+    });
 
     if (response.status === "FIELD_ERROR") {
-      response.formFields.forEach(formField => {
-        if (formField.id === "email") {
-          // Email validation failed (for example incorrect email syntax).
-          window.alert(formField.error)
-        }
-      })
+      response.formFields.forEach(f => toast.error(f.error));
     } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
-      window.alert("Email password combination is incorrect.")
+      toast.error("Email/password is incorrect.");
     } else if (response.status === "SIGN_IN_NOT_ALLOWED") {
-      // the reason string is a user friendly message
-      // about what went wrong. It can also contain a support code which users
-      // can tell you so you know why their sign in was not allowed.
-      window.alert(response.reason)
+      toast.error(response.reason);
     } else {
-      // sign in successful. The session tokens are automatically handled by
-      // the frontend SDK.
-      window.location.href = "/homepage"
+      window.location.href = "/homepage";
     }
   } catch (err: any) {
-    if (err.isSuperTokensGeneralError === true) {
-      // this may be a custom error message sent from the API by you.
-      window.alert(err.message);
-    } else {
-      window.alert("Oops! Something went wrong.");
-    }
+    toast.error(err?.message ?? "Something went wrong.");
   }
 }
 
 const Auth = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const router = useRouter()
-  const { action } = useParams({ from: '/auth/$action' })
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    action.toLowerCase() === 'signup' ?
-      await handleSignUp(email, password)
-      : await handleSignIn(email, password)
+  const { action } = useParams({ from: '/auth/$action' });
+  const isSignUp = action.toLowerCase() === 'signup';
+  const router = useRouter();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<SignUpInputs | SignInInputs>({
+    resolver: zodResolver(isSignUp ? SignUpSchema : SignInSchema),
+  });
+
+  const onSubmit = async (data: SignUpInputs | SignInInputs) => {
+    if (isSignUp) {
+      await handleSignUp(data.email, data.password);
+    } else {
+      await handleSignIn(data.email, data.password);
+    }
   };
 
   return (
     <div className="w-dvw h-dvh bg-amber-100 flex justify-center items-center">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle> <span className="capitalize">{action.toLowerCase() === 'signup' ? "Sign Up" : "Login"}</span> to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to {action.toLowerCase()} to your account
-          </CardDescription>
-          <CardAction>
-            <Button variant="link" onClick={() => {
-              router.navigate({ to: `/auth/${action.toLowerCase() === 'signup' ? "login" : "signup"}` })
-            }}><span className="capitalize">{action.toLowerCase() === 'signup' ? "Login" : "Sign Up"}</span></Button>
-          </CardAction>
+          <CardTitle>
+            <span className="capitalize">
+              {isSignUp ? "Sign Up" : "Login"} to your account
+            </span>
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
-            <div className="flex flex-col gap-6">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            <div className="flex flex-col gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                 />
+                {errors.email && <span className="text-sm text-destructive">{errors.email.message}</span>}
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <a
-                    href="#"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
+                  {!isSignUp && (
+                    <a
+                      href="#"
+                      className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                    >
+                      Forgot your password?
+                    </a>
+                  )}
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  {...register("password")}
                 />
-                {action.toLowerCase() === 'signup' ? <>
-                  <Label htmlFor="reenter-password"> ReEnter Password</Label>
-                  <Input
-                    id="reenter-password"
-                    type="reenter-password"
-                    required
-                  /* value={password} */
-                  /* onChange={(e) => setPassword(e.target.value)} */
-                  />
-                </> : <></>}
+                {errors.password && <span className="text-sm text-destructive">{errors.password.message}</span>}
+
+                {isSignUp && (
+                  <>
+                    <Label htmlFor="confirmPassword">Re-enter Password</Label>
+                    <Input
+                      id="confirmPassword"
+                      type="password"
+                      {...register("confirmPassword")}
+                    />
+                    {(errors as any).confirmPassword && <span className="text-sm text-destructive">{(errors as any).confirmPassword.message}</span>}
+                  </>
+                )}
               </div>
+
               <Button type="submit" className="w-full">
-                <span className="capitalize"> {action.toLowerCase() === 'signup' ? "Sign Up" : "Login"} </span>
+                <span className="capitalize">{isSignUp ? "Sign Up" : "Login"}</span>
+              </Button>
+              <p className="w-full text-center text-primary">or</p>
+              <Button
+                className="-mt-2 underline hover:no-underline"
+                variant="link"
+                onClick={() =>
+                  router.navigate({
+                    to: `/auth/${isSignUp ? "login" : "signup"}`,
+                  })
+                }
+              >
+                <span className="capitalize">
+                  {isSignUp ? "Login" : "Sign Up"}
+                </span>
               </Button>
             </div>
           </form>
         </CardContent>
       </Card>
     </div>
-  )
-}
+  );
+};
 
-export default Auth
+export default Auth;
