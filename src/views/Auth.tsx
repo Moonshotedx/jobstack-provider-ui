@@ -11,8 +11,10 @@ import { Label } from "@/components/ui/label"
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useParams, useRouter } from "@tanstack/react-router";
+import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { toast } from "sonner";
+import { useEffect } from "react";
+import { doesSessionExist } from "@/lib/utils";
 
 const SignUpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -84,6 +86,17 @@ const Auth = () => {
   const { action } = useParams({ from: '/auth/$action' });
   const isSignUp = action.toLowerCase() === 'signup';
   const router = useRouter();
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const session = await doesSessionExist()
+      if (session) {
+        navigate({ to: '/profile' })
+      }
+    }
+    checkSession()
+  }, [])
 
   const {
     register,

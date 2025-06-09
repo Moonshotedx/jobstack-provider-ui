@@ -7,11 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export async function doesSessionExist() {
-  if (await Session.doesSessionExist()) {
-    // user is logged in
-  } else {
-    // user has not logged in yet
-  }
+  return await Session.doesSessionExist();
 }
 
 export async function logout() {
