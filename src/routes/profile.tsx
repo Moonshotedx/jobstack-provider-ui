@@ -1,12 +1,59 @@
-import { logout } from '@/lib/utils'
+/* import { logout } from '@/lib/utils' */
 import { createFileRoute } from '@tanstack/react-router'
+import { AppSidebar } from "@/components/app-sidebar"
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbList,
+  BreadcrumbPage,
+} from "@/components/ui/breadcrumb"
+import { Separator } from "@/components/ui/separator"
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar"
+import { useUserMetadata } from '@/hooks/useUserMetadata'
 
 export const Route = createFileRoute('/profile')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/profile"!
-    <button onClick={logout} className=''> Logout </button>
+
+  const { data, isLoading, error } = useUserMetadata();
+
+  if (isLoading) return <div>Loading user data...</div>;
+  if (error) return <div>Error loading user data</div>;
+  /* useEffect(() => { console.log("data: ", data) }, [data]) */
+  return <div>
+    data && <span> data: {JSON.stringify(data)}</span>
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <header className="bg-background sticky top-0 flex h-16 shrink-0 items-center gap-2 border-b px-4">
+          <SidebarTrigger className="-ml-1" />
+          <Separator
+            orientation="vertical"
+            className="mr-2 data-[orientation=vertical]:h-4"
+          />
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbPage>Available Jobs</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+        </header>
+        <div className="flex flex-1 flex-col gap-4 p-4">
+          <div className="grid auto-rows-min gap-4 md:grid-cols-5">
+            {Array.from({ length: 20 }).map((_, i) => (
+              <div key={i} className="bg-muted/50 aspect-square rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
+    {/* <button onClick={logout} className=''> Logout </button> */}
   </div>
 }

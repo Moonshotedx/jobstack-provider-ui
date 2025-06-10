@@ -1,4 +1,3 @@
-import { signUp, doesEmailExist, signIn } from "supertokens-web-js/recipe/emailpassword";
 import { Button } from "@/components/ui/button"
 import {
   Card,
@@ -12,9 +11,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
-import { toast } from "sonner";
 import { useEffect } from "react";
-import { doesSessionExist } from "@/lib/utils";
+import { doesSessionExist, handleSignIn, handleSignUp } from "@/lib/utils";
 
 const SignUpSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -32,55 +30,6 @@ const SignInSchema = z.object({
 
 type SignUpInputs = z.infer<typeof SignUpSchema>;
 type SignInInputs = z.infer<typeof SignInSchema>;
-
-async function handleSignUp(email: string, password: string) {
-  try {
-    const emailCheck = await doesEmailExist({ email });
-    if (emailCheck.doesExist) {
-      toast.warning("Email already exists. Please sign in instead");
-    } else {
-      const response = await signUp({
-        formFields: [
-          { id: "email", value: email },
-          { id: "password", value: password }
-        ]
-      });
-
-      if (response.status === "FIELD_ERROR") {
-        response.formFields.forEach(f => toast.error(f.error));
-      } else if (response.status === "SIGN_UP_NOT_ALLOWED") {
-        toast.error(response.reason);
-      } else {
-        window.location.href = "/profile";
-      }
-    }
-  } catch (err: any) {
-    toast.error(err?.message ?? "Something went wrong.");
-  }
-}
-
-async function handleSignIn(email: string, password: string) {
-  try {
-    const response = await signIn({
-      formFields: [
-        { id: "email", value: email },
-        { id: "password", value: password }
-      ]
-    });
-
-    if (response.status === "FIELD_ERROR") {
-      response.formFields.forEach(f => toast.error(f.error));
-    } else if (response.status === "WRONG_CREDENTIALS_ERROR") {
-      toast.error("Email/password is incorrect.");
-    } else if (response.status === "SIGN_IN_NOT_ALLOWED") {
-      toast.error(response.reason);
-    } else {
-      window.location.href = "/homepage";
-    }
-  } catch (err: any) {
-    toast.error(err?.message ?? "Something went wrong.");
-  }
-}
 
 const Auth = () => {
   const { action } = useParams({ from: '/auth/$action' });
@@ -152,16 +101,18 @@ const Auth = () => {
                 <Input
                   id="password"
                   type="password"
+                  placeholder="Enter Password"
                   {...register("password")}
                 />
                 {errors.password && <span className="text-sm text-destructive">{errors.password.message}</span>}
 
                 {isSignUp && (
                   <>
-                    <Label htmlFor="confirmPassword">Re-enter Password</Label>
+                    <Label htmlFor="confirmPassword">Re Enter Password</Label>
                     <Input
                       id="confirmPassword"
                       type="password"
+                      placeholder="Re Enter Password"
                       {...register("confirmPassword")}
                     />
                     {(errors as any).confirmPassword && <span className="text-sm text-destructive">{(errors as any).confirmPassword.message}</span>}
@@ -195,3 +146,4 @@ const Auth = () => {
 };
 
 export default Auth;
+
