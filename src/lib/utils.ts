@@ -24,7 +24,7 @@ export async function logout() {
 export async function handleSignUp(
   email: string,
   password: string,
-  metadata: object
+  metadata: { name: string; phone: string }
 ) {
   try {
     const emailCheck = await doesEmailExist({ email });
@@ -35,12 +35,9 @@ export async function handleSignUp(
         formFields: [
           { id: 'email', value: email },
           { id: 'password', value: password },
+          { id: 'name', value: metadata.name },
+          { id: 'phone', value: metadata.phone },
         ],
-        userContext: {
-          _ext: {
-            userMetadata: metadata,
-          },
-        },
       });
 
       if (response.status === 'FIELD_ERROR') {

@@ -57,7 +57,7 @@ const Auth = () => {
 
   const onSubmit = async (data: SignUpInputs | SignInInputs) => {
     if (isSignUp) {
-      await handleSignUp(data.email, data.password);
+      await handleSignUp(data.email, data.password, { name: "ujjwal sharma", phone: "+919999999999" });
     } else {
       await handleSignIn(data.email, data.password);
     }

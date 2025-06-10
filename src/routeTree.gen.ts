@@ -13,8 +13,6 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as ProfileImport } from './routes/profile'
 import { Route as IndexImport } from './routes/index'
-import { Route as DemoTanstackQueryImport } from './routes/demo.tanstack-query'
-import { Route as DemoStoreImport } from './routes/demo.store'
 import { Route as AuthActionImport } from './routes/auth.$action'
 
 // Create/Update Routes
@@ -28,18 +26,6 @@ const ProfileRoute = ProfileImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DemoTanstackQueryRoute = DemoTanstackQueryImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const DemoStoreRoute = DemoStoreImport.update({
-  id: '/demo/store',
-  path: '/demo/store',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,20 +60,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthActionImport
       parentRoute: typeof rootRoute
     }
-    '/demo/store': {
-      id: '/demo/store'
-      path: '/demo/store'
-      fullPath: '/demo/store'
-      preLoaderRoute: typeof DemoStoreImport
-      parentRoute: typeof rootRoute
-    }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryImport
-      parentRoute: typeof rootRoute
-    }
   }
 }
 
@@ -97,16 +69,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
   '/auth/$action': typeof AuthActionRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
   '/auth/$action': typeof AuthActionRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 
 export interface FileRoutesById {
@@ -114,32 +82,14 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/profile': typeof ProfileRoute
   '/auth/$action': typeof AuthActionRoute
-  '/demo/store': typeof DemoStoreRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths:
-    | '/'
-    | '/profile'
-    | '/auth/$action'
-    | '/demo/store'
-    | '/demo/tanstack-query'
+  fullPaths: '/' | '/profile' | '/auth/$action'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    | '/'
-    | '/profile'
-    | '/auth/$action'
-    | '/demo/store'
-    | '/demo/tanstack-query'
-  id:
-    | '__root__'
-    | '/'
-    | '/profile'
-    | '/auth/$action'
-    | '/demo/store'
-    | '/demo/tanstack-query'
+  to: '/' | '/profile' | '/auth/$action'
+  id: '__root__' | '/' | '/profile' | '/auth/$action'
   fileRoutesById: FileRoutesById
 }
 
@@ -147,16 +97,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ProfileRoute: typeof ProfileRoute
   AuthActionRoute: typeof AuthActionRoute
-  DemoStoreRoute: typeof DemoStoreRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ProfileRoute: ProfileRoute,
   AuthActionRoute: AuthActionRoute,
-  DemoStoreRoute: DemoStoreRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
 }
 
 export const routeTree = rootRoute
@@ -171,9 +117,7 @@ export const routeTree = rootRoute
       "children": [
         "/",
         "/profile",
-        "/auth/$action",
-        "/demo/store",
-        "/demo/tanstack-query"
+        "/auth/$action"
       ]
     },
     "/": {
@@ -184,12 +128,6 @@ export const routeTree = rootRoute
     },
     "/auth/$action": {
       "filePath": "auth.$action.tsx"
-    },
-    "/demo/store": {
-      "filePath": "demo.store.tsx"
-    },
-    "/demo/tanstack-query": {
-      "filePath": "demo.tanstack-query.tsx"
     }
   }
 }
