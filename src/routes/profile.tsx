@@ -13,7 +13,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
-import { useUserMetadata } from '@/hooks/useUserMetadata'
+import { useUserSession } from '@/hooks/useUserSession'
 
 export const Route = createFileRoute('/profile')({
   component: RouteComponent,
@@ -21,7 +21,7 @@ export const Route = createFileRoute('/profile')({
 
 function RouteComponent() {
 
-  const { data, isLoading, error } = useUserMetadata();
+  const { data, isLoading, error } = useUserSession();
 
   if (isLoading) return <div>Loading user data...</div>;
   if (error) return <div>Error loading user data</div>;

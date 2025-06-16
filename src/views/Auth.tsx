@@ -12,9 +12,13 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { doesSessionExist, handleSignIn, handleSignUp } from "@/lib/utils";
+import { doesSessionExist, handleSignIn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 const SignUpSchema = z.object({
+  firstName: z.string().nonempty().describe('Enter First Name'),
+  surname: z.string().nonempty().describe('Enter Surname'),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string()
@@ -57,7 +61,15 @@ const Auth = () => {
 
   const onSubmit = async (data: SignUpInputs | SignInInputs) => {
     if (isSignUp) {
-      await handleSignUp(data.email, data.password, { name: "ujjwal sharma", phone: "+919999999999" });
+      const input: SignUpInputs = data as SignUpInputs
+      const name = input.firstName.trim() + " " + input.surname.trim()
+      const signUpRequest = await authClient.signUp.email({ name, email: input.email, password: input.password })
+      navigate({ to: '/profile' })
+      if (signUpRequest.data) {
+        console.log(signUpRequest.data)
+      } else if (signUpRequest.error) {
+        toast.error(signUpRequest.error.message)
+      }
     } else {
       await handleSignIn(data.email, data.password);
     }
@@ -76,6 +88,28 @@ const Auth = () => {
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit)}>
             <div className="flex flex-col gap-4">
+              {isSignUp ? <div className="grid gap-2">
+                <Label htmlFor="first-name">Name</Label>
+                <div>
+                  <Input
+                    id="first-name"
+                    type="text"
+                    placeholder="First Name"
+                    {...register("firstName")}
+                  />
+                  {(errors as any).firstName && <span className="text-sm text-destructive">{(errors as any).firstName.message}</span>}
+                </div>
+                <div>
+                  <Input
+                    id="surname"
+                    type="text"
+                    placeholder="Surname"
+                    {...register("surname")}
+                  />
+                  {(errors as any).surname && <span className="text-sm text-destructive">{(errors as any).surname.message}</span>}
+                </div>
+              </div> : <></>
+              }
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
