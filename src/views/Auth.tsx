@@ -11,8 +11,8 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { doesSessionExist, handleSignIn } from "@/lib/utils";
+/* import { useEffect } from "react"; */
+/* import { doesSessionExist } from "@/lib/utils"; */
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
@@ -41,16 +41,6 @@ const Auth = () => {
   const router = useRouter();
   const navigate = useNavigate()
 
-  useEffect(() => {
-    const checkSession = async () => {
-      const session = await doesSessionExist()
-      if (session) {
-        navigate({ to: '/profile' })
-      }
-    }
-    checkSession()
-  }, [])
-
   const {
     register,
     handleSubmit,
@@ -64,14 +54,18 @@ const Auth = () => {
       const input: SignUpInputs = data as SignUpInputs
       const name = input.firstName.trim() + " " + input.surname.trim()
       const signUpRequest = await authClient.signUp.email({ name, email: input.email, password: input.password })
-      navigate({ to: '/profile' })
       if (signUpRequest.data) {
-        console.log(signUpRequest.data)
+        navigate({ to: '/profile' })
       } else if (signUpRequest.error) {
         toast.error(signUpRequest.error.message)
       }
     } else {
-      await handleSignIn(data.email, data.password);
+      const loginRequest = await authClient.signIn.email({ email: data.email, password: data.password })
+      if (loginRequest.data) {
+        navigate({ to: '/profile' })
+      } else if (loginRequest.error) {
+        toast.error(loginRequest.error.message)
+      }
     }
   };
 
@@ -90,7 +84,7 @@ const Auth = () => {
             <div className="flex flex-col gap-4">
               {isSignUp ? <div className="grid gap-2">
                 <Label htmlFor="first-name">Name</Label>
-                <div>
+                <div    >
                   <Input
                     id="first-name"
                     type="text"

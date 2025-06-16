@@ -1,4 +1,3 @@
-/* import { logout } from '@/lib/utils' */
 import { createFileRoute } from '@tanstack/react-router'
 import { AppSidebar } from "@/components/app-sidebar"
 import {
@@ -25,7 +24,6 @@ function RouteComponent() {
 
   if (isLoading) return <div>Loading user data...</div>;
   if (error) return <div>Error loading user data</div>;
-  /* useEffect(() => { console.log("data: ", data) }, [data]) */
   return <div>
     data && <span> data: {JSON.stringify(data)}</span>
     <SidebarProvider>
@@ -54,6 +52,5 @@ function RouteComponent() {
         </div>
       </SidebarInset>
     </SidebarProvider>
-    {/* <button onClick={logout} className=''> Logout </button> */}
   </div>
 }
