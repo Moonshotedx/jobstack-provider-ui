@@ -2,22 +2,7 @@ import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
-import SuperTokens from 'supertokens-web-js';
-import Session from 'supertokens-web-js/recipe/session';
-import EmailPassword from 'supertokens-web-js/recipe/emailpassword'
 import { Toaster } from "@/components/ui/sonner"
-
-SuperTokens.init({
-  appInfo: {
-    apiDomain: "http://localhost:3001",
-    apiBasePath: "/api/v1/auth",
-    appName: "...",
-  },
-  recipeList: [
-    Session.init(),
-    EmailPassword.init(),
-  ],
-});
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'

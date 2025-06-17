@@ -13,6 +13,8 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar"
 import { useUserSession } from '@/hooks/useUserSession'
+import { SelectOrg } from '@/components/organisation/SelectOrg'
+import { CreateOrg } from '@/components/organisation/CreateOrg'
 
 export const Route = createFileRoute('/profile')({
   component: RouteComponent,
@@ -44,6 +46,12 @@ function RouteComponent() {
           </Breadcrumb>
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4">
+          <div className='p-4 shadow'>
+            <SelectOrg />
+          </div>
+          <div className='p-4 shadow'>
+            <CreateOrg />
+          </div>
           {/* <div className="grid auto-rows-min gap-4 md:grid-cols-5"> */}
           {/*   {Array.from({ length: 20 }).map((_, i) => ( */}
           {/*     <div key={i} className="bg-muted/50 aspect-square rounded-xl" /> */}

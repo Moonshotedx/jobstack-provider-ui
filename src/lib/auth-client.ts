@@ -12,12 +12,21 @@ export const checkSession = async () => {
   return await authClient.getSession();
 };
 
-export const fetchUser = async () => {};
-
 export const createOrganisation = async (orgInfo: {
   name: string;
   slug: string;
-  logo: string;
+  logo?: string;
 }) => {
-  await authClient.organization.create(orgInfo);
+  const doesSlugExists = await authClient.organization.checkSlug({
+    slug: orgInfo.slug,
+  });
+  if (doesSlugExists.data) {
+    const org = await authClient.organization.create(orgInfo);
+    if (org.error) {
+      throw Error(org.error.message);
+    }
+    return org.data;
+  } else {
+    throw Error('Organisation Identifier Already Exists');
+  }
 };
