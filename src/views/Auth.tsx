@@ -11,8 +11,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate, useParams, useRouter } from "@tanstack/react-router";
-/* import { useEffect } from "react"; */
-/* import { doesSessionExist } from "@/lib/utils"; */
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 
@@ -49,7 +47,7 @@ const Auth = () => {
     resolver: zodResolver(isSignUp ? SignUpSchema : SignInSchema),
   });
 
-  const onSubmit = async (data: SignUpInputs | SignInInputs) => {
+  const onAuthSubmit = async (data: SignUpInputs | SignInInputs) => {
     if (isSignUp) {
       const input: SignUpInputs = data as SignUpInputs
       const name = input.firstName.trim() + " " + input.surname.trim()
@@ -80,7 +78,7 @@ const Auth = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)}>
+          <form onSubmit={handleSubmit(onAuthSubmit)}>
             <div className="flex flex-col gap-4">
               {isSignUp ? <div className="grid gap-2">
                 <Label htmlFor="first-name">Name</Label>
