@@ -7,9 +7,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignUpSchema = z.object({
   firstName: z.string().nonempty().describe('Enter First Name'),
@@ -38,6 +38,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onSwitchToLogin 
 }) => {
   const navigate = useNavigate();
+  const { register } = useAuth();
   
   const signUpForm = useForm<SignUpInputs>({
     resolver: zodResolver(SignUpSchema),
@@ -51,20 +52,17 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const watchedPrivacy = signUpForm.watch('privacyAccepted');
 
   const onSignUpSubmit = async (data: SignUpInputs) => {
-    const name = data.firstName.trim() + " " + data.surname.trim()
-    
-    const signUpRequest = await authClient.signUp.email({ 
-      name, 
-      email: data.email,
-      password: data.password 
-    })
-    
-    if (signUpRequest.data) {
+    try {
+      await register({ 
+        email: data.email,
+        password: data.password,
+        role: 'organization' 
+      });
       onClose();
-      navigate({ to: '/' })
+      navigate({ to: '/dashboard' });
       toast.success("Account created successfully!");
-    } else if (signUpRequest.error) {
-      toast.error(signUpRequest.error.message)
+    } catch (error: any) {
+      toast.error(error.message || "Registration failed");
     }
   };
 

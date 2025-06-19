@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
+import { useAuth } from "@/contexts/AuthContext";
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,19 +25,20 @@ interface LoginDialogProps {
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)
   });
 
   const onSignInSubmit = async (data: SignInInputs) => {
-    const loginRequest = await authClient.signIn.email({ email: data.email, password: data.password })
-    if (loginRequest.data) {
+    try {
+      await login(data.email, data.password);
       onClose();
-      navigate({ to: '/' })
+      navigate({ to: '/dashboard' });
       toast.success("Welcome back! You have successfully logged in.");
-    } else if (loginRequest.error) {
-      toast.error(loginRequest.error.message)
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
     }
   };
 

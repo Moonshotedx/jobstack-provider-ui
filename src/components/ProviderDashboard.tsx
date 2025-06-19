@@ -171,6 +171,7 @@ const ProviderDashboard = () => {
       <PostJobDialog 
         isOpen={showPostJob}
         onClose={() => setShowPostJob(false)}
+        skipAuthSteps={true}
       />
     </div>
   );
