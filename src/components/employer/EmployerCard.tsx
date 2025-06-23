@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Edit, Trash2, Globe, Phone, Mail } from 'lucide-react';
-import type { EmployerProfile } from '@/contexts/AuthContext';
+import type { EmployerProfile } from '@/stores/authStore';
 
 interface EmployerCardProps {
   employer: EmployerProfile;

@@ -1,7 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
-import { useAuth } from '@/contexts/AuthContext'
+import { useAuthStore } from '@/stores/authStore'
 import OrganizationProfileDialog from '@/components/profile/OrganizationProfileDialog'
 import PostJobDialog from '@/components/PostJobDialog'
 import MyJobs from '@/components/MyJobs'
@@ -12,7 +12,8 @@ import EmployerSelector from '@/components/employer/EmployerSelector'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { CheckCircle, Briefcase, Users, Plus, Building2 } from 'lucide-react'
+import { CheckCircle, Briefcase, Users, Plus, Building2, AlertCircle, Mail, RefreshCw } from 'lucide-react'
+import { toast } from 'sonner'
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardComponent,
@@ -23,8 +24,160 @@ function DashboardContent() {
   const [showOrgProfile, setShowOrgProfile] = useState(false)
   const [showEmployerDialog, setShowEmployerDialog] = useState(false)
   const [showPostJob, setShowPostJob] = useState(false)
-  const { user, getSelectedEmployer } = useAuth()
+  const [isCheckingVerification, setIsCheckingVerification] = useState(false)
+  const [isResendingVerification, setIsResendingVerification] = useState(false)
+  const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
+  
+  const { 
+    user, 
+    checkEmailVerification, 
+    resendVerificationEmail,
+    getSelectedEmployer 
+  } = useAuthStore()
+  
   const selectedEmployer = getSelectedEmployer()
+
+  // Check verification status on mount and periodically
+  useEffect(() => {
+    if (!user) return
+
+    // If user is already verified, no need to check
+    if (user.isVerified) {
+      setHasCheckedInitialVerification(true)
+      setIsCheckingVerification(false)
+      return
+    }
+
+    const checkVerification = async () => {
+      setIsCheckingVerification(true)
+      try {
+        const wasVerified = user.isVerified
+        const isNowVerified = await checkEmailVerification()
+        
+        // Show success message if user just got verified
+        if (!wasVerified && isNowVerified) {
+          toast.success('Email verified successfully! Welcome to your dashboard.')
+        }
+        
+        setHasCheckedInitialVerification(true)
+        setIsCheckingVerification(false)
+      } catch (error) {
+        console.error('Verification check failed:', error)
+        setIsCheckingVerification(false)
+        setHasCheckedInitialVerification(true)
+      }
+    }
+
+    // Only check verification if we haven't done the initial check
+    if (!hasCheckedInitialVerification) {
+      checkVerification()
+    } else {
+      setIsCheckingVerification(false)
+    }
+
+    // Set up periodic checking only if user is not verified and we've done initial check
+    let interval: number | null = null
+    if (hasCheckedInitialVerification && !user.isVerified) {
+      interval = setInterval(checkVerification, 10000)
+    }
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
+  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, checkEmailVerification])
+
+  const handleResendVerification = async () => {
+    setIsResendingVerification(true)
+    try {
+      await resendVerificationEmail()
+      toast.success('Verification email resent!')
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to resend email')
+    } finally {
+      setIsResendingVerification(false)
+    }
+  }
+
+  // Show loading state while checking verification
+  if (user && isCheckingVerification) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <div className="animate-pulse">
+            <div className="w-16 h-16 bg-muted rounded-full mx-auto mb-4"></div>
+            <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2"></div>
+            <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
+          </div>
+          <p className="text-muted-foreground">Checking verification status...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show verification required screen
+  if (user && !user.isVerified && !isCheckingVerification) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <div className="space-y-4">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+              <AlertCircle className="h-8 w-8 text-yellow-600" />
+            </div>
+            <h1 className="text-3xl font-bold">Email Verification Required</h1>
+            <p className="text-muted-foreground text-lg">
+              Please verify your email address to access your dashboard and start managing jobs.
+            </p>
+          </div>
+
+          <Card className="p-6">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Mail className="h-5 w-5" />
+                Verification Email Sent
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                We've sent a verification link to <strong>{user.email}</strong>. 
+                Click the link in your email to verify your account.
+              </p>
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <p className="text-xs text-blue-800">
+                  💡 <strong>Tip:</strong> The verification link will redirect you back to this dashboard once verified.
+                </p>
+              </div>
+              
+              <Button 
+                onClick={handleResendVerification}
+                disabled={isResendingVerification}
+                className="w-full"
+                variant="outline"
+              >
+                {isResendingVerification ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Resending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Resend Verification Email
+                  </>
+                )}
+              </Button>
+              
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                <p className="text-xs text-yellow-800">
+                  <strong>Can't find the email?</strong> Check your spam folder or try resending the verification email.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
 
   // If user doesn't have organization profile, show profile creation
   if (user && !user.profile) {

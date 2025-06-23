@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Building } from 'lucide-react';
-import { useAuth, type OrganizationProfile } from '@/contexts/AuthContext';
+import { useAuthStore, type OrganizationProfile } from '@/stores/authStore';
 import { toast } from 'sonner';
 
 interface OrganizationProfileDialogProps {
@@ -15,7 +15,7 @@ interface OrganizationProfileDialogProps {
 }
 
 const OrganizationProfileDialog: React.FC<OrganizationProfileDialogProps> = ({ isOpen, onClose }) => {
-  const { updateProfile } = useAuth();
+  const { updateProfile } = useAuthStore();
   
   const [profile, setProfile] = useState<OrganizationProfile>({
     name: '',

@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,7 +25,7 @@ interface LoginDialogProps {
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login } = useAuthStore();
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)

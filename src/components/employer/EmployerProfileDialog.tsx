@@ -5,8 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
-import type { EmployerProfile } from '@/contexts/AuthContext';
+import { useAuthStore, type EmployerProfile } from '@/stores/authStore';
 
 interface EmployerProfileDialogProps {
   isOpen: boolean;
@@ -19,7 +18,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   onClose, 
   employer 
 }) => {
-  const { addEmployer, updateEmployer } = useAuth();
+  const { addEmployer, updateEmployer } = useAuthStore();
   const [formData, setFormData] = useState({
     name: employer?.name || '',
     address: employer?.address || '',

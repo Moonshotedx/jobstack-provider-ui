@@ -2,14 +2,14 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Building2, Plus } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore } from '@/stores/authStore';
 
 interface EmployerSelectorProps {
   onAddEmployer: () => void;
 }
 
 const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) => {
-  const { user, selectEmployer, getSelectedEmployer } = useAuth();
+  const { user, selectEmployer, getSelectedEmployer } = useAuthStore();
   const selectedEmployer = getSelectedEmployer();
 
   if (!user || user.managedEmployers.length === 0) {
