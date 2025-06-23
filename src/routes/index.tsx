@@ -1,16 +1,16 @@
-import { createFileRoute, useNavigate } from '@tanstack/react-router'
-import { Button } from '@/components/ui/button'
+import { createFileRoute } from '@tanstack/react-router'
+import ProviderDashboard from '@/components/ProviderDashboard'
+import Header from '@/components/Header'
 
 export const Route = createFileRoute('/')({
-  component: App,
+  component: RouteComponent,
 })
 
-function App() {
-  const navigate = useNavigate()
+function RouteComponent() {
   return (
-    <div className="text-center h-dvh gap-4 flex justify-center items-center">
-      <Button onClick={() => navigate({ to: '/auth/$action', params: { action: "login" } })}>Login</Button>
-      <Button onClick={() => navigate({ to: '/auth/$action', params: { action: "signup" } })}>Signup</Button>
+    <div className="min-h-screen bg-background">
+      <Header />
+      <ProviderDashboard />
     </div>
   )
 }
