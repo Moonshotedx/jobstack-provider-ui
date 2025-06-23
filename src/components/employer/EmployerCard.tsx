@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Edit, Trash2, Globe, Phone, Mail } from 'lucide-react';
+import { Building2, Edit, Trash2, Globe, Phone, Mail, Crown } from 'lucide-react';
 import type { EmployerProfile } from '@/stores/authStore';
 
 interface EmployerCardProps {
@@ -11,6 +11,7 @@ interface EmployerCardProps {
   onSelect: () => void;
   onEdit: () => void;
   onDelete: () => void;
+  isDefault?: boolean;
 }
 
 const EmployerCard: React.FC<EmployerCardProps> = ({
@@ -18,7 +19,8 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
   isSelected,
   onSelect,
   onEdit,
-  onDelete
+  onDelete,
+  isDefault = false
 }) => {
   return (
     <Card 
@@ -34,12 +36,16 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
               <Building2 className="h-5 w-5" />
             </div>
             <div>
-              <CardTitle className="text-lg">{employer.name}</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">{employer.name}</CardTitle>
+                {isDefault && <Crown className="h-4 w-4 text-amber-500" />}
+              </div>
               <p className="text-sm text-muted-foreground">{employer.contactPersonName}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {isSelected && <Badge variant="default">Selected</Badge>}
+            {isDefault && <Badge variant="secondary">Default</Badge>}
             <Badge variant={employer.isActive ? 'default' : 'secondary'}>
               {employer.isActive ? 'Active' : 'Inactive'}
             </Badge>
@@ -77,9 +83,11 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>
-          <Button variant="destructive" size="sm" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          {!isDefault && (
+            <Button variant="destructive" size="sm" onClick={onDelete}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>

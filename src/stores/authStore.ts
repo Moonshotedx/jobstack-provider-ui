@@ -71,6 +71,7 @@ export interface EmployerProfile {
   description: string
   createdAt: string
   isActive: boolean
+  isDefault?: boolean
 }
 
 interface AuthState {
@@ -255,7 +256,36 @@ export const useAuthStore = create<AuthState>()(
         updateProfile: (profile) => {
           const user = get().user
           if (user) {
-            set({ user: { ...user, profile } })
+            // If this is an organization profile and no employers exist, create a default employer
+            if (user.role === 'organization' && user.managedEmployers.length === 0) {
+              const orgProfile = profile as OrganizationProfile
+              const defaultEmployer: EmployerProfile = {
+                id: 'default-employer',
+                name: orgProfile.name,
+                address: orgProfile.address,
+                gstNumber: orgProfile.gstNumber,
+                logo: orgProfile.logo,
+                contactPersonName: orgProfile.contactPersonName,
+                contactEmail: orgProfile.contactEmail,
+                contactPhone: orgProfile.contactPhone,
+                website: orgProfile.website,
+                description: orgProfile.description,
+                createdAt: new Date().toISOString(),
+                isActive: true,
+                isDefault: true
+              }
+              
+              set({ 
+                user: { 
+                  ...user, 
+                  profile,
+                  managedEmployers: [defaultEmployer],
+                  selectedEmployerId: defaultEmployer.id
+                }
+              })
+            } else {
+              set({ user: { ...user, profile } })
+            }
             // In a real app, you'd also save this to your backend
           }
         },
@@ -263,11 +293,13 @@ export const useAuthStore = create<AuthState>()(
         addEmployer: (employer) => {
           const user = get().user
           if (user) {
+            const isFirstEmployer = user.managedEmployers.length === 0
             const newEmployer: EmployerProfile = {
               ...employer,
               id: Date.now().toString(),
               createdAt: new Date().toISOString(),
-              isActive: true
+              isActive: true,
+              isDefault: isFirstEmployer
             }
             
             set({

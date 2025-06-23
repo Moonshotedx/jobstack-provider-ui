@@ -43,9 +43,9 @@ const Header = () => {
   };
 
   const handlePostJobs = () => {
-    // Check if user is authenticated and has profile
+    // If user is logged in with profile, redirect to dashboard
     if (user && user.profile) {
-      setShowPostJob(true);
+      navigate({ to: '/dashboard' });
     } else if (user && !user.profile) {
       // User is logged in but needs to complete profile
       setShowOrgProfile(true);
