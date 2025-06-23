@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/contexts/AuthContext';
+// import { useAuth } from '@/contexts/AuthContext';
 import MyJobs from './MyJobs';
 import CandidateManagement from './CandidateManagement';
 import OrganizationProfileDialog from './profile/OrganizationProfileDialog';
@@ -9,13 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-
+import { useAuthStore } from '@/stores/authStore';
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showPostJob, setShowPostJob] = useState(false);
   
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const user = useAuthStore((state) => state.user);
   const navigate = useNavigate();
 
   // If user is not logged in, show authentication flow
@@ -52,7 +53,7 @@ const ProviderDashboard = () => {
                   size="lg"
                   onClick={() => navigate({ to: "/auth/$action", params: { action: "signup" } })}
                 >
-                  Create Organization Account
+                  Create Provider Account
                 </Button>
               </div>
               
@@ -62,7 +63,6 @@ const ProviderDashboard = () => {
             </CardContent>
           </Card>
         </div>
-
       </div>
     );
   }

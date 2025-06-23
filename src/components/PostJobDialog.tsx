@@ -38,7 +38,8 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     questions: [''],
     positions: 1,
     lastDate: '',
-    workDays: ''
+    workDays: '',
+    machineType: ''
   });
 
   const [orgData, setOrgData] = useState({
@@ -82,7 +83,8 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       questions: [''],
       positions: 1,
       lastDate: '',
-      workDays: ''
+      workDays: '',
+      machineType: ''
     });
   };
 
@@ -286,15 +288,31 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
               <CardTitle className="text-lg">Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="jobTitle">Job Title *</Label>
-                  <Input
-                    id="jobTitle"
-                    value={jobData.title}
-                    onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Electrician, Welder, Security Guard"
-                  />
+                  <Select value={jobData.title} onValueChange={(value) => setJobData(prev => ({ ...prev, title: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select job title" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="tailor">Tailor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="machineType">Required Machine Type</Label>
+                  <Select value={jobData.machineType} onValueChange={(value) => setJobData(prev => ({ ...prev, machineType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select machine type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="single-needle">Single needle</SelectItem>
+                      <SelectItem value="double-needle">Double needle</SelectItem>
+                      <SelectItem value="flat-lock">Flat lock</SelectItem>
+                      <SelectItem value="over-lock">Over lock</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
                   <Label htmlFor="location">Location *</Label>

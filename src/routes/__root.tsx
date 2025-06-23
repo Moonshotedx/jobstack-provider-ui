@@ -2,7 +2,6 @@ import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 import TanStackQueryLayout from '../integrations/tanstack-query/layout.tsx'
 import { Toaster } from '@/components/ui/sonner'
-import { AuthProvider } from '@/contexts/AuthContext'
 import type { QueryClient } from '@tanstack/react-query'
 
 interface MyRouterContext {
@@ -11,11 +10,11 @@ interface MyRouterContext {
 
 export const Route = createRootRouteWithContext<MyRouterContext>()({
   component: () => (
-    <AuthProvider>
+    <>
       <Outlet />
       <Toaster />
       <TanStackRouterDevtools />
       <TanStackQueryLayout />
-    </AuthProvider>
+    </>
   ),
 })

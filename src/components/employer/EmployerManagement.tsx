@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuthStore, type EmployerProfile } from '@/stores/authStore';
 import EmployerCard from './EmployerCard';
 import EmployerProfileDialog from './EmployerProfileDialog';
-import type { EmployerProfile } from '@/contexts/AuthContext';
 
 const EmployerManagement = () => {
-  const { user, selectEmployer, deleteEmployer, getSelectedEmployer } = useAuth();
+  const { user, selectEmployer, deleteEmployer, getSelectedEmployer } = useAuthStore();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployer, setEditingEmployer] = useState<EmployerProfile | null>(null);
   const selectedEmployer = getSelectedEmployer();

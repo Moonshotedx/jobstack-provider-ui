@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,8 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuthStore } from "@/stores/authStore";
+import { CheckCircle, Mail, RefreshCw } from 'lucide-react';
 
 const SignUpSchema = z.object({
   firstName: z.string().nonempty().describe('Enter First Name'),
@@ -17,6 +18,7 @@ const SignUpSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
   confirmPassword: z.string(),
+  role: z.enum(['individual', 'organization']),
   termsAccepted: z.boolean().refine(val => val, "Please accept the terms and conditions"),
   privacyAccepted: z.boolean().refine(val => val, "Please consent to the privacy policy")
 }).refine((data) => data.password === data.confirmPassword, {
@@ -38,11 +40,14 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onSwitchToLogin 
 }) => {
   const navigate = useNavigate();
-  const { register } = useAuth();
+  const { register, resendVerificationEmail, pendingVerificationEmail } = useAuthStore();
+  const [showVerificationPending, setShowVerificationPending] = useState(false);
+  const [isResending, setIsResending] = useState(false);
   
   const signUpForm = useForm<SignUpInputs>({
     resolver: zodResolver(SignUpSchema),
     defaultValues: {
+      role: 'organization',
       termsAccepted: false,
       privacyAccepted: false
     }
@@ -50,26 +55,128 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
 
   const watchedTerms = signUpForm.watch('termsAccepted');
   const watchedPrivacy = signUpForm.watch('privacyAccepted');
+  const watchedRole = signUpForm.watch('role');
 
   const onSignUpSubmit = async (data: SignUpInputs) => {
     try {
-      await register({ 
+      const result = await register({ 
         email: data.email,
         password: data.password,
-        role: 'organization' 
+        role: data.role,
+        firstName: data.firstName,
+        lastName: data.surname
       });
-      onClose();
-      navigate({ to: '/dashboard' });
-      toast.success("Account created successfully!");
+      
+      if (result.needsVerification) {
+        setShowVerificationPending(true);
+        toast.success("Account created! Please check your email to verify your account.");
+      } else {
+        // If somehow already verified, go to dashboard
+        onClose();
+        navigate({ to: '/dashboard' });
+        toast.success("Account created and verified!");
+      }
     } catch (error: any) {
       toast.error(error.message || "Registration failed");
     }
   };
 
+  const handleResendVerification = async () => {
+    setIsResending(true);
+    try {
+      await resendVerificationEmail();
+      toast.success('Verification email resent successfully!');
+    } catch (error: any) {
+      toast.error(error.message || "Failed to resend verification email");
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const handleClose = () => {
     signUpForm.reset();
+    setShowVerificationPending(false);
     onClose();
   };
+
+  // Verification Pending Screen
+  if (showVerificationPending) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleClose}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader className="text-center pb-4">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                <Mail className="h-8 w-8 text-blue-600" />
+              </div>
+            </div>
+            <DialogTitle className="text-2xl font-bold">Check Your Email</DialogTitle>
+            <p className="text-muted-foreground text-sm">
+              We've sent a verification link to {pendingVerificationEmail}
+            </p>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="bg-muted/50 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium">Account Created Successfully</p>
+                  <p className="text-xs text-muted-foreground">
+                    Click the verification link in your email to activate your account and access the dashboard.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <Button 
+                onClick={handleResendVerification}
+                disabled={isResending}
+                variant="outline" 
+                className="w-full"
+              >
+                {isResending ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Resending...
+                  </>
+                ) : (
+                  <>
+                    <Mail className="h-4 w-4 mr-2" />
+                    Resend Verification Email
+                  </>
+                )}
+              </Button>
+
+              <div className="text-center">
+                <span className="text-sm text-muted-foreground">
+                  Already verified?
+                </span>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="p-0 ml-1"
+                  onClick={() => {
+                    handleClose();
+                    onSwitchToLogin?.();
+                  }}
+                >
+                  Sign In
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+              <p className="text-xs text-yellow-800">
+                <strong>Can't find the email?</strong> Check your spam folder or try resending the verification email.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -158,6 +265,36 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
               {signUpForm.formState.errors.confirmPassword && (
                 <span className="text-sm text-destructive">
                   {signUpForm.formState.errors.confirmPassword.message}
+                </span>
+              )}
+            </div>
+
+            {/* Account Type */}
+            <div className="space-y-4">
+              <Label>Account Type</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <Button
+                  type="button"
+                  variant={watchedRole === 'individual' ? 'default' : 'outline'}
+                  disabled={true}
+                  className="h-20 flex flex-col opacity-50 cursor-not-allowed"
+                >
+                  <span className="font-medium">Individual</span>
+                  <span className="text-xs text-muted-foreground">Job seeker</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant={watchedRole === 'organization' ? 'default' : 'outline'}
+                  onClick={() => signUpForm.setValue('role', 'organization')}
+                  className="h-20 flex flex-col"
+                >
+                  <span className="font-medium">Organization</span>
+                  <span className="text-xs text-muted-foreground">Job posting</span>
+                </Button>
+              </div>
+              {signUpForm.formState.errors.role && (
+                <span className="text-sm text-destructive">
+                  {signUpForm.formState.errors.role.message}
                 </span>
               )}
             </div>
