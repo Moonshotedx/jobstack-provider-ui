@@ -7,6 +7,7 @@ import PostJobDialog from '@/components/PostJobDialog'
 import MyJobs from '@/components/MyJobs'
 import CandidateManagement from '@/components/CandidateManagement'
 import EmployerManagement from '@/components/employer/EmployerManagement'
+import EmployerManagementModal from '@/components/employer/EmployerManagementModal'
 import EmployerProfileDialog from '@/components/employer/EmployerProfileDialog'
 import EmployerSelector from '@/components/employer/EmployerSelector'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,6 +25,7 @@ function DashboardContent() {
   const [showOrgProfile, setShowOrgProfile] = useState(false)
   const [showEmployerDialog, setShowEmployerDialog] = useState(false)
   const [showPostJob, setShowPostJob] = useState(false)
+  const [showManageEmployers, setShowManageEmployers] = useState(false)
   const [isCheckingVerification, setIsCheckingVerification] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
@@ -96,6 +98,10 @@ function DashboardContent() {
     } finally {
       setIsResendingVerification(false)
     }
+  }
+
+  const handleManageEmployers = () => {
+    setShowManageEmployers(true)
   }
 
   // Show loading state while checking verification
@@ -235,6 +241,13 @@ function DashboardContent() {
             <Plus className="h-4 w-4 mr-2" />
             Post New Job
           </Button>
+          <Button 
+            variant="outline"
+            onClick={handleManageEmployers}
+          >
+            <Building2 className="h-4 w-4 mr-2" />
+            Manage Employers
+          </Button>
         </div>
       </div>
 
@@ -313,6 +326,11 @@ function DashboardContent() {
       <EmployerProfileDialog
         isOpen={showEmployerDialog}
         onClose={() => setShowEmployerDialog(false)}
+      />
+      
+      <EmployerManagementModal
+        isOpen={showManageEmployers}
+        onClose={() => setShowManageEmployers(false)}
       />
     </div>
   )

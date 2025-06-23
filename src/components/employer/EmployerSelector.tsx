@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ChevronDown, Building2, Plus } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ChevronDown, Building2, Plus, Crown } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 
 interface EmployerSelectorProps {
@@ -21,6 +21,17 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
     );
   }
 
+  // Sort employers to show default employer first
+  const sortedEmployers = [...user.managedEmployers].sort((a, b) => {
+    if (a.isDefault && !b.isDefault) return -1;
+    if (!a.isDefault && b.isDefault) return 1;
+    return 0;
+  });
+
+  const isDefaultEmployer = (employerId: string) => {
+    return user.managedEmployers.find(emp => emp.id === employerId)?.isDefault || false;
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -30,24 +41,35 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
             <span className="truncate">
               {selectedEmployer ? selectedEmployer.name : 'Select Employer'}
             </span>
+            {selectedEmployer && isDefaultEmployer(selectedEmployer.id) && (
+              <Crown className="h-3 w-3 text-amber-500" />
+            )}
           </div>
           <ChevronDown className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[250px]">
-        {user.managedEmployers.map((employer) => (
+        {sortedEmployers.map((employer) => (
           <DropdownMenuItem
             key={employer.id}
             onClick={() => selectEmployer(employer.id)}
             className={selectedEmployer?.id === employer.id ? 'bg-accent' : ''}
           >
-            <div className="flex flex-col items-start">
-              <span className="font-medium">{employer.name}</span>
-              <span className="text-xs text-muted-foreground">{employer.contactEmail}</span>
+            <div className="flex items-center justify-between w-full">
+              <div className="flex flex-col items-start">
+                <div className="flex items-center gap-2">
+                  <span className="font-medium">{employer.name}</span>
+                  {isDefaultEmployer(employer.id) && (
+                    <Crown className="h-3 w-3 text-amber-500" />
+                  )}
+                </div>
+                <span className="text-xs text-muted-foreground">{employer.contactEmail}</span>
+              </div>
             </div>
           </DropdownMenuItem>
         ))}
-        <DropdownMenuItem onClick={onAddEmployer} className="border-t">
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onClick={onAddEmployer}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Employer
         </DropdownMenuItem>
