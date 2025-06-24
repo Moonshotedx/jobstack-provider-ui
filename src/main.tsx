@@ -1,17 +1,38 @@
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { Toaster } from "@/components/ui/sonner"
-import { useAuthStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 
-// Initialize auth session check
-useAuthStore.getState().checkSession()
+// Session Check Component
+function SessionInitializer() {
+  const { checkSession } = useAuth();
+  
+  useEffect(() => {
+    checkSession();
+  }, [checkSession]);
+  
+  return null;
+}
+
+// App wrapper component
+function App() {
+  return (
+    <div className='w-dvw h-dvh bg-background'>
+      <TanStackQueryProvider.Provider>
+        <SessionInitializer />
+        <Toaster position='top-center' richColors theme='light' />
+        <RouterProvider router={router} />
+      </TanStackQueryProvider.Provider>
+    </div>
+  );
+}
 
 // Create a new router instance
 const router = createRouter({
@@ -38,12 +59,7 @@ if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <div className='w-dvw h-dvh bg-background'>
-        <TanStackQueryProvider.Provider>
-          <Toaster position='top-center' richColors theme='light' />
-          <RouterProvider router={router} />
-        </TanStackQueryProvider.Provider>
-      </div>
+      <App />
     </StrictMode>,
   )
 }

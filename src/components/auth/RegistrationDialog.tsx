@@ -9,7 +9,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, Mail, RefreshCw } from 'lucide-react';
 
 const SignUpSchema = z.object({
@@ -40,7 +40,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onSwitchToLogin 
 }) => {
   const navigate = useNavigate();
-  const { register, resendVerificationEmail, pendingVerificationEmail } = useAuthStore();
+  const { register, resendVerificationEmail, isLoading, pendingVerificationEmail } = useAuth();
   const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [isResending, setIsResending] = useState(false);
   
@@ -337,9 +337,9 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
             <Button 
               type="submit" 
               className="w-full" 
-              disabled={signUpForm.formState.isSubmitting}
+              disabled={isLoading}
             >
-              {signUpForm.formState.isSubmitting ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
 
             {onSwitchToLogin && (

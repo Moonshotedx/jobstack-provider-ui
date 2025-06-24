@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { MapPin, Globe, Bell, User, Briefcase, LogOut, ChevronDown } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link, useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '@/stores/authStore';
+import { useUserStore } from '@/stores/authStore';
+import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
 import OrganizationProfileDialog from './profile/OrganizationProfileDialog';
 
@@ -13,7 +14,8 @@ const Header = () => {
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
   
   const navigate = useNavigate();
-  const { user, logout } = useAuthStore();
+  const { user } = useUserStore();
+  const { logout } = useAuth();
 
   const languages = [
     { code: 'EN', name: 'English (English)' },
