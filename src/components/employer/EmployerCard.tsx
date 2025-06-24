@@ -3,7 +3,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Building2, Edit, Trash2, Globe, Phone, Mail, Crown } from 'lucide-react';
-import type { EmployerProfile } from '@/stores/authStore';
+// TODO: Move this interface to a separate employer types file when implementing employer store
+interface EmployerProfile {
+  id: string;
+  name: string;
+  address: string;
+  gstNumber: string;
+  logo?: string;
+  contactPersonName: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  description: string;
+  createdAt: string;
+  isActive: boolean;
+  isDefault?: boolean;
+}
 
 interface EmployerCardProps {
   employer: EmployerProfile;

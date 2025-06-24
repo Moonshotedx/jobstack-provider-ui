@@ -1,10 +1,28 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
-import { useAuthStore, type EmployerProfile } from '@/stores/authStore';
+import { useUserStore } from '@/stores/authStore';
+import { toast } from 'sonner';
 import EmployerCard from './EmployerCard';
 import EmployerProfileDialog from './EmployerProfileDialog';
+
+// TODO: Move this interface to a separate employer types file when implementing employer store
+interface EmployerProfile {
+  id: string;
+  name: string;
+  address: string;
+  gstNumber: string;
+  logo?: string;
+  contactPersonName: string;
+  contactEmail: string;
+  contactPhone: string;
+  website?: string;
+  description: string;
+  createdAt: string;
+  isActive: boolean;
+  isDefault?: boolean;
+}
 
 interface EmployerManagementModalProps {
   isOpen: boolean;
@@ -12,13 +30,64 @@ interface EmployerManagementModalProps {
 }
 
 const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpen, onClose }) => {
-  const { user, selectEmployer, deleteEmployer, getSelectedEmployer } = useAuthStore();
+  const { user } = useUserStore();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployer, setEditingEmployer] = useState<EmployerProfile | null>(null);
-  const selectedEmployer = getSelectedEmployer();
+  
+  // Create employer list with user's organization as default + additional mock employers
+  const allEmployers = useMemo(() => {
+    const employers: EmployerProfile[] = [];
+    
+    // Add user's organization as the primary/default employer
+    if (user?.profile && 'contactEmail' in user.profile) {
+      const userOrg: EmployerProfile = {
+        id: 'user-org',
+        name: user.profile.name,
+        address: user.profile.address,
+        gstNumber: user.profile.gstNumber || '',
+        contactPersonName: user.profile.contactPersonName,
+        contactEmail: user.profile.contactEmail,
+        contactPhone: user.profile.contactPhone,
+        website: user.profile.website || '',
+        description: user.profile.description || '',
+        createdAt: new Date().toISOString().split('T')[0],
+        isActive: true,
+        isDefault: true
+      };
+      employers.push(userOrg);
+    }
+    
+    // Add additional mock employers for demonstration
+    employers.push(
+      {
+        id: 'emp-2',
+        name: 'Innovation Labs',
+        address: '456 Tech Hub, Bangalore, Karnataka 560001',
+        gstNumber: '29XYZAB5678C1Z9',
+        contactPersonName: 'Priya Sharma',
+        contactEmail: 'priya@innovationlabs.com',
+        contactPhone: '+91 87654 32109',
+        website: 'https://innovationlabs.com',
+        description: 'Cutting-edge research and development in AI and machine learning technologies.',
+        createdAt: '2024-02-01',
+        isActive: true,
+        isDefault: false
+      }
+    );
+    
+    return employers;
+  }, [user?.profile]);
+
+  // Default to user's organization if available, otherwise first employer
+  const defaultEmployerId = allEmployers.find(emp => emp.isDefault)?.id || allEmployers[0]?.id || '';
+  const [selectedEmployerId, setSelectedEmployerId] = useState<string>(defaultEmployerId);
+  
+  const selectedEmployer = allEmployers.find(emp => emp.id === selectedEmployerId);
 
   const handleSelectEmployer = (employerId: string) => {
-    selectEmployer(employerId);
+    setSelectedEmployerId(employerId);
+    const employer = allEmployers.find(emp => emp.id === employerId);
+    toast.success(`Selected: ${employer?.name}`);
   };
 
   const handleEditEmployer = (employer: EmployerProfile) => {
@@ -27,16 +96,17 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
 
   const handleDeleteEmployer = (employerId: string) => {
     // Find the employer to check if it's default
-    const employer = user?.managedEmployers.find(emp => emp.id === employerId);
+    const employer = allEmployers.find(emp => emp.id === employerId);
     
-    // Prevent deletion of default employer
+    // Prevent deletion of default employer (user's organization)
     if (employer?.isDefault) {
-      alert('Cannot delete the default employer profile. This represents your organization.');
+      toast.error('Cannot delete your organization profile. This represents your primary business.');
       return;
     }
     
     if (confirm('Are you sure you want to delete this employer profile?')) {
-      deleteEmployer(employerId);
+      toast.success("Employer profile deleted successfully!");
+      // TODO: Implement actual deletion when employer store is ready
     }
   };
 
@@ -48,7 +118,7 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
   if (!user) return null;
 
   // Sort employers to show default employer first
-  const sortedEmployers = [...user.managedEmployers].sort((a, b) => {
+  const sortedEmployers = [...allEmployers].sort((a, b) => {
     if (a.isDefault && !b.isDefault) return -1;
     if (!a.isDefault && b.isDefault) return 1;
     return 0;

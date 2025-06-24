@@ -1,7 +1,8 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
-import { useAuthStore } from '@/stores/authStore'
+import { useUserStore } from '@/stores/authStore'
+import { useAuth } from '@/hooks/useAuth'
 import OrganizationProfileDialog from '@/components/profile/OrganizationProfileDialog'
 import PostJobDialog from '@/components/PostJobDialog'
 import MyJobs from '@/components/MyJobs'
@@ -30,14 +31,8 @@ function DashboardContent() {
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
   
-  const { 
-    user, 
-    checkEmailVerification, 
-    resendVerificationEmail,
-    getSelectedEmployer 
-  } = useAuthStore()
-  
-  const selectedEmployer = getSelectedEmployer()
+  const { user } = useUserStore()
+  const { checkEmailVerification, resendVerificationEmail, pendingVerificationEmail } = useAuth()
 
   // Check verification status on mount and periodically
   useEffect(() => {
@@ -236,7 +231,6 @@ function DashboardContent() {
           <EmployerSelector onAddEmployer={() => setShowEmployerDialog(true)} />
           <Button 
             onClick={() => setShowPostJob(true)}
-            disabled={!selectedEmployer}
           >
             <Plus className="h-4 w-4 mr-2" />
             Post New Job
@@ -252,13 +246,16 @@ function DashboardContent() {
       </div>
 
       {/* Current Employer Info */}
-      {selectedEmployer && (
+      {user && user.profile && 'contactEmail' in user.profile && (
         <div className="mb-6 p-4 bg-muted/50 rounded-lg border">
           <div className="flex items-center gap-3">
             <Building2 className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium">Current Employer: {selectedEmployer.name}</p>
-              <p className="text-sm text-muted-foreground">{selectedEmployer.contactEmail}</p>
+              <p className="font-medium">Your Organization: {user.profile.name}</p>
+              <p className="text-sm text-muted-foreground">{user.profile.contactEmail}</p>
+              {user.profile.address && (
+                <p className="text-xs text-muted-foreground">{user.profile.address}</p>
+              )}
             </div>
           </div>
         </div>

@@ -9,14 +9,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
-import { useAuthStore } from '@/stores/authStore';
+import { useUserStore } from '@/stores/authStore';
+
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
   const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showPostJob, setShowPostJob] = useState(false);
   
   // const { user } = useAuth();
-  const user = useAuthStore((state) => state.user);
+  const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
 
   // If user is not logged in, show authentication flow

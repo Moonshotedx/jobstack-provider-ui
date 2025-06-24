@@ -8,7 +8,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
-import { useAuthStore } from "@/stores/authStore";
+import { useAuth } from "@/hooks/useAuth";
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -25,7 +25,7 @@ interface LoginDialogProps {
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login, isLoading } = useAuth();
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)
@@ -33,7 +33,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
 
   const onSignInSubmit = async (data: SignInInputs) => {
     try {
-      await login(data.email, data.password);
+      await login(data);
       onClose();
       navigate({ to: '/dashboard' });
       toast.success("Welcome back! You have successfully logged in.");
@@ -96,8 +96,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
               )}
             </div>
 
-            <Button type="submit" className="w-full" disabled={signInForm.formState.isSubmitting}>
-              {signInForm.formState.isSubmitting ? 'Signing In...' : 'Sign In'}
+            <Button type="submit" className="w-full" disabled={isLoading}>
+              {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
 
             <div className="text-center">
