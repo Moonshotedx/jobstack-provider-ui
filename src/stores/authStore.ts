@@ -58,6 +58,7 @@ interface UserState {
   // State
   user: User | null
   isLoading: boolean
+  currentOrganizationId: string | null
   
   // Actions
   setUser: (user: User | null) => void
@@ -65,6 +66,7 @@ interface UserState {
   updateProfile: (profile: UserProfile | OrganizationProfile) => void
   clearUser: () => void
   setLoading: (loading: boolean) => void
+  setCurrentOrganizationId: (orgId: string | null) => void
 }
 
 export const useUserStore = create<UserState>()(
@@ -74,6 +76,7 @@ export const useUserStore = create<UserState>()(
         // Initial state
         user: null,
         isLoading: false,
+        currentOrganizationId: null,
 
         // Actions
         setUser: (user) => {
@@ -100,11 +103,18 @@ export const useUserStore = create<UserState>()(
 
         setLoading: (loading) => {
           set({ isLoading: loading })
+        },
+
+        setCurrentOrganizationId: (orgId) => {
+          set({ currentOrganizationId: orgId })
         }
       }),
       {
         name: 'user-storage',
-        partialize: (state) => ({ user: state.user }),
+        partialize: (state) => ({ 
+          user: state.user, 
+          currentOrganizationId: state.currentOrganizationId 
+        }),
       }
     ),
     { name: 'user-store' }

@@ -16,17 +16,41 @@ export const createOrganisation = async (orgInfo: {
   name: string;
   slug: string;
   logo?: string;
+  metadata?: any;
 }) => {
-  const doesSlugExists = await authClient.organization.checkSlug({
+  const slugCheckResult = await authClient.organization.checkSlug({
     slug: orgInfo.slug,
   });
-  if (doesSlugExists.data) {
-    const org = await authClient.organization.create(orgInfo);
-    if (org.error) {
-      throw Error(org.error.message);
-    }
-    return org.data;
-  } else {
-    throw Error('Organisation Identifier Already Exists');
+  
+  console.log('Slug check result:', slugCheckResult);
+  
+  // Check if the API call failed
+  if (slugCheckResult.error) {
+    throw new Error(`Slug check failed: ${slugCheckResult.error.message}`);
   }
+  
+  // The response should be {"status": true} if slug is available
+  // {"status": false} or falsy if slug is taken
+  const isSlugAvailable = slugCheckResult.data?.status === true;
+  
+  if (!isSlugAvailable) {
+    // Slug is taken, throw error
+    throw new Error('Organization Identifier Already Exists');
+  }
+  
+  console.log('Slug is available, creating organization...');
+  
+  // Slug is available, create organization
+  const org = await authClient.organization.create({
+    name: orgInfo.name,
+    slug: orgInfo.slug,
+    logo: orgInfo.logo,
+    metadata: orgInfo.metadata
+  });
+  
+  if (org.error) {
+    throw new Error(org.error.message);
+  }
+  
+  return org.data;
 };
