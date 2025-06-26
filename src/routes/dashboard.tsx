@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react'
 import Header from '@/components/Header'
 import { useUserStore } from '@/stores/authStore'
 import { useAuth } from '@/hooks/useAuth'
-import OrganizationProfileDialog from '@/components/profile/OrganizationProfileDialog'
+import { CreateOrg } from '@/components/organisation/CreateOrg'
 import PostJobDialog from '@/components/PostJobDialog'
 import MyJobs from '@/components/MyJobs'
 import CandidateManagement from '@/components/CandidateManagement'
@@ -187,15 +187,15 @@ function DashboardContent() {
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="space-y-4">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-            <h1 className="text-3xl font-bold">Welcome, {user.email}!</h1>
-            <p className="text-muted-foreground text-lg">
-              Let's set up your provider profile to start managing employers.
-            </p>
+                      <h1 className="text-3xl font-bold">Welcome, {user.email}!</h1>
+          <p className="text-muted-foreground text-lg">
+            Let's set up your organization to start managing jobs and candidates.
+          </p>
           </div>
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>Complete Your Provider Profile</CardTitle>
+              <CardTitle>Create Your Organization</CardTitle>
             </CardHeader>
             <CardContent>
               <Button 
@@ -203,15 +203,19 @@ function DashboardContent() {
                 size="lg"
                 onClick={() => setShowOrgProfile(true)}
               >
-                Create Provider Profile
+                Create Organization
               </Button>
             </CardContent>
           </Card>
         </div>
 
-        <OrganizationProfileDialog
+        <CreateOrg
           isOpen={showOrgProfile}
           onClose={() => setShowOrgProfile(false)}
+          onSuccess={() => {
+            setShowOrgProfile(false);
+            toast.success('Welcome to your dashboard! Your organization has been created successfully.');
+          }}
         />
       </div>
     )

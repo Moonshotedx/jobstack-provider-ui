@@ -35,18 +35,114 @@ export const useAuth = (): UseAuthReturn => {
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
   const { setUser, clearUser, setLoading: setUserLoading } = useUserStore();
 
+  // Helper function to load organization profile from better-auth
+  const loadOrganizationProfile = useCallback(async (sessionData: any, betterAuthUser: any) => {
+    try {
+      // First, get the user's organizations
+      const orgListResponse = await authClient.organization.list();
+      
+      if (orgListResponse.error) {
+        console.error('Failed to fetch organization list:', orgListResponse.error);
+        return undefined;
+      }
+
+      const organizations = orgListResponse.data || [];
+      
+      // If user has no organizations, return undefined
+      if (organizations.length === 0) {
+        console.log('User has no organizations');
+        return undefined;
+      }
+
+      let activeOrganizationId = sessionData?.session?.activeOrganizationId;
+      
+      // If no active organization is set but user has organizations, set the first one as active
+      if (!activeOrganizationId && organizations.length > 0) {
+        console.log('No active organization set, setting first organization as active');
+        const firstOrg = organizations[0];
+        
+        try {
+          const setActiveResult = await authClient.organization.setActive({ 
+            organizationId: firstOrg.id 
+          });
+          
+          if (setActiveResult.error) {
+            console.error('Failed to set active organization:', setActiveResult.error);
+          } else {
+            activeOrganizationId = firstOrg.id;
+            console.log('Successfully set active organization:', firstOrg.name);
+          }
+        } catch (error) {
+          console.error('Error setting active organization:', error);
+        }
+      }
+      
+      // Now find the active organization
+      const activeOrg = organizations.find(org => org.id === activeOrganizationId);
+      
+      if (!activeOrg) {
+        console.error('Active organization not found in list:', activeOrganizationId);
+        return undefined;
+      }
+
+      console.log('Loading organization profile for:', activeOrg.name);
+      
+      // Parse metadata from better-auth (could be string or object)
+      let metadata: {
+        address?: string;
+        gstNumber?: string;
+        contactPersonName?: string;
+        contactEmail?: string;
+        contactPhone?: string;
+        website?: string;
+        description?: string;
+      } = {};
+      
+      if (activeOrg.metadata) {
+        try {
+          metadata = typeof activeOrg.metadata === 'string' 
+            ? JSON.parse(activeOrg.metadata) 
+            : activeOrg.metadata;
+        } catch (error) {
+          console.error('Failed to parse organization metadata:', error);
+          metadata = {};
+        }
+      }
+      
+      const profile = {
+        name: activeOrg.name || betterAuthUser.name || '',
+        address: metadata.address || '',
+        gstNumber: metadata.gstNumber || '',
+        logo: activeOrg.logo || '',
+        contactPersonName: metadata.contactPersonName || '',
+        contactEmail: metadata.contactEmail || '',
+        contactPhone: metadata.contactPhone || '',
+        website: metadata.website || '',
+        description: metadata.description || ''
+      };
+
+      console.log('Successfully loaded organization profile for:', profile.name);
+      return profile;
+    } catch (error) {
+      console.error('Failed to load organization data:', error);
+      return undefined;
+    }
+  }, []);
+
   const checkSession = useCallback(async () => {
     try {
       setUserLoading(true);
       const session = await authClient.getSession();
       if (session.data?.user) {
         const betterAuthUser = session.data.user;
+        const profile = await loadOrganizationProfile(session.data, betterAuthUser);
+        
         const mappedUser = {
           id: betterAuthUser.id,
           email: betterAuthUser.email,
           role: 'organization' as const, // default for now
           isVerified: betterAuthUser.emailVerified || false,
-          profile: undefined, // will be loaded separately if needed
+          profile: profile,
         };
         setUser(mappedUser);
       }
@@ -55,7 +151,7 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setUserLoading(false);
     }
-  }, [setUser, setUserLoading]);
+  }, [setUser, setUserLoading, loadOrganizationProfile]);
 
   const login = useCallback(async (data: LoginData) => {
     setIsLoading(true);
@@ -67,12 +163,14 @@ export const useAuth = (): UseAuthReturn => {
       
       if (loginRequest.data?.user) {
         const betterAuthUser = loginRequest.data.user;
+        const profile = await loadOrganizationProfile(loginRequest.data, betterAuthUser);
+        
         const mappedUser = {
           id: betterAuthUser.id,
           email: betterAuthUser.email,
           role: 'organization' as const,
           isVerified: betterAuthUser.emailVerified || false,
-          profile: undefined,
+          profile: profile,
         };
         setUser(mappedUser);
       } else if (loginRequest.error) {
@@ -81,7 +179,7 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [setUser]);
+  }, [setUser, loadOrganizationProfile]);
 
   const register = useCallback(async (data: RegisterData) => {
     setIsLoading(true);

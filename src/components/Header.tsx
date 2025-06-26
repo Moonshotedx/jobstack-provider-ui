@@ -6,7 +6,7 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
-import OrganizationProfileDialog from './profile/OrganizationProfileDialog';
+
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
@@ -181,10 +181,7 @@ const Header = () => {
         skipAuthSteps={true}
       />
       
-      <OrganizationProfileDialog
-        isOpen={showOrgProfile}
-        onClose={() => setShowOrgProfile(false)}
-      />
+
     </header>
   );
 };

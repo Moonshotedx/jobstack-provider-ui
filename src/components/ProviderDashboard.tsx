@@ -3,7 +3,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { useAuth } from '@/contexts/AuthContext';
 import MyJobs from './MyJobs';
 import CandidateManagement from './CandidateManagement';
-import OrganizationProfileDialog from './profile/OrganizationProfileDialog';
+
 import PostJobDialog from './PostJobDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -97,10 +97,7 @@ const ProviderDashboard = () => {
           </Card>
         </div>
 
-        <OrganizationProfileDialog
-          isOpen={showOrgProfile}
-          onClose={() => setShowOrgProfile(false)}
-        />
+
       </div>
     );
   }
