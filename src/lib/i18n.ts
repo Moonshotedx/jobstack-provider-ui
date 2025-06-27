@@ -114,7 +114,7 @@ i18n
     
     // Missing key handling
     saveMissing: !isProduction,
-    missingKeyHandler: !isProduction ? (lng, ns, key, fallbackValue) => {
+    missingKeyHandler: !isProduction ? (lng, ns, key) => {
       console.warn(`Missing translation key: ${lng}:${ns}:${key}`);
     } : undefined,
   });

@@ -1,0 +1,57 @@
+{
+  "title": "డ్యాష్‌బోర్డ్",
+  "welcome": "స్వాగతం",
+  "overview": "సమీక్ష",
+  "stats": {
+    "totalJobs": "మొత్తం ఉద్యోగాలు",
+    "activeJobs": "సక్రియ ఉద్యోగాలు",
+    "applications": "దరఖాస్తులు",
+    "totalApplications": "మొత్తం దరఖాస్తులు",
+    "pendingApplications": "పెండింగ్ దరఖాస్తులు",
+    "shortlisted": "షార్ట్‌లిస్ట్ చేయబడింది",
+    "hired": "నియామకం చేయబడింది",
+    "candidatesHired": "నియామకం చేయబడిన అభ్యర్థులు",
+    "views": "వీక్షణలు",
+    "responses": "ప్రతిస్పందనలు",
+    "responseRate": "ప్రతిస్పందన రేటు"
+  },
+  "quickActions": {
+    "title": "త్వరిత చర్యలు",
+    "postJob": "ఉద్యోగం పోస్ట్ చేయండి",
+    "viewApplications": "దరఖాస్తులు చూడండి",
+    "manageJobs": "ఉద్యోగాలను నిర్వహించండి",
+    "addCandidate": "అభ్యర్థిని జోడించండి",
+    "createOrganization": "సంస్థను సృష్టించండి",
+    "viewReports": "నివేదికలు చూడండి"
+  },
+  "recentActivity": {
+    "title": "తాజా కార్యకలాపాలు",
+    "newApplication": "కొత్త దరఖాస్తు",
+    "jobPosted": "ఉద్యోగం పోస్ట్ చేయబడింది",
+    "candidateShortlisted": "అభ్యర్థి షార్ట్‌లిస్ట్ చేయబడింది",
+    "jobExpired": "ఉద్యోగం గడువు ముగిసింది",
+    "noActivity": "తాజా కార్యకలాపాలు లేవు"
+  },
+  "tabs": {
+    "overview": "సమీక్ష",
+    "jobs": "ఉద్యోగాలు",
+    "myJobs": "నా ఉద్యోగాలు",
+    "applications": "దరఖాస్తులు",
+    "candidates": "అభ్యర్థులు",
+    "candidateManagement": "అభ్యర్థుల నిర్వహణ",
+    "organizations": "సంస్థలు",
+    "settings": "సెట్టింగులు",
+    "profile": "ప్రొఫైల్",
+    "reports": "నివేదికలు",
+    "analytics": "విశ్లేషణలు"
+  },
+  "notifications": {
+    "title": "తాకిడలు",
+    "markAllRead": "అన్నింటినీ చదివినట్లు గుర్తు పెట్టండి",
+    "noNotifications": "తాకిడలు లేవు",
+    "newApplication": "కొత్త దరఖాస్తు వచ్చింది",
+    "applicationUpdate": "దరఖాస్తు అప్‌డేట్",
+    "jobExpiring": "ఉద్యోగం త్వరలో గడువు ముగుస్తుంది",
+    "systemUpdate": "సిస్టమ్ అప్‌డేట్"
+  }
+} 

@@ -1,0 +1,57 @@
+{
+  "title": "ড্যাশবোর্ড",
+  "welcome": "স্বাগতম",
+  "overview": "সংক্ষিপ্ত বিবরণ",
+  "stats": {
+    "totalJobs": "মোট চাকরি",
+    "activeJobs": "সক্রিয় চাকরি",
+    "applications": "আবেদন",
+    "totalApplications": "মোট আবেদন",
+    "pendingApplications": "অমীমাংসিত আবেদন",
+    "shortlisted": "নির্বাচিত",
+    "hired": "নিয়োগপ্রাপ্ত",
+    "candidatesHired": "নিয়োগপ্রাপ্ত প্রার্থী",
+    "views": "দেখা হয়েছে",
+    "responses": "প্রতিক্রিয়া",
+    "responseRate": "প্রতিক্রিয়ার হার"
+  },
+  "quickActions": {
+    "title": "দ্রুত কাজ",
+    "postJob": "চাকরি পোস্ট করুন",
+    "viewApplications": "আবেদন দেখুন",
+    "manageJobs": "চাকরি পরিচালনা করুন",
+    "addCandidate": "প্রার্থী যোগ করুন",
+    "createOrganization": "প্রতিষ্ঠান তৈরি করুন",
+    "viewReports": "রিপোর্ট দেখুন"
+  },
+  "recentActivity": {
+    "title": "সাম্প্রতিক কার্যকলাপ",
+    "newApplication": "নতুন আবেদন",
+    "jobPosted": "চাকরি পোস্ট করা হয়েছে",
+    "candidateShortlisted": "প্রার্থী নির্বাচিত",
+    "jobExpired": "চাকরির মেয়াদ শেষ",
+    "noActivity": "কোনো সাম্প্রতিক কার্যকলাপ নেই"
+  },
+  "tabs": {
+    "overview": "সংক্ষিপ্ত বিবরণ",
+    "jobs": "চাকরি",
+    "myJobs": "আমার চাকরি",
+    "applications": "আবেদন",
+    "candidates": "প্রার্থী",
+    "candidateManagement": "প্রার্থী পরিচালনা",
+    "organizations": "প্রতিষ্ঠান",
+    "settings": "সেটিংস",
+    "profile": "প্রোফাইল",
+    "reports": "রিপোর্ট",
+    "analytics": "বিশ্লেষণ"
+  },
+  "notifications": {
+    "title": "বিজ্ঞপ্তি",
+    "markAllRead": "সব পড়া হয়েছে চিহ্নিত করুন",
+    "noNotifications": "কোনো বিজ্ঞপ্তি নেই",
+    "newApplication": "নতুন আবেদন পেয়েছেন",
+    "applicationUpdate": "আবেদনের আপডেট",
+    "jobExpiring": "চাকরির মেয়াদ শীঘ্রই শেষ হবে",
+    "systemUpdate": "সিস্টেম আপডেট"
+  }
+} 
