@@ -16,6 +16,7 @@ import {
   UserCheck,
   UserX
 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface Candidate {
   id: string;
@@ -34,6 +35,7 @@ interface Candidate {
 }
 
 const CandidateManagement = () => {
+  const { t } = useTranslation('candidates');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
   
@@ -142,17 +144,17 @@ const CandidateManagement = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">Candidate Management</h2>
-          <p className="text-muted-foreground">Review and manage job applications</p>
+          <h2 className="text-2xl font-bold">{t('management.title')}</h2>
+          <p className="text-muted-foreground">{t('management.subtitle')}</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export
+            {t('management.exportCandidates')}
           </Button>
           <Button variant="outline" size="sm">
             <Filter className="h-4 w-4 mr-2" />
-            Filter
+            {t('management.filterCandidates')}
           </Button>
         </div>
       </div>
@@ -163,7 +165,7 @@ const CandidateManagement = () => {
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search candidates..."
+              placeholder={t('management.searchCandidates')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
@@ -173,11 +175,11 @@ const CandidateManagement = () => {
 
         <Tabs value={selectedTab} onValueChange={setSelectedTab}>
           <TabsList>
-            <TabsTrigger value="all">All ({statusCounts.all})</TabsTrigger>
-            <TabsTrigger value="applied">Applied ({statusCounts.applied})</TabsTrigger>
-            <TabsTrigger value="reviewed">Reviewed ({statusCounts.reviewed})</TabsTrigger>
-            <TabsTrigger value="shortlisted">Shortlisted ({statusCounts.shortlisted})</TabsTrigger>
-            <TabsTrigger value="interview">Interview ({statusCounts.interview})</TabsTrigger>
+            <TabsTrigger value="all">{t('tabs.all', { count: statusCounts.all })}</TabsTrigger>
+            <TabsTrigger value="applied">{t('tabs.applied', { count: statusCounts.applied })}</TabsTrigger>
+            <TabsTrigger value="reviewed">{t('tabs.reviewed', { count: statusCounts.reviewed })}</TabsTrigger>
+            <TabsTrigger value="shortlisted">{t('tabs.shortlisted', { count: statusCounts.shortlisted })}</TabsTrigger>
+            <TabsTrigger value="interview">{t('tabs.interview', { count: statusCounts.interview })}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
@@ -198,33 +200,33 @@ const CandidateManagement = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-semibold">{candidate.name}</h3>
                       <Badge className={getStatusColor(candidate.status)}>
-                        {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
+                        {t(`status.${candidate.status}`)}
                       </Badge>
                     </div>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-muted-foreground mb-3">
-                      <div>Applied for: <span className="font-medium text-foreground">{candidate.appliedFor}</span></div>
+                      <div>{t('details.appliedFor', { position: candidate.appliedFor })}</div>
                       <div className="flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
                         {candidate.location}
                       </div>
                       <div className="flex items-center gap-1">
                         <Calendar className="h-3 w-3" />
-                        {formatDate(candidate.applicationDate)}
+                        {t('details.appliedOn', { date: formatDate(candidate.applicationDate) })}
                       </div>
                     </div>
 
                     <div className="flex items-center gap-6 mb-3">
                       <div className="flex items-center gap-2">
                         <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">Trust: {candidate.trustScore}%</span>
+                        <span className="text-sm font-medium">{t('details.trustScore', { score: candidate.trustScore })}</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                        <span className="text-sm font-medium">Match: {candidate.matchScore}%</span>
+                        <span className="text-sm font-medium">{t('details.matchScore', { score: candidate.matchScore })}</span>
                       </div>
                       <div className="text-sm">
-                        <span className="font-medium">{candidate.experience}</span> experience
+                        <span className="font-medium">{t('details.experience', { years: candidate.experience })}</span>
                       </div>
                     </div>
 
@@ -236,7 +238,7 @@ const CandidateManagement = () => {
                       ))}
                       {candidate.skills.length > 4 && (
                         <Badge variant="outline" className="text-xs">
-                          +{candidate.skills.length - 4} more
+                          {t('details.moreSkills', { count: candidate.skills.length - 4 })}
                         </Badge>
                       )}
                     </div>
@@ -246,15 +248,15 @@ const CandidateManagement = () => {
                 <div className="flex items-center gap-2">
                   <Button variant="outline" size="sm">
                     <Eye className="h-4 w-4 mr-2" />
-                    View
+                    {t('actions.view')}
                   </Button>
                   <Button variant="outline" size="sm">
                     <UserCheck className="h-4 w-4 mr-2" />
-                    Shortlist
+                    {t('actions.shortlist')}
                   </Button>
                   <Button variant="outline" size="sm">
                     <UserX className="h-4 w-4 mr-2" />
-                    Reject
+                    {t('actions.reject')}
                   </Button>
                 </div>
               </div>
@@ -266,9 +268,9 @@ const CandidateManagement = () => {
       {filteredCandidates.length === 0 && (
         <Card>
           <CardContent className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No candidates found</h3>
+            <h3 className="text-lg font-medium mb-2">{t('management.noCandidatesFound')}</h3>
             <p className="text-muted-foreground">
-              {searchQuery ? 'Try adjusting your search criteria.' : 'No applications received yet.'}
+              {searchQuery ? t('management.noCandidatesDesc') : t('management.noApplications')}
             </p>
           </CardContent>
         </Card>

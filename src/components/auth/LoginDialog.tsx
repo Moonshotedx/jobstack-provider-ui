@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
+import { Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -24,8 +26,10 @@ interface LoginDialogProps {
 }
 
 const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)
@@ -36,9 +40,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       await login(data);
       onClose();
       navigate({ to: '/dashboard' });
-      toast.success("Welcome back! You have successfully logged in.");
+      toast.success(t('login.signInSuccess'));
     } catch (error: any) {
-      toast.error(error.message || "Login failed");
+      toast.error(error.message || t('errors.loginFailed'));
     }
   };
 
@@ -51,9 +55,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold">Sign In</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{t('login.title')}</DialogTitle>
           <p className="text-muted-foreground text-sm">
-            Welcome back! Please sign in to your account
+            {t('login.subtitle')}
           </p>
         </DialogHeader>
 
@@ -61,16 +65,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
           <form onSubmit={signInForm.handleSubmit(onSignInSubmit)} className="space-y-4">
             {/* Email field */}
             <div>
-              <Label htmlFor="login-email">Email Address</Label>
+              <Label htmlFor="login-email">{t('login.emailLabel')}</Label>
               <Input
                 id="login-email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('login.emailPlaceholder')}
                 {...signInForm.register("email")}
               />
               {signInForm.formState.errors.email && (
                 <span className="text-sm text-destructive">
-                  {signInForm.formState.errors.email.message}
+                  {t('errors.invalidEmail')}
                 </span>
               )}
             </div>
@@ -78,31 +82,48 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
             {/* Password field */}
             <div>
               <div className="flex items-center justify-between">
-                <Label htmlFor="login-password">Password</Label>
+                <Label htmlFor="login-password">{t('login.passwordLabel')}</Label>
                 <Button variant="ghost" className="text-sm text-primary p-0 h-auto">
-                  Forgot Password?
+                  {t('login.forgotPassword')}
                 </Button>
               </div>
-              <Input
-                id="login-password"
-                type="password"
-                placeholder="Enter your password"
-                {...signInForm.register("password")}
-              />
+              <div className="relative">
+                <Input
+                  id="login-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t('login.passwordPlaceholder')}
+                  {...signInForm.register("password")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
               {signInForm.formState.errors.password && (
                 <span className="text-sm text-destructive">
-                  {signInForm.formState.errors.password.message}
+                  {t('errors.passwordTooShort')}
                 </span>
               )}
             </div>
 
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? 'Signing In...' : 'Sign In'}
+              {isLoading ? t('login.signingIn') : t('login.signInButton')}
             </Button>
 
             <div className="text-center">
               <span className="text-sm text-muted-foreground">
-                Don't have an account?
+                {t('login.noAccount')}
               </span>
               <Button
                 type="button"
@@ -113,7 +134,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
                   onSwitchToRegister();
                 }}
               >
-                Create Account
+                {t('login.createAccount')}
               </Button>
             </div>
           </form>

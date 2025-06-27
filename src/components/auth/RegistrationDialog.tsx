@@ -10,7 +10,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
-import { CheckCircle, Mail, RefreshCw } from 'lucide-react';
+import { CheckCircle, Mail, RefreshCw, Eye, EyeOff } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 const SignUpSchema = z.object({
   firstName: z.string().nonempty().describe('Enter First Name'),
@@ -39,10 +40,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onClose, 
   onSwitchToLogin 
 }) => {
+  const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { register, resendVerificationEmail, isLoading, pendingVerificationEmail } = useAuth();
   const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [isResending, setIsResending] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const signUpForm = useForm<SignUpInputs>({
     resolver: zodResolver(SignUpSchema),
@@ -69,7 +73,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
       
       if (result.needsVerification) {
         setShowVerificationPending(true);
-        toast.success("Account created! Please check your email to verify your account.");
+        toast.success(t('register.accountCreated'));
       } else {
         // If somehow already verified, go to dashboard
         onClose();
@@ -77,7 +81,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         toast.success("Account created and verified!");
       }
     } catch (error: any) {
-      toast.error(error.message || "Registration failed");
+      toast.error(error.message || t('errors.registrationFailed'));
     }
   };
 
@@ -85,7 +89,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
     setIsResending(true);
     try {
       await resendVerificationEmail();
-      toast.success('Verification email resent successfully!');
+      toast.success(t('verification.resendSuccess'));
     } catch (error: any) {
       toast.error(error.message || "Failed to resend verification email");
     } finally {
@@ -110,9 +114,9 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 <Mail className="h-8 w-8 text-blue-600" />
               </div>
             </div>
-            <DialogTitle className="text-2xl font-bold">Check Your Email</DialogTitle>
+            <DialogTitle className="text-2xl font-bold">{t('verification.title')}</DialogTitle>
             <p className="text-muted-foreground text-sm">
-              We've sent a verification link to {pendingVerificationEmail}
+              {t('verification.subtitle', { email: pendingVerificationEmail })}
             </p>
           </DialogHeader>
 
@@ -121,9 +125,9 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
               <div className="flex items-start gap-3">
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="text-sm font-medium">Account Created Successfully</p>
+                  <p className="text-sm font-medium">{t('verification.accountCreatedTitle')}</p>
                   <p className="text-xs text-muted-foreground">
-                    Click the verification link in your email to activate your account and access the dashboard.
+                    {t('verification.accountCreatedDesc')}
                   </p>
                 </div>
               </div>
@@ -139,19 +143,19 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                 {isResending ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Resending...
+                    {t('verification.resending')}
                   </>
                 ) : (
                   <>
                     <Mail className="h-4 w-4 mr-2" />
-                    Resend Verification Email
+                    {t('verification.resendButton')}
                   </>
                 )}
               </Button>
 
               <div className="text-center">
                 <span className="text-sm text-muted-foreground">
-                  Already verified?
+                  {t('verification.alreadyVerified')}
                 </span>
                 <Button
                   type="button"
@@ -162,14 +166,14 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     onSwitchToLogin?.();
                   }}
                 >
-                  Sign In
+                  {t('verification.signInLink')}
                 </Button>
               </div>
             </div>
 
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
               <p className="text-xs text-yellow-800">
-                <strong>Can't find the email?</strong> Check your spam folder or try resending the verification email.
+                <strong>{t('verification.cantFindEmail')}</strong> {t('verification.checkSpamFolder')}
               </p>
             </div>
           </div>
@@ -182,9 +186,9 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader className="text-center pb-4">
-          <DialogTitle className="text-2xl font-bold">Create Account</DialogTitle>
+          <DialogTitle className="text-2xl font-bold">{t('register.title')}</DialogTitle>
           <p className="text-muted-foreground text-sm">
-            Join our platform to discover opportunities
+            {t('register.subtitle')}
           </p>
         </DialogHeader>
 
@@ -192,16 +196,16 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
           <form onSubmit={signUpForm.handleSubmit(onSignUpSubmit)} className="space-y-4">
             {/* Email field */}
             <div>
-              <Label htmlFor="reg-email">Email Address</Label>
+              <Label htmlFor="reg-email">{t('register.emailLabel')}</Label>
               <Input
                 id="reg-email"
                 type="email"
-                placeholder="your@email.com"
+                placeholder={t('register.emailPlaceholder')}
                 {...signUpForm.register("email")}
               />
               {signUpForm.formState.errors.email && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.email.message}
+                  {t('errors.invalidEmail')}
                 </span>
               )}
             </div>
@@ -209,30 +213,30 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
             {/* Name fields */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="reg-first-name">First Name</Label>
+                <Label htmlFor="reg-first-name">{t('register.firstNameLabel')}</Label>
                 <Input
                   id="reg-first-name"
                   type="text"
-                  placeholder="First Name"
+                  placeholder={t('register.firstNamePlaceholder')}
                   {...signUpForm.register("firstName")}
                 />
                 {signUpForm.formState.errors.firstName && (
                   <span className="text-sm text-destructive">
-                    {signUpForm.formState.errors.firstName.message}
+                    {t('validation.nameRequired')}
                   </span>
                 )}
               </div>
               <div>
-                <Label htmlFor="reg-surname">Last Name</Label>
+                <Label htmlFor="reg-surname">{t('register.lastNameLabel')}</Label>
                 <Input
                   id="reg-surname"
                   type="text"
-                  placeholder="Last Name"
+                  placeholder={t('register.lastNamePlaceholder')}
                   {...signUpForm.register("surname")}
                 />
                 {signUpForm.formState.errors.surname && (
                   <span className="text-sm text-destructive">
-                    {signUpForm.formState.errors.surname.message}
+                    {t('validation.lastNameRequired')}
                   </span>
                 )}
               </div>
@@ -240,38 +244,72 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
 
             {/* Password fields */}
             <div>
-              <Label htmlFor="reg-password">Password</Label>
-              <Input
-                id="reg-password"
-                type="password"
-                placeholder="Enter your password"
-                {...signUpForm.register("password")}
-              />
+              <Label htmlFor="reg-password">{t('register.passwordLabel')}</Label>
+              <div className="relative">
+                <Input
+                  id="reg-password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder={t('register.passwordPlaceholder')}
+                  {...signUpForm.register("password")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? t('login.hidePassword') : t('login.showPassword')}
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
               {signUpForm.formState.errors.password && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.password.message}
+                  {t('errors.passwordTooShort')}
                 </span>
               )}
             </div>
 
             <div>
-              <Label htmlFor="reg-confirm-password">Confirm Password</Label>
-              <Input
-                id="reg-confirm-password"
-                type="password"
-                placeholder="Confirm your password"
-                {...signUpForm.register("confirmPassword")}
-              />
+              <Label htmlFor="reg-confirm-password">{t('register.confirmPasswordLabel')}</Label>
+              <div className="relative">
+                <Input
+                  id="reg-confirm-password"
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder={t('register.confirmPasswordPlaceholder')}
+                  {...signUpForm.register("confirmPassword")}
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  aria-label={showConfirmPassword ? t('login.hidePassword') : t('login.showPassword')}
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
               {signUpForm.formState.errors.confirmPassword && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.confirmPassword.message}
+                  {t('errors.passwordMismatch')}
                 </span>
               )}
             </div>
 
             {/* Account Type */}
             <div className="space-y-4">
-              <Label>Account Type</Label>
+              <Label>{t('register.accountTypeLabel')}</Label>
               <div className="grid grid-cols-2 gap-4">
                 <Button
                   type="button"
@@ -279,8 +317,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   disabled={true}
                   className="h-20 flex flex-col opacity-50 cursor-not-allowed"
                 >
-                  <span className="font-medium">Individual</span>
-                  <span className="text-xs text-muted-foreground">Job seeker</span>
+                  <span className="font-medium">{t('register.individualAccount')}</span>
+                  <span className="text-xs text-muted-foreground">{t('register.individualAccountDesc')}</span>
                 </Button>
                 <Button
                   type="button"
@@ -288,13 +326,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   onClick={() => signUpForm.setValue('role', 'organization')}
                   className="h-20 flex flex-col"
                 >
-                  <span className="font-medium">Organization</span>
-                  <span className="text-xs text-muted-foreground">Job posting</span>
+                  <span className="font-medium">{t('register.organizationAccount')}</span>
+                  <span className="text-xs text-muted-foreground">{t('register.organizationAccountDesc')}</span>
                 </Button>
               </div>
               {signUpForm.formState.errors.role && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.role.message}
+                  {t('validation.accountTypeRequired')}
                 </span>
               )}
             </div>
@@ -308,12 +346,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   onCheckedChange={(checked) => signUpForm.setValue('termsAccepted', checked === true)}
                 />
                 <Label htmlFor="reg-terms" className="text-sm">
-                  I accept the <span className="text-primary cursor-pointer">Terms and Conditions</span>
+                  {t('register.termsAccept', { termsLink: t('register.termsAndConditions') })}
                 </Label>
               </div>
               {signUpForm.formState.errors.termsAccepted && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.termsAccepted.message}
+                  {t('errors.termsRequired')}
                 </span>
               )}
               
@@ -324,12 +362,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   onCheckedChange={(checked) => signUpForm.setValue('privacyAccepted', checked === true)}
                 />
                 <Label htmlFor="reg-privacy" className="text-sm">
-                  I consent to <span className="text-primary cursor-pointer">Data Privacy Policy</span>
+                  {t('register.privacyConsent', { privacyLink: t('register.dataPrivacyPolicy') })}
                 </Label>
               </div>
               {signUpForm.formState.errors.privacyAccepted && (
                 <span className="text-sm text-destructive">
-                  {signUpForm.formState.errors.privacyAccepted.message}
+                  {t('errors.privacyRequired')}
                 </span>
               )}
             </div>
@@ -339,13 +377,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
               className="w-full" 
               disabled={isLoading}
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
+              {isLoading ? t('register.creatingAccount') : t('register.createAccountButton')}
             </Button>
 
             {onSwitchToLogin && (
               <div className="text-center">
                 <span className="text-sm text-muted-foreground">
-                  Already have an account?
+                  {t('register.hasAccount')}
                 </span>
                 <Button
                   type="button"
@@ -356,7 +394,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                     onSwitchToLogin();
                   }}
                 >
-                  Sign In
+                  {t('register.signIn')}
                 </Button>
               </div>
             )}

@@ -10,8 +10,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi';
 import type { JobPosting } from '@/lib/api-client';
+import { useTranslation } from 'react-i18next';
 
 const MyJobs = () => {
+  const { t } = useTranslation('jobs');
   const { data: jobs, isLoading, error } = useCurrentOrganizationJobs();
 
   const getStatusColor = (status: string) => {
@@ -94,7 +96,7 @@ const MyJobs = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin" />
-          <span className="ml-2">Loading your job postings...</span>
+          <span className="ml-2">{t('management.loadingJobs')}</span>
         </div>
       </div>
     );
@@ -105,9 +107,9 @@ const MyJobs = () => {
       <div className="space-y-6">
         <Card>
           <CardContent className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2 text-red-600">Error loading jobs</h3>
+            <h3 className="text-lg font-medium mb-2 text-red-600">{t('management.errorLoadingJobs')}</h3>
             <p className="text-muted-foreground mb-4">
-              There was an error loading your job postings. Please try again.
+              {t('management.errorLoadingDesc')}
             </p>
             <Button onClick={() => window.location.reload()}>Retry</Button>
           </CardContent>
@@ -120,11 +122,11 @@ const MyJobs = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold">My Job Postings</h2>
-          <p className="text-muted-foreground">Manage and track your job postings</p>
+          <h2 className="text-2xl font-bold">{t('management.title')}</h2>
+          <p className="text-muted-foreground">{t('management.subtitle')}</p>
         </div>
         <Badge variant="secondary" className="text-sm">
-          {jobs?.length || 0} Total Jobs
+          {t('management.totalJobs', { count: jobs?.length || 0 })}
         </Badge>
       </div>
 
@@ -144,7 +146,7 @@ const MyJobs = () => {
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-xl font-semibold">{job.title}</h3>
                       <Badge className={getStatusColor(jobStatus)}>
-                        {jobStatus.charAt(0).toUpperCase() + jobStatus.slice(1)}
+                        {t(`status.${jobStatus}`)}
                       </Badge>
                       {industryRole && (
                         <Badge variant="outline" className="text-xs">
@@ -160,7 +162,7 @@ const MyJobs = () => {
                       </div>
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4" />
-                        Posted {formatDate(job.createdAt)}
+                        {t('management.postedOn', { date: formatDate(job.createdAt) })}
                       </div>
                       <div className="flex items-center gap-2">
                         {/* <DollarSign className="h-4 w-4" /> */}
@@ -195,7 +197,7 @@ const MyJobs = () => {
 
                     <div className="flex items-center gap-4">
                       {jobStatus === 'active' && (
-                        <span className="text-sm text-green-600">● Active</span>
+                        <span className="text-sm text-green-600">{t('management.jobActive')}</span>
                       )}
                     </div>
                   </div>
@@ -203,7 +205,7 @@ const MyJobs = () => {
                   <div className="flex items-center gap-2">
                     <Button variant="outline" size="sm">
                       <Eye className="h-4 w-4 mr-2" />
-                      View
+                      {t('management.viewJob')}
                     </Button>
                     
                     <DropdownMenu>
@@ -215,16 +217,16 @@ const MyJobs = () => {
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem>
                           <Edit className="h-4 w-4 mr-2" />
-                          Edit Job
+                          {t('management.editJob')}
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          View Applications
+                          {t('management.viewApplications')}
                         </DropdownMenuItem>
                         <DropdownMenuItem>
-                          Duplicate Job
+                          {t('management.duplicateJob')}
                         </DropdownMenuItem>
                         <DropdownMenuItem className="text-red-600">
-                          Close Job
+                          {t('management.closeJob')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -239,11 +241,11 @@ const MyJobs = () => {
       {(!jobs || jobs.length === 0) && (
         <Card>
           <CardContent className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2">No job postings yet</h3>
+            <h3 className="text-lg font-medium mb-2">{t('management.noJobsYet')}</h3>
             <p className="text-muted-foreground mb-4">
-              Start by creating your first job posting to attract candidates.
+              {t('management.noJobsDesc')}
             </p>
-            <Button>Create Your First Job</Button>
+            <Button>{t('management.createFirstJob')}</Button>
           </CardContent>
         </Card>
       )}

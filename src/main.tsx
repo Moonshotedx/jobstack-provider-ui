@@ -5,6 +5,9 @@ import * as TanStackQueryProvider from './integrations/tanstack-query/root-provi
 import { Toaster } from "@/components/ui/sonner"
 import { useAuth } from '@/hooks/useAuth'
 
+// Import i18n configuration
+import './lib/i18n'
+
 // Import the generated route tree
 import { routeTree } from './routeTree.gen'
 

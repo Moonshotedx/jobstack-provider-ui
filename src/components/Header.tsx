@@ -1,34 +1,23 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { MapPin, Globe, Bell, User, Briefcase, LogOut, ChevronDown } from 'lucide-react';
+import { MapPin, Bell, User, Briefcase, LogOut } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
+import LanguageSwitcher from './ui/language-switcher';
 import { toast } from 'sonner';
 
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState('EN');
+  const { t } = useTranslation('navigation');
   
   const navigate = useNavigate();
   const { user } = useUserStore();
   const { logout } = useAuth();
-
-  const languages = [
-    { code: 'EN', name: 'English (English)' },
-    { code: 'HI', name: 'Hindi (हिंदी)' },
-    { code: 'BN', name: 'Bengali (বাংলা)' },
-    { code: 'TE', name: 'Telugu (తెలుగు)' },
-    { code: 'MR', name: 'Marathi (मराठी)' },
-    { code: 'TA', name: 'Tamil (তামিল)' },
-    { code: 'GU', name: 'Gujarati (ગુજરાતી)' },
-    { code: 'KN', name: 'Kannada (ಕನ್ನಡ)' },
-    { code: 'ML', name: 'Malayalam (മലയാളം)' },
-    { code: 'PA', name: 'Punjabi (ਪੰਜਾਬੀ)' }
-  ];
 
   const handleFindJobs = () => {
     navigate({ to: '/' });
@@ -66,46 +55,27 @@ const Header = () => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <Briefcase className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-xl font-bold text-primary">JobBridge</span>
+            <span className="text-xl font-bold text-primary">{t('header.appName')}</span>
           </Link>
 
           {/* Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             <Button variant="ghost" className="text-foreground hover:text-primary" onClick={handleFindJobs}>
-              Find Jobs
+              {t('header.findJobs')}
             </Button>
             <Button 
               variant="ghost" 
               className="text-foreground hover:text-primary"
               onClick={handlePostJobs}
             >
-              Post Jobs
+              {t('header.postJobs')}
             </Button>
           </nav>
 
           {/* Right Section */}
           <div className="flex items-center gap-3">
             {/* Language Selector */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="gap-2">
-                  <Globe className="h-4 w-4" />
-                  <span className="hidden sm:inline">{selectedLanguage}</span>
-                  <ChevronDown className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                {languages.map((language) => (
-                  <DropdownMenuItem
-                    key={language.code}
-                    onClick={() => setSelectedLanguage(language.code)}
-                    className={selectedLanguage === language.code ? 'bg-accent' : ''}
-                  >
-                    {language.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <LanguageSwitcher variant="ghost" size="sm" />
 
             {/* Location */}
             <Button variant="ghost" size="sm" className="gap-2">
@@ -114,7 +84,7 @@ const Header = () => {
             </Button>
 
             {/* Notifications */}
-            <Button variant="ghost" size="sm">
+            <Button variant="ghost" size="sm" aria-label={t('header.notifications')}>
               <Bell className="h-4 w-4" />
             </Button>
 
@@ -136,11 +106,11 @@ const Header = () => {
                     </DropdownMenuItem>
                   )}
                   <DropdownMenuItem onClick={() => {}}>
-                    Account Settings
+                    {t('header.settings')}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="h-4 w-4 mr-2" />
-                    Logout
+                    {t('header.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -152,7 +122,7 @@ const Header = () => {
                 onClick={() => navigate({ to: "/auth/$action", params: { action: "login" } })}
               >
                 <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Login</span>
+                <span className="hidden sm:inline">{t('header.login')}</span>
               </Button>
             )}
           </div>
