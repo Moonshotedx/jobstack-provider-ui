@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -43,7 +43,7 @@ interface CreateOrgProps {
 
 export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const { updateProfile, updateUser } = useUserStore();
+  const { updateProfile } = useUserStore();
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -96,8 +96,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       const organization = await createOrganisation(orgData);
       
       if (organization) {
-        console.log('Organization created successfully:', organization);
-        
         // Set the newly created organization as active
         try {
           const setActiveResult = await authClient.organization.setActive({ 
@@ -108,8 +106,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
             console.error('Failed to set organization as active:', setActiveResult.error);
             throw new Error(`Failed to set organization as active: ${setActiveResult.error.message}`);
           }
-          
-          console.log('Organization set as active successfully');
         } catch (error) {
           console.error('Error setting organization as active:', error);
           throw error;

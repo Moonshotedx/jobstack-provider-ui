@@ -23,7 +23,7 @@ export const useUserSession = () => {
 
       return session.data.user;
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 30 * 1000, // Reduced to 30 seconds for consistent behavior
     retry: 2, // retry up to 2 times on failure
   });
 };

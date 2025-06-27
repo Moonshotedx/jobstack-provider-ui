@@ -3,7 +3,7 @@ import { organizationClient } from 'better-auth/client/plugins';
 
 export const authClient = createAuthClient({
   /** The base URL of the server (optional if you're using the same domain) */
-  baseURL: 'http://localhost:3001',
+  baseURL: import.meta.env.VITE_API_ENDPOINT,
   basePath: 'api/v1/auth',
   plugins: [organizationClient()],
 });
@@ -22,8 +22,6 @@ export const createOrganisation = async (orgInfo: {
     slug: orgInfo.slug,
   });
   
-  console.log('Slug check result:', slugCheckResult);
-  
   // Check if the API call failed
   if (slugCheckResult.error) {
     throw new Error(`Slug check failed: ${slugCheckResult.error.message}`);
@@ -37,8 +35,6 @@ export const createOrganisation = async (orgInfo: {
     // Slug is taken, throw error
     throw new Error('Organization Identifier Already Exists');
   }
-  
-  console.log('Slug is available, creating organization...');
   
   // Slug is available, create organization
   const org = await authClient.organization.create({

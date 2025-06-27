@@ -117,6 +117,9 @@ export const useUserStore = create<UserState>()(
         }),
       }
     ),
-    { name: 'user-store' }
+    { 
+      name: 'user-store',
+      enabled: import.meta.env.DEV // Only enable devtools in development
+    }
   )
 ) 

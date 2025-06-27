@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
@@ -36,7 +35,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   onClose, 
   employer 
 }) => {
-  const { user } = useUserStore();
   const [formData, setFormData] = useState({
     name: employer?.name || '',
     address: employer?.address || '',
@@ -55,8 +53,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     }
 
     // TODO: Implement with separate employer store
-    console.log('Employer data:', formData);
-    
     if (employer) {
       toast.success("Employer profile updated successfully!");
     } else {

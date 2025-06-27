@@ -32,7 +32,7 @@ function DashboardContent() {
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
   
   const { user } = useUserStore()
-  const { checkEmailVerification, resendVerificationEmail, pendingVerificationEmail } = useAuth()
+  const { checkEmailVerification, resendVerificationEmail } = useAuth()
 
   // Check verification status on mount and periodically
   useEffect(() => {
@@ -59,7 +59,6 @@ function DashboardContent() {
         setHasCheckedInitialVerification(true)
         setIsCheckingVerification(false)
       } catch (error) {
-        console.error('Verification check failed:', error)
         setIsCheckingVerification(false)
         setHasCheckedInitialVerification(true)
       }

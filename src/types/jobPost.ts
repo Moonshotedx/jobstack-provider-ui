@@ -92,4 +92,74 @@ export interface PostJobDialogProps {
   isOpen: boolean;
   onClose: () => void;
   skipAuthSteps?: boolean;
-} 
+}
+
+// Location data structure to match backend schema
+export interface LocationData {
+  address: string;
+  city: string;
+  state: string;
+  country: string;
+  gps: {
+    lat: number;
+    lng: number;
+  };
+}
+
+// Utility function to transform frontend JobData to backend CreateJobRequest
+export const transformJobDataToCreateJobRequest = (
+  jobData: JobData,
+  selectedIndustry: string,
+  selectedJobRole: string,
+  locationData?: LocationData
+) => {
+  // Build metadata object with all additional job information
+  const metadata: Record<string, any> = {
+    // Basic job information
+    location: jobData.location,
+    jobType: jobData.jobType,
+    salary: jobData.salary,
+    payFrequency: jobData.payFrequency,
+    workTimings: jobData.workTimings,
+    experience: jobData.experience,
+    requirements: jobData.requirements.filter(req => req.trim() !== ''),
+    benefits: jobData.benefits.filter(benefit => benefit.trim() !== ''),
+    documentsRequired: jobData.documentsRequired,
+    questions: jobData.questions.filter(q => q.trim() !== ''),
+    positions: jobData.positions,
+    lastDate: jobData.lastDate,
+    workDays: jobData.workDays,
+    
+    // Industry and role information
+    industry: selectedIndustry,
+    role: selectedJobRole,
+    
+    // Hiring manager details
+    hiringManager: jobData.hiringManager,
+    
+    // Status for tracking
+    status: 'active',
+    applicationsCount: 0,
+  };
+
+  // Add role-specific metadata
+  if (selectedIndustry === 'Textile' && selectedJobRole === 'Tailor') {
+    metadata.overtime = jobData.overtime;
+    metadata.overtimePay = jobData.overtimePay;
+    metadata.education = jobData.education;
+    metadata.tailorSkills = jobData.tailorSkills;
+    metadata.factoryEnvironment = jobData.factoryEnvironment;
+  }
+
+  if (selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') {
+    metadata.industrialTailorDetails = jobData.industrialTailorDetails;
+  }
+
+  // Return the request object matching backend schema
+  return {
+    title: jobData.title,
+    description: jobData.description,
+    location: locationData,
+    metadata,
+  };
+}; 

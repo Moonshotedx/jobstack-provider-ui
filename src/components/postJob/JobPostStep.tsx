@@ -20,6 +20,7 @@ interface JobPostStepProps {
   setJobData: React.Dispatch<React.SetStateAction<JobData>>;
   onSubmit: () => void;
   onBack: () => void;
+  isSubmitting?: boolean;
 }
 
 const JobPostStep: React.FC<JobPostStepProps> = ({
@@ -30,7 +31,8 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
   jobData,
   setJobData,
   onSubmit,
-  onBack
+  onBack,
+  isSubmitting = false
 }) => {
   const [isRecording, setIsRecording] = useState(false);
 
@@ -104,8 +106,11 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                     id="location"
                     value={jobData.location}
                     onChange={(e) => setJobData(prev => ({ ...prev, location: e.target.value }))}
-                    placeholder="City, State"
+                    placeholder="e.g., Mumbai, Maharashtra or Sector 18, Gurgaon, Haryana"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Provide the specific location where candidates will work
+                  </p>
                 </div>
               </div>
 
@@ -1259,13 +1264,17 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
 
           {/* Submit Button */}
           <div className="flex gap-2">
-            <Button onClick={onSubmit} className="flex-1">
-              Post Job
+            <Button 
+              onClick={onSubmit} 
+              className="flex-1" 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Posting Job...' : 'Post Job'}
             </Button>
-            <Button variant="outline" onClick={onBack}>
+            <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
               Back to Role Selection
             </Button>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Save Draft
             </Button>
           </div>

@@ -13,7 +13,6 @@ import { useUserStore } from '@/stores/authStore';
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
-  const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [showPostJob, setShowPostJob] = useState(false);
   
   // const { user } = useAuth();
@@ -89,15 +88,13 @@ const ProviderDashboard = () => {
               <Button 
                 className="w-full" 
                 size="lg"
-                onClick={() => setShowOrgProfile(true)}
+                onClick={() => setShowPostJob(true)}
               >
                 Create Organization Profile
               </Button>
             </CardContent>
           </Card>
         </div>
-
-
       </div>
     );
   }

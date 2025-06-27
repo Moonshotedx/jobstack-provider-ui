@@ -6,11 +6,11 @@ import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
+import { toast } from 'sonner';
 
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
-  const [showOrgProfile, setShowOrgProfile] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('EN');
   
   const navigate = useNavigate();
@@ -34,32 +34,16 @@ const Header = () => {
     navigate({ to: '/' });
   };
 
-  const handleProviderDashboard = () => {
-    // Check if user is logged in before allowing access to dashboard
-    if (user) {
-      navigate({ to: '/dashboard' });
-    } else {
-      // User is not logged in, redirect to auth
-      navigate({ to: "/auth/$action", params: { action: "login" } });
-    }
-  };
-
   const handlePostJobs = () => {
     // If user is logged in with profile, redirect to dashboard
     if (user && user.profile) {
       navigate({ to: '/dashboard' });
     } else if (user && !user.profile) {
       // User is logged in but needs to complete profile
-      setShowOrgProfile(true);
+      setShowPostJob(true);
     } else {
       // User is not logged in, redirect to auth
       navigate({ to: "/auth/$action", params: { action: "login" } });
-    }
-  };
-
-  const handleProfileComplete = () => {
-    if (user?.role === 'organization') {
-      setShowOrgProfile(true);
     }
   };
 
@@ -68,7 +52,8 @@ const Header = () => {
       await logout();
       navigate({ to: '/' }); // Navigate to home page after logout
     } catch (error) {
-      console.error('Logout failed:', error);
+      // Handle logout error silently or show user-friendly message
+      toast.error('Logout failed. Please try again.');
     }
   };
 
@@ -146,7 +131,7 @@ const Header = () => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   {!user.profile && (
-                    <DropdownMenuItem onClick={handleProfileComplete}>
+                    <DropdownMenuItem onClick={() => setShowPostJob(true)}>
                       Complete Profile
                     </DropdownMenuItem>
                   )}
