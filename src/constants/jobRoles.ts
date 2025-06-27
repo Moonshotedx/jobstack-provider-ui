@@ -1,4 +1,6 @@
 export const JOB_ROLES_BY_INDUSTRY = {
+  // Commented out existing job roles for now
+  /*
   'Manufacturing': [
     'Machine Operator',
     'Production Worker',
@@ -96,5 +98,23 @@ export const JOB_ROLES_BY_INDUSTRY = {
     'Finishing Worker',
     'Fabric Inspector',
     'Alteration Specialist'
+  ]
+  */
+  
+  // New job roles - industry and role are the same for now
+  'Industrial Tailor': [
+    'Industrial Tailor'
+  ],
+  'Warehouse Loader and Picker': [
+    'Warehouse Loader and Picker'
+  ],
+  'Field Sales Executive': [
+    'Field Sales Executive'
+  ],
+  'In Store Promoter': [
+    'In Store Promoter'
+  ],
+  'Recruitment Associate': [
+    'Recruitment Associate'
   ]
 }; 
