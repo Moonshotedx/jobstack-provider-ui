@@ -1,12 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Building2, CheckCircle, Loader2 } from 'lucide-react';
-import { useOrganizationManager, type OrganizationWithMetadata } from '@/hooks/useOrganizationManager';
-import { toast } from 'sonner';
+import { useOrganizationManager } from '@/hooks/useOrganizationManager';
 
 interface SelectOrgProps {
   isOpen?: boolean;
@@ -20,7 +19,7 @@ export function SelectOrg({ isOpen = true, onClose, onSuccess }: SelectOrgProps)
   
   const { getOrganizationsWithMetadata, setActiveOrganization } = useOrganizationManager();
 
-  const { data: organizations, isLoading, refetch } = useQuery({
+  const { data: organizations, isLoading } = useQuery({
     queryKey: ['organizations-with-metadata'],
     queryFn: getOrganizationsWithMetadata,
     enabled: isOpen !== false, // Enable if isOpen is not explicitly false

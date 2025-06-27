@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
@@ -21,7 +22,8 @@ export interface OrganizationWithMetadata {
 
 export const useOrganizationManager = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const { updateProfile, updateUser } = useUserStore();
+  const { updateProfile } = useUserStore();
+  const queryClient = useQueryClient();
 
   // Load organization metadata from better-auth
   const loadOrganizationMetadata = useCallback((org: any) => {
@@ -31,7 +33,6 @@ export const useOrganizationManager = () => {
         // If it's a string, parse it
         return typeof org.metadata === 'string' ? JSON.parse(org.metadata) : org.metadata;
       } catch (error) {
-        console.error('Failed to parse organization metadata:', error);
         return {};
       }
     }
@@ -52,7 +53,6 @@ export const useOrganizationManager = () => {
         ...loadOrganizationMetadata(org) // Load from better-auth metadata
       }));
     } catch (error) {
-      console.error('Failed to load organizations:', error);
       return [];
     }
   }, [loadOrganizationMetadata]);
@@ -90,6 +90,10 @@ export const useOrganizationManager = () => {
           description: metadata.description || ''
         };
         updateProfile(organizationProfile);
+        
+        // Invalidate session and jobs queries to reflect the new active organization
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
+        await queryClient.invalidateQueries({ queryKey: ['jobs'] });
         
         toast.success(`Organization "${selectedOrg.name}" is now active`);
         return selectedOrg;

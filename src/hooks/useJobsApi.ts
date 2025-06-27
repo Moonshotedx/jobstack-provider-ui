@@ -15,7 +15,7 @@ export const useGetJobs = (organizationId: string) => {
     queryKey: jobsQueryKeys.byOrg(organizationId),
     queryFn: () => jobsApi.getJobs(organizationId),
     enabled: !!organizationId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000, // Reduced to 2 minutes for more frequent updates
     retry: 2,
   });
 };
@@ -47,8 +47,6 @@ export const useCreateJob = () => {
       });
     },
     onError: (error: any) => {
-      console.error('Failed to create job:', error);
-      
       const errorMessage = error?.response?.data?.message || 
                           error?.message || 
                           'Failed to create job posting';
@@ -62,70 +60,37 @@ export const useCreateJob = () => {
 
 // Hook to get the current active organization's jobs
 export const useCurrentOrganizationJobs = () => {
-  const { data: session, isLoading, error } = useQuery({
+  const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: () => authClient.getSession(),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  // Debug logging
-  console.log('Session debug:', {
-    isLoading,
-    error,
-    sessionData: session,
-    fullSessionStructure: JSON.stringify(session, null, 2)
+    staleTime: 30 * 1000, // Reduced to 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Access the correct path based on the session structure
   const activeOrgId = session?.data?.session?.activeOrganizationId;
-
-  console.log('Active organization ID:', activeOrgId);
 
   return useGetJobs(activeOrgId || '');
 };
 
 // Hook to get active organization ID
 export const useActiveOrganizationId = () => {
-  const { data: session, isLoading, error } = useQuery({
+  const { data: session } = useQuery({
     queryKey: ['session'],
     queryFn: async () => {
-      console.log('Fetching session...');
       const sessionData = await authClient.getSession();
-      console.log('Raw session response:', sessionData);
       return sessionData;
     },
-    staleTime: 5 * 60 * 1000,
-    refetchOnWindowFocus: false,
-  });
-
-  // Debug logging
-  console.log('useActiveOrganizationId debug:', {
-    isLoading,
-    error,
-    hasSessionData: !!session,
-    sessionDataKeys: session ? Object.keys(session) : [],
-    fullSessionStructure: JSON.stringify(session, null, 2)
+    staleTime: 30 * 1000, // Reduced to 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 
   // Check if user is actually logged in
   const isLoggedIn = !!session?.data?.user;
   const activeOrgId = session?.data?.session?.activeOrganizationId;
 
-  console.log('Authentication status:', {
-    isLoggedIn,
-    hasUser: !!session?.data?.user,
-    hasSession: !!session?.data?.session,
-    activeOrgId,
-    userEmail: session?.data?.user?.email
-  });
-
   if (!isLoggedIn) {
-    console.warn('User is not logged in - no session found');
     return undefined;
-  }
-
-  if (!activeOrgId) {
-    console.warn('No active organization ID found in session');
   }
 
   return activeOrgId;

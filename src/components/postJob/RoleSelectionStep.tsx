@@ -21,7 +21,6 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   isOpen,
   onClose,
   selectedJobRole,
-  selectedIndustry,
   onRoleSelection,
   onProceed,
   onBack,

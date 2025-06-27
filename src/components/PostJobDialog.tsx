@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import RoleSelectionStep from './postJob/RoleSelectionStep';
 import JobPostStep from './postJob/JobPostStep';
-import type { PostJobDialogProps, JobPostStep as StepType, JobData, OrgData } from '@/types/jobPost';
+import type { PostJobDialogProps, JobPostStep as StepType, JobData } from '@/types/jobPost';
 import { transformJobDataToCreateJobRequest } from '@/types/jobPost';
 import { toast } from 'sonner';
 import { useCreateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
@@ -77,17 +77,6 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     }
   });
 
-  const [orgData, setOrgData] = useState<OrgData>({
-    name: '',
-    address: '',
-    gst: '',
-    contactPerson: '',
-    email: '',
-    phone: '',
-    website: '',
-    description: ''
-  });
-
   const handleRoleSelection = (role: string, industry: string) => {
     setSelectedJobRole(role);
     setSelectedIndustry(industry);
@@ -103,20 +92,8 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     setStep('roleSelection');
   };
 
-  const handleLogin = () => {
-    setStep('orgProfile');
-  };
-
-  const handleOrgProfileSubmit = () => {
-    setStep('roleSelection');
-  };
-
   const handleJobSubmit = async () => {
-    console.log('handleJobSubmit called');
-    console.log('activeOrganizationId:', activeOrganizationId);
-    
     if (!activeOrganizationId) {
-      console.error('No active organization ID found');
       toast.error('No active organization found. Please select an organization first.');
       return;
     }
@@ -129,11 +106,6 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
         selectedJobRole
         // Note: We're not handling location data yet - can be added later
       );
-
-      console.log('Submitting job request:', {
-        organizationId: activeOrganizationId,
-        jobData: createJobRequest
-      });
 
       // Submit the job using the API
       await createJobMutation.mutateAsync({

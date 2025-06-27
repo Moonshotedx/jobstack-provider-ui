@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { authClient } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
@@ -34,6 +35,7 @@ export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
   const { setUser, clearUser, setLoading: setUserLoading } = useUserStore();
+  const queryClient = useQueryClient();
 
   // Helper function to load organization profile from better-auth
   const loadOrganizationProfile = useCallback(async (sessionData: any, betterAuthUser: any) => {
@@ -42,7 +44,6 @@ export const useAuth = (): UseAuthReturn => {
       const orgListResponse = await authClient.organization.list();
       
       if (orgListResponse.error) {
-        console.error('Failed to fetch organization list:', orgListResponse.error);
         return undefined;
       }
 
@@ -50,7 +51,6 @@ export const useAuth = (): UseAuthReturn => {
       
       // If user has no organizations, return undefined
       if (organizations.length === 0) {
-        console.log('User has no organizations');
         return undefined;
       }
 
@@ -58,7 +58,6 @@ export const useAuth = (): UseAuthReturn => {
       
       // If no active organization is set but user has organizations, set the first one as active
       if (!activeOrganizationId && organizations.length > 0) {
-        console.log('No active organization set, setting first organization as active');
         const firstOrg = organizations[0];
         
         try {
@@ -70,7 +69,6 @@ export const useAuth = (): UseAuthReturn => {
             console.error('Failed to set active organization:', setActiveResult.error);
           } else {
             activeOrganizationId = firstOrg.id;
-            console.log('Successfully set active organization:', firstOrg.name);
           }
         } catch (error) {
           console.error('Error setting active organization:', error);
@@ -81,11 +79,8 @@ export const useAuth = (): UseAuthReturn => {
       const activeOrg = organizations.find(org => org.id === activeOrganizationId);
       
       if (!activeOrg) {
-        console.error('Active organization not found in list:', activeOrganizationId);
         return undefined;
       }
-
-      console.log('Loading organization profile for:', activeOrg.name);
       
       // Parse metadata from better-auth (could be string or object)
       let metadata: {
@@ -121,7 +116,6 @@ export const useAuth = (): UseAuthReturn => {
         description: metadata.description || ''
       };
 
-      console.log('Successfully loaded organization profile for:', profile.name);
       return profile;
     } catch (error) {
       console.error('Failed to load organization data:', error);
@@ -145,13 +139,16 @@ export const useAuth = (): UseAuthReturn => {
           profile: profile,
         };
         setUser(mappedUser);
+        
+        // Invalidate session queries to ensure fresh data
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
       }
     } catch (error) {
       console.error('Session check failed:', error);
     } finally {
       setUserLoading(false);
     }
-  }, [setUser, setUserLoading, loadOrganizationProfile]);
+  }, [setUser, setUserLoading, loadOrganizationProfile, queryClient]);
 
   const login = useCallback(async (data: LoginData) => {
     setIsLoading(true);
@@ -173,13 +170,17 @@ export const useAuth = (): UseAuthReturn => {
           profile: profile,
         };
         setUser(mappedUser);
+        
+        // Invalidate session and jobs queries to force refetch with new login data
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
+        await queryClient.invalidateQueries({ queryKey: ['jobs'] });
       } else if (loginRequest.error) {
         throw new Error(loginRequest.error.message);
       }
     } finally {
       setIsLoading(false);
     }
-  }, [setUser, loadOrganizationProfile]);
+  }, [setUser, loadOrganizationProfile, queryClient]);
 
   const register = useCallback(async (data: RegisterData) => {
     setIsLoading(true);
@@ -259,7 +260,6 @@ export const useAuth = (): UseAuthReturn => {
     try {
       // For better-auth, you may need to implement a resend endpoint
       // This is a placeholder - you'll need to check better-auth documentation
-      console.log('Resending verification email to:', pendingVerificationEmail);
       // TODO: Implement actual resend functionality with better-auth
       toast.success('Verification email resent successfully!');
     } catch (error) {

@@ -2,7 +2,7 @@ import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
 import { authClient } from './auth-client';
 
 // Base API configuration
-const API_BASE_URL = 'http://localhost:3001/api/v1';
+const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT + '/api/v1'; // TODO: remove this once we have a proper API endpoint
 
 // Create axios instance
 const apiClient: AxiosInstance = axios.create({
@@ -17,37 +17,15 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth headers
 apiClient.interceptors.request.use(
   async (config) => {
-    console.log('API Request interceptor called:', {
-      url: config.url,
-      method: config.method,
-      baseURL: config.baseURL,
-      withCredentials: config.withCredentials
-    });
-    
-    // Log current cookies
-    console.log('Current document cookies:', document.cookie);
-    
     try {
-      const session = await authClient.getSession();
-      console.log('Session for API request:', {
-        hasSession: !!session.data,
-        hasUser: !!session.data?.user,
-        hasSessionData: !!session.data?.session,
-        sessionId: session.data?.session?.id,
-        activeOrgId: session.data?.session?.activeOrganizationId,
-        userEmail: session.data?.user?.email
-      });
-      
+      await authClient.getSession();
       // Don't add Authorization header - let cookies handle auth
-      console.log('Using cookie-based authentication');
-      
     } catch (error) {
-      console.error('Failed to get session for API request:', error);
+      // Silently handle session check errors in production
     }
     return config;
   },
   (error) => {
-    console.error('Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
@@ -55,24 +33,11 @@ apiClient.interceptors.request.use(
 // Response interceptor for error handling
 apiClient.interceptors.response.use(
   (response: AxiosResponse) => {
-    console.log('API Response received:', {
-      status: response.status,
-      url: response.config.url,
-      method: response.config.method
-    });
     return response;
   },
   (error) => {
-    console.error('API Response error:', {
-      status: error.response?.status,
-      data: error.response?.data,
-      url: error.config?.url,
-      method: error.config?.method
-    });
-    
     if (error.response?.status === 401) {
-      // Handle unauthorized access
-      console.error('Unauthorized access - session may be invalid');
+      // Handle unauthorized access silently or with minimal logging
     }
     return Promise.reject(error);
   }
