@@ -35,6 +35,40 @@ export interface JobData {
     videoWalkthroughFile?: File | null;
     videoTestimonialFile?: File | null;
   };
+  // New fields for Industrial Tailor role
+  industrialTailorDetails?: {
+    // Employment Type
+    employmentType?: string;
+    // Salary details
+    salaryDisbursementFrequency?: string;
+    salaryCTC?: number;
+    fixedAnnual?: number;
+    overtime?: string;
+    overtimeTerms?: string;
+    minimumOvertimeCommitted?: number;
+    monthlyInHand?: number;
+    monthlyPfEsicBenefits?: number;
+    monthlyPfEsicExplanation?: string;
+    // Salary advance
+    salaryAdvanceFacility?: string;
+    salaryAdvanceTerms?: string;
+    // Media uploads
+    officePhotos?: Array<{
+      file: File;
+      description: string;
+    }>;
+    testimonialVideos?: Array<{
+      file: File;
+      description: string;
+    }>;
+    // Work details
+    weeklyHolidays?: string;
+    weeklyHolidaysOther?: string;
+    workingMode?: string;
+    regionalScope?: string;
+    genderSpecific?: string;
+    ageRangeAllowed?: string;
+  };
   // Hiring Manager Details
   hiringManager: {
     managerName: string;

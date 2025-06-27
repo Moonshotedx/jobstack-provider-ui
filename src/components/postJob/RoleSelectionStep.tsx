@@ -3,7 +3,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Search } from 'lucide-react';
 import { JOB_ROLES_BY_INDUSTRY } from '@/constants/jobRoles';
 
@@ -30,19 +29,25 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const getFilteredRoles = () => {
-    if (!searchQuery) return JOB_ROLES_BY_INDUSTRY;
-    
-    const filtered: Partial<typeof JOB_ROLES_BY_INDUSTRY> = {};
+  // Get all roles from all industries in a flat array
+  const getAllRoles = () => {
+    const allRoles: { role: string; industry: string }[] = [];
     Object.entries(JOB_ROLES_BY_INDUSTRY).forEach(([industry, roles]) => {
-      const matchingRoles = roles.filter(role =>
-        role.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      if (matchingRoles.length > 0) {
-        filtered[industry as keyof typeof JOB_ROLES_BY_INDUSTRY] = matchingRoles;
-      }
+      roles.forEach(role => {
+        allRoles.push({ role, industry });
+      });
     });
-    return filtered;
+    return allRoles;
+  };
+
+  // Filter roles based on search query
+  const getFilteredRoles = () => {
+    const allRoles = getAllRoles();
+    if (!searchQuery) return allRoles;
+    
+    return allRoles.filter(({ role }) =>
+      role.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   };
 
   const filteredRoles = getFilteredRoles();
@@ -71,33 +76,26 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                 />
               </div>
 
-              {/* Industry Tabs */}
-              <Tabs defaultValue={Object.keys(filteredRoles)[0]} className="w-full">
-                <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 gap-1">
-                  {Object.keys(filteredRoles).map(industry => (
-                    <TabsTrigger key={industry} value={industry} className="text-xs px-2">
-                      {industry.split(' ')[0]}
-                    </TabsTrigger>
-                  ))}
-                </TabsList>
-                
-                {Object.entries(filteredRoles).map(([industry, roles]) => (
-                  <TabsContent key={industry} value={industry} className="space-y-4">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                      {roles.map(role => (
-                        <Button
-                          key={role}
-                          variant={selectedJobRole === role ? "default" : "outline"}
-                          onClick={() => onRoleSelection(role, industry)}
-                          className="h-auto p-3 text-left justify-start"
-                        >
-                          <span className="text-sm">{role}</span>
-                        </Button>
-                      ))}
-                    </div>
-                  </TabsContent>
+              {/* All Job Roles in a Single Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                {filteredRoles.map(({ role, industry }) => (
+                  <Button
+                    key={role}
+                    variant={selectedJobRole === role ? "default" : "outline"}
+                    onClick={() => onRoleSelection(role, industry)}
+                    className="h-auto p-4 text-left justify-start"
+                  >
+                    <span className="text-sm font-medium">{role}</span>
+                  </Button>
                 ))}
-              </Tabs>
+              </div>
+
+              {/* Show message if no roles found */}
+              {filteredRoles.length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No job roles found matching your search.</p>
+                </div>
+              )}
 
               {/* Selected Role Display */}
               {selectedJobRole && (
@@ -105,7 +103,6 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                   <div className="flex justify-between items-center">
                     <div>
                       <p className="font-medium text-blue-900">Selected Role: {selectedJobRole}</p>
-                      <p className="text-sm text-blue-700">Industry: {selectedIndustry}</p>
                     </div>
                     <Button onClick={onProceed}>
                       Continue to Job Details

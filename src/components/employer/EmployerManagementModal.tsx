@@ -58,22 +58,22 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
     }
     
     // Add additional mock employers for demonstration
-    employers.push(
-      {
-        id: 'emp-2',
-        name: 'Innovation Labs',
-        address: '456 Tech Hub, Bangalore, Karnataka 560001',
-        gstNumber: '29XYZAB5678C1Z9',
-        contactPersonName: 'Priya Sharma',
-        contactEmail: 'priya@innovationlabs.com',
-        contactPhone: '+91 87654 32109',
-        website: 'https://innovationlabs.com',
-        description: 'Cutting-edge research and development in AI and machine learning technologies.',
-        createdAt: '2024-02-01',
-        isActive: true,
-        isDefault: false
-      }
-    );
+    // employers.push(
+    //   {
+    //     id: 'emp-2',
+    //     name: 'Innovation Labs',
+    //     address: '456 Tech Hub, Bangalore, Karnataka 560001',
+    //     gstNumber: '29XYZAB5678C1Z9',
+    //     contactPersonName: 'Priya Sharma',
+    //     contactEmail: 'priya@innovationlabs.com',
+    //     contactPhone: '+91 87654 32109',
+    //     website: 'https://innovationlabs.com',
+    //     description: 'Cutting-edge research and development in AI and machine learning technologies.',
+    //     createdAt: '2024-02-01',
+    //     isActive: true,
+    //     isDefault: false
+    //   }
+    // );
     
     return employers;
   }, [user?.profile]);

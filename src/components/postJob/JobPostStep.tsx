@@ -109,45 +109,48 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="jobType">Job Type *</Label>
-                  <Select value={jobData.jobType} onValueChange={(value) => setJobData(prev => ({ ...prev, jobType: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select job type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="full-time">Full-time</SelectItem>
-                      <SelectItem value="part-time">Part-time</SelectItem>
-                      <SelectItem value="contract">Contract</SelectItem>
-                      <SelectItem value="internship">Internship</SelectItem>
-                      <SelectItem value="trainee">Trainee</SelectItem>
-                    </SelectContent>
-                  </Select>
+              {/* Job Type, Salary Range, and Pay Frequency - hidden for Industrial Tailor */}
+              {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="jobType">Job Type *</Label>
+                    <Select value={jobData.jobType} onValueChange={(value) => setJobData(prev => ({ ...prev, jobType: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select job type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full-time">Full-time</SelectItem>
+                        <SelectItem value="part-time">Part-time</SelectItem>
+                        <SelectItem value="contract">Contract</SelectItem>
+                        <SelectItem value="internship">Internship</SelectItem>
+                        <SelectItem value="trainee">Trainee</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="salary">Salary Range *</Label>
+                    <Input
+                      id="salary"
+                      value={jobData.salary}
+                      onChange={(e) => setJobData(prev => ({ ...prev, salary: e.target.value }))}
+                      placeholder="₹15,000 - ₹25,000"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="payFrequency">Pay Frequency *</Label>
+                    <Select value={jobData.payFrequency} onValueChange={(value) => setJobData(prev => ({ ...prev, payFrequency: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="salary">Salary Range *</Label>
-                  <Input
-                    id="salary"
-                    value={jobData.salary}
-                    onChange={(e) => setJobData(prev => ({ ...prev, salary: e.target.value }))}
-                    placeholder="₹15,000 - ₹25,000"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="payFrequency">Pay Frequency *</Label>
-                  <Select value={jobData.payFrequency} onValueChange={(value) => setJobData(prev => ({ ...prev, payFrequency: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="daily">Daily</SelectItem>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+              )}
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
@@ -246,6 +249,260 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
             </CardContent>
           </Card>
 
+          {/* Job Details section for Industrial Tailor */}
+          {selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Job Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Employment Type and Salary Details */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="employmentType">Employment Type</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.employmentType || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          employmentType: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select employment type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="full-time">Full-time</SelectItem>
+                        <SelectItem value="part-time">Part-time</SelectItem>
+                        <SelectItem value="contractual">Contractual</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="salaryDisbursementFrequency">Salary Disbursement Frequency</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.salaryDisbursementFrequency || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          salaryDisbursementFrequency: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select frequency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="milestone-based">Milestone based</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="salaryCTC">Salary CTC</Label>
+                    <Input
+                      id="salaryCTC"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.salaryCTC || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          salaryCTC: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter CTC amount"
+                    />
+                  </div>
+                </div>
+
+                {/* Fixed Annual and Overtime */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="fixedAnnual">Fixed (Annual)</Label>
+                    <Input
+                      id="fixedAnnual"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.fixedAnnual || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          fixedAnnual: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter fixed annual amount"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="industrialOvertime">Overtime</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.overtime || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          overtime: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select overtime option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="yes">Yes</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="minimumOvertimeCommitted">Minimum Overtime Committed per month (in hours)</Label>
+                    <Input
+                      id="minimumOvertimeCommitted"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.minimumOvertimeCommitted || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          minimumOvertimeCommitted: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter hours"
+                    />
+                  </div>
+                </div>
+
+                {/* Overtime Terms */}
+                <div>
+                  <Label htmlFor="overtimeTerms">Overtime Terms</Label>
+                  <Textarea
+                    id="overtimeTerms"
+                    value={jobData.industrialTailorDetails?.overtimeTerms || ''}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      industrialTailorDetails: { 
+                        ...prev.industrialTailorDetails, 
+                        overtimeTerms: e.target.value 
+                      } 
+                    }))}
+                    placeholder="Describe overtime terms and conditions"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Monthly Benefits */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="monthlyInHand">Monthly In-hand</Label>
+                    <Input
+                      id="monthlyInHand"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.monthlyInHand || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          monthlyInHand: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter monthly in-hand amount"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="monthlyPfEsicBenefits">Monthly PF + ESIC Benefits</Label>
+                    <Input
+                      id="monthlyPfEsicBenefits"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.monthlyPfEsicBenefits || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          monthlyPfEsicBenefits: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter PF + ESIC amount"
+                    />
+                  </div>
+                </div>
+
+                {/* PF + ESIC Explanation */}
+                <div>
+                  <Label htmlFor="monthlyPfEsicExplanation">Monthly PF + ESIC Benefits Explanation</Label>
+                  <Textarea
+                    id="monthlyPfEsicExplanation"
+                    value={jobData.industrialTailorDetails?.monthlyPfEsicExplanation || ''}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      industrialTailorDetails: { 
+                        ...prev.industrialTailorDetails, 
+                        monthlyPfEsicExplanation: e.target.value 
+                      } 
+                    }))}
+                    placeholder="Explain PF and ESIC benefits details"
+                    rows={2}
+                  />
+                </div>
+
+                {/* Salary Advance */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="salaryAdvanceFacility">Salary Advance Facility</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.salaryAdvanceFacility || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          salaryAdvanceFacility: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="yes">Yes</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Salary Advance Terms */}
+                {jobData.industrialTailorDetails?.salaryAdvanceFacility === 'yes' && (
+                  <div>
+                    <Label htmlFor="salaryAdvanceTerms">Salary Advance Terms</Label>
+                    <Textarea
+                      id="salaryAdvanceTerms"
+                      value={jobData.industrialTailorDetails?.salaryAdvanceTerms || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          salaryAdvanceTerms: e.target.value 
+                        } 
+                      }))}
+                      placeholder="Describe salary advance terms and conditions"
+                      rows={2}
+                    />
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Job Description */}
           <Card>
             <CardHeader>
@@ -253,7 +510,11 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label htmlFor="description">Job Description *</Label>
+                <Label htmlFor="description">
+                  {selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor' 
+                    ? 'Job Requirement/Responsibilities *' 
+                    : 'Job Description *'}
+                </Label>
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Textarea
@@ -285,6 +546,7 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                 </div>
               </div>
 
+              {/* Work Timings and Work Days - Work Days hidden for Industrial Tailor */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="workTimings">Work Timings</Label>
@@ -295,18 +557,318 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                     placeholder="e.g., 9 AM - 6 PM"
                   />
                 </div>
-                <div>
-                  <Label htmlFor="workDays">Work Days</Label>
-                  <Input
-                    id="workDays"
-                    value={jobData.workDays}
-                    onChange={(e) => setJobData(prev => ({ ...prev, workDays: e.target.value }))}
-                    placeholder="e.g., Monday to Friday"
-                  />
-                </div>
+                {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
+                  <div>
+                    <Label htmlFor="workDays">Work Days</Label>
+                    <Input
+                      id="workDays"
+                      value={jobData.workDays}
+                      onChange={(e) => setJobData(prev => ({ ...prev, workDays: e.target.value }))}
+                      placeholder="e.g., Monday to Friday"
+                    />
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
+
+          {/* Workplace & Media section for Industrial Tailor */}
+          {selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Workplace Details & Media</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Office Photos Upload */}
+                <div>
+                  <Label>Office Photos with Description</Label>
+                  <div className="space-y-2">
+                    {(jobData.industrialTailorDetails?.officePhotos || []).map((photo, index) => (
+                      <div key={index} className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="image/png,image/jpeg,image/jpg"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setJobData(prev => ({
+                                  ...prev,
+                                  industrialTailorDetails: {
+                                    ...prev.industrialTailorDetails,
+                                    officePhotos: (prev.industrialTailorDetails?.officePhotos || []).map((p, i) => 
+                                      i === index ? { ...p, file } : p
+                                    )
+                                  }
+                                }));
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Photo description"
+                            value={photo.description}
+                            onChange={(e) => {
+                              setJobData(prev => ({
+                                ...prev,
+                                industrialTailorDetails: {
+                                  ...prev.industrialTailorDetails,
+                                  officePhotos: (prev.industrialTailorDetails?.officePhotos || []).map((p, i) => 
+                                    i === index ? { ...p, description: e.target.value } : p
+                                  )
+                                }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                officePhotos: (prev.industrialTailorDetails?.officePhotos || []).filter((_, i) => i !== index)
+                              }
+                            }));
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setJobData(prev => ({
+                          ...prev,
+                          industrialTailorDetails: {
+                            ...prev.industrialTailorDetails,
+                            officePhotos: [...(prev.industrialTailorDetails?.officePhotos || []), { file: new File([], ''), description: '' }]
+                          }
+                        }));
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Office Photo
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Testimonial Videos Upload */}
+                <div>
+                  <Label>Testimonial Videos with Description</Label>
+                  <div className="space-y-2">
+                    {(jobData.industrialTailorDetails?.testimonialVideos || []).map((video, index) => (
+                      <div key={index} className="flex gap-2 items-end">
+                        <div className="flex-1">
+                          <Input
+                            type="file"
+                            accept="video/mov,video/avi,video/mp4,video/mkv"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setJobData(prev => ({
+                                  ...prev,
+                                  industrialTailorDetails: {
+                                    ...prev.industrialTailorDetails,
+                                    testimonialVideos: (prev.industrialTailorDetails?.testimonialVideos || []).map((v, i) => 
+                                      i === index ? { ...v, file } : v
+                                    )
+                                  }
+                                }));
+                              }
+                            }}
+                          />
+                        </div>
+                        <div className="flex-1">
+                          <Input
+                            placeholder="Video description"
+                            value={video.description}
+                            onChange={(e) => {
+                              setJobData(prev => ({
+                                ...prev,
+                                industrialTailorDetails: {
+                                  ...prev.industrialTailorDetails,
+                                  testimonialVideos: (prev.industrialTailorDetails?.testimonialVideos || []).map((v, i) => 
+                                    i === index ? { ...v, description: e.target.value } : v
+                                  )
+                                }
+                              }));
+                            }}
+                          />
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                testimonialVideos: (prev.industrialTailorDetails?.testimonialVideos || []).filter((_, i) => i !== index)
+                              }
+                            }));
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setJobData(prev => ({
+                          ...prev,
+                          industrialTailorDetails: {
+                            ...prev.industrialTailorDetails,
+                            testimonialVideos: [...(prev.industrialTailorDetails?.testimonialVideos || []), { file: new File([], ''), description: '' }]
+                          }
+                        }));
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Testimonial Video
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Work Schedule and Preferences */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="weeklyHolidays">Weekly Holidays</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.weeklyHolidays || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          weeklyHolidays: value,
+                          weeklyHolidaysOther: value !== 'other' ? '' : prev.industrialTailorDetails?.weeklyHolidaysOther
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select weekly holidays" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="weekends-off">Weekends off</SelectItem>
+                        <SelectItem value="sunday-only">Only Sunday off</SelectItem>
+                        <SelectItem value="rotational-weekday">Rotational 1 weekday off</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="workingMode">Working Mode</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.workingMode || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          workingMode: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select working mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="on-site">On-site</SelectItem>
+                        <SelectItem value="hybrid">Hybrid</SelectItem>
+                        <SelectItem value="remote">Remote</SelectItem>
+                        <SelectItem value="travelling">Travelling</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Other Holiday Specification */}
+                {jobData.industrialTailorDetails?.weeklyHolidays === 'other' && (
+                  <div>
+                    <Label htmlFor="weeklyHolidaysOther">Specify Other Holiday Schedule</Label>
+                    <Input
+                      id="weeklyHolidaysOther"
+                      value={jobData.industrialTailorDetails?.weeklyHolidaysOther || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          weeklyHolidaysOther: e.target.value 
+                        } 
+                      }))}
+                      placeholder="Specify the holiday schedule"
+                    />
+                  </div>
+                )}
+
+                {/* Additional Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="regionalScope">Regional Scope</Label>
+                    <Input
+                      id="regionalScope"
+                      value={jobData.industrialTailorDetails?.regionalScope || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          regionalScope: e.target.value 
+                        } 
+                      }))}
+                      placeholder="Enter regional scope"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="genderSpecific">Gender Specific</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.genderSpecific || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          genderSpecific: value 
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select gender preference" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="male">Male</SelectItem>
+                        <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="other">Other</SelectItem>
+                        <SelectItem value="no-preference">No preference</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label htmlFor="ageRangeAllowed">Age Range Allowed</Label>
+                  <Input
+                    id="ageRangeAllowed"
+                    value={jobData.industrialTailorDetails?.ageRangeAllowed || ''}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      industrialTailorDetails: { 
+                        ...prev.industrialTailorDetails, 
+                        ageRangeAllowed: e.target.value 
+                      } 
+                    }))}
+                    placeholder="e.g., 18-35 years"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {/* Skills section for Textile -> Tailor role */}
           {selectedIndustry === 'Textile' && selectedJobRole === 'Tailor' && (
