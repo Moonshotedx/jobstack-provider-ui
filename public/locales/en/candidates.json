@@ -1,0 +1,46 @@
+{
+  "management": {
+    "title": "Candidate Management",
+    "subtitle": "Review and manage job applications",
+    "searchCandidates": "Search candidates...",
+    "filterCandidates": "Filter candidates",
+    "exportCandidates": "Export",
+    "noCandidatesFound": "No candidates found",
+    "noCandidatesDesc": "Try adjusting your search criteria.",
+    "noApplications": "No applications received yet."
+  },
+  "tabs": {
+    "all": "All ({{count}})",
+    "applied": "Applied ({{count}})",
+    "reviewed": "Reviewed ({{count}})",
+    "shortlisted": "Shortlisted ({{count}})",
+    "interview": "Interview ({{count}})",
+    "hired": "Hired ({{count}})",
+    "rejected": "Rejected ({{count}})"
+  },
+  "actions": {
+    "view": "View",
+    "shortlist": "Shortlist",
+    "reject": "Reject",
+    "schedule": "Schedule",
+    "hire": "Hire",
+    "download": "Download",
+    "contact": "Contact"
+  },
+  "details": {
+    "appliedFor": "Applied for: {{position}}",
+    "experience": "{{years}} experience",
+    "trustScore": "Trust: {{score}}%",
+    "matchScore": "Match: {{score}}%",
+    "appliedOn": "Applied {{date}}",
+    "moreSkills": "+{{count}} more"
+  },
+  "status": {
+    "applied": "Applied",
+    "reviewed": "Reviewed", 
+    "shortlisted": "Shortlisted",
+    "interview": "Interview",
+    "hired": "Hired",
+    "rejected": "Rejected"
+  }
+} 

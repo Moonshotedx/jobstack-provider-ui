@@ -1,0 +1,46 @@
+{
+  "management": {
+    "title": "उम्मीदवार प्रबंधन",
+    "subtitle": "नौकरी आवेदनों की समीक्षा और प्रबंधन करें",
+    "searchCandidates": "उम्मीदवारों को खोजें...",
+    "filterCandidates": "उम्मीदवारों को फिल्टर करें",
+    "exportCandidates": "निर्यात करें",
+    "noCandidatesFound": "कोई उम्मीदवार नहीं मिला",
+    "noCandidatesDesc": "अपने खोज मानदंड को समायोजित करने का प्रयास करें।",
+    "noApplications": "अभी तक कोई आवेदन प्राप्त नहीं हुआ।"
+  },
+  "tabs": {
+    "all": "सभी ({{count}})",
+    "applied": "आवेदन किया ({{count}})",
+    "reviewed": "समीक्षा की गई ({{count}})",
+    "shortlisted": "शॉर्टलिस्ट ({{count}})",
+    "interview": "साक्षात्कार ({{count}})",
+    "hired": "नियुक्त ({{count}})",
+    "rejected": "अस्वीकृत ({{count}})"
+  },
+  "actions": {
+    "view": "देखें",
+    "shortlist": "शॉर्टलिस्ट करें",
+    "reject": "अस्वीकार करें",
+    "schedule": "निर्धारित करें",
+    "hire": "नियुक्त करें",
+    "download": "डाउनलोड करें",
+    "contact": "संपर्क करें"
+  },
+  "details": {
+    "appliedFor": "{{position}} के लिए आवेदन किया",
+    "experience": "{{years}} अनुभव",
+    "trustScore": "विश्वास: {{score}}%",
+    "matchScore": "मैच: {{score}}%",
+    "appliedOn": "{{date}} को आवेदन किया",
+    "moreSkills": "+{{count}} और"
+  },
+  "status": {
+    "applied": "आवेदन किया",
+    "reviewed": "समीक्षा की गई",
+    "shortlisted": "शॉर्टलिस्ट",
+    "interview": "साक्षात्कार",
+    "hired": "नियुक्त",
+    "rejected": "अस्वीकृत"
+  }
+} 

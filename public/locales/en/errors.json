@@ -1,0 +1,81 @@
+{
+  "general": {
+    "somethingWrong": "Something went wrong",
+    "tryAgain": "Please try again",
+    "contactSupport": "Please contact support if the problem persists",
+    "networkError": "Network error. Please check your connection.",
+    "serverError": "Server error. Please try again later.",
+    "unknownError": "An unknown error occurred",
+    "operationFailed": "Operation failed",
+    "loadingFailed": "Failed to load data",
+    "savingFailed": "Failed to save data",
+    "deletingFailed": "Failed to delete data",
+    "updateFailed": "Failed to update data"
+  },
+  "authentication": {
+    "loginFailed": "Login failed",
+    "logoutFailed": "Logout failed", 
+    "registrationFailed": "Registration failed",
+    "sessionExpired": "Your session has expired",
+    "invalidCredentials": "Invalid email or password",
+    "accountNotFound": "Account not found",
+    "accountNotVerified": "Please verify your email before signing in",
+    "emailExists": "Email already exists",
+    "verificationFailed": "Email verification failed",
+    "resetFailed": "Password reset failed",
+    "unauthorized": "You are not authorized to perform this action",
+    "accessDenied": "Access denied"
+  },
+  "validation": {
+    "invalidEmail": "Invalid email address",
+    "invalidPhone": "Invalid phone number",
+    "invalidUrl": "Invalid URL",
+    "passwordTooShort": "Password must be at least {{count}} characters",
+    "passwordMismatch": "Passwords do not match",
+    "fieldRequired": "This field is required",
+    "invalidFormat": "Invalid format",
+    "valueExists": "This value already exists",
+    "valueTooShort": "Value is too short",
+    "valueTooLong": "Value is too long",
+    "invalidDate": "Invalid date",
+    "dateInPast": "Date cannot be in the past",
+    "dateInFuture": "Date cannot be in the future"
+  },
+  "upload": {
+    "uploadFailed": "Upload failed",
+    "fileTooLarge": "File is too large",
+    "fileTypeNotSupported": "File type not supported",
+    "fileCorrupted": "File appears to be corrupted",
+    "uploadTimeout": "Upload timed out",
+    "noFileSelected": "No file selected"
+  },
+  "api": {
+    "requestFailed": "Request failed",
+    "invalidResponse": "Invalid response from server",
+    "connectionTimeout": "Connection timed out",
+    "rateLimitExceeded": "Rate limit exceeded. Please try again later.",
+    "serviceUnavailable": "Service temporarily unavailable",
+    "badRequest": "Bad request",
+    "notFound": "Resource not found",
+    "internalError": "Internal server error"
+  },
+  "jobs": {
+    "createFailed": "Failed to create job",
+    "updateFailed": "Failed to update job",
+    "deleteFailed": "Failed to delete job",
+    "loadFailed": "Failed to load jobs",
+    "invalidJobData": "Invalid job data"
+  },
+  "candidates": {
+    "loadFailed": "Failed to load candidates",
+    "updateFailed": "Failed to update candidate status",
+    "contactFailed": "Failed to contact candidate"
+  },
+  "organizations": {
+    "createFailed": "Failed to create organization",
+    "updateFailed": "Failed to update organization",
+    "loadFailed": "Failed to load organizations",
+    "selectFailed": "Failed to select organization",
+    "slugExists": "Organization identifier already exists"
+  }
+} 

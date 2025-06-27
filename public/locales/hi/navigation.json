@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "जॉबबिज",
+    "findJobs": "नौकरी खोजें",
+    "postJobs": "नौकरी पोस्ट करें",
+    "login": "लॉगिन",
+    "logout": "लॉगआउट",
+    "profile": "प्रोफाइल",
+    "dashboard": "डैशबोर्ड",
+    "notifications": "सूचनाएं",
+    "settings": "सेटिंग्स",
+    "help": "सहायता",
+    "support": "समर्थन"
+  },
+  "footer": {
+    "platform": "प्लेटफॉर्म",
+    "resources": "संसाधन",
+    "company": "कंपनी",
+    "legal": "कानूनी",
+    "findJobs": "नौकरी खोजें",
+    "postJob": "नौकरी पोस्ट करें",
+    "issueCertificates": "प्रमाणपत्र जारी करें",
+    "publicDashboard": "सार्वजनिक डैशबोर्ड",
+    "mobileApp": "मोबाइल ऐप",
+    "helpCenter": "सहायता केंद्र",
+    "careerGuides": "करियर गाइड",
+    "skillDevelopment": "कौशल विकास",
+    "interviewTips": "इंटरव्यू टिप्स",
+    "resumeBuilder": "रिज्यूमे बिल्डर",
+    "aboutUs": "हमारे बारे में",
+    "career": "करियर",
+    "press": "प्रेस",
+    "partnerWithUs": "हमारे साथ भागीदार बनें",
+    "investorRelations": "निवेशक संबंध",
+    "termsConditions": "नियम और शर्तें",
+    "privacyPolicy": "गोपनीयता नीति",
+    "cookiePolicy": "कुकी नीति",
+    "dataProtection": "डेटा सुरक्षा",
+    "accessibility": "पहुंच",
+    "madeInIndia": "भारत में निर्मित",
+    "securePlatform": "सुरक्षित प्लेटफॉर्म",
+    "mobileFirst": "मोबाइल फर्स्ट",
+    "languagesSupported": "15+ भाषाएं",
+    "allRightsReserved": "सभी अधिकार सुरक्षित",
+    "contactEmail": "संपर्क: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "भाषा चयनकर्ता",
+    "selectLanguage": "भाषा चुनें",
+    "currentLanguage": "वर्तमान भाषा",
+    "switchTo": "{{language}} में स्विच करें"
+  },
+  "locationSelector": {
+    "selectLocation": "स्थान चुनें",
+    "currentLocation": "वर्तमान स्थान",
+    "changeLocation": "स्थान बदलें"
+  },
+  "breadcrumb": {
+    "home": "होम",
+    "dashboard": "डैशबोर्ड",
+    "jobs": "नौकरियां",
+    "candidates": "उम्मीदवार",
+    "organizations": "संगठन",
+    "profile": "प्रोफाइल",
+    "settings": "सेटिंग्स"
+  },
+  "sidebar": {
+    "toggleSidebar": "साइडबार टॉगल करें",
+    "expandSidebar": "साइडबार विस्तृत करें",
+    "collapseSidebar": "साइडबार संकुचित करें"
+  },
+  "menu": {
+    "mainMenu": "मुख्य मेन्यू",
+    "userMenu": "उपयोगकर्ता मेन्यू",
+    "mobileMenu": "मोबाइल मेन्यू",
+    "contextMenu": "संदर्भ मेन्यू"
+  },
+  "tabs": {
+    "overview": "अवलोकन",
+    "details": "विवरण",
+    "activity": "गतिविधि",
+    "history": "इतिहास",
+    "analytics": "विश्लेषण",
+    "reports": "रिपोर्ट"
+  }
+} 

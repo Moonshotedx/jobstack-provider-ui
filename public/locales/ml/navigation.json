@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "ജോബ്ബ്രിഡ്ജ്",
+    "findJobs": "ജോലി കണ്ടെത്തുക",
+    "postJobs": "ജോലി പോസ്റ്റ് ചെയ്യുക",
+    "login": "ലോഗിൻ",
+    "logout": "ലോഗൗട്ട്",
+    "profile": "പ്രൊഫൈൽ",
+    "dashboard": "ഡാഷ്ബോർഡ്",
+    "notifications": "അറിയിപ്പുകൾ",
+    "settings": "ക്രമീകരണങ്ങൾ",
+    "help": "സഹായം",
+    "support": "പിന്തുണ"
+  },
+  "footer": {
+    "platform": "പ്ലാറ്റ്ഫോം",
+    "resources": "വിഭവങ്ങൾ",
+    "company": "കമ്പനി",
+    "legal": "നിയമപരമായ",
+    "findJobs": "ജോലി കണ്ടെത്തുക",
+    "postJob": "ജോലി പോസ്റ്റ് ചെയ്യുക",
+    "issueCertificates": "സർട്ടിഫിക്കറ്റുകൾ നൽകുക",
+    "publicDashboard": "പൊതു ഡാഷ്ബോർഡ്",
+    "mobileApp": "മൊബൈൽ ആപ്പ്",
+    "helpCenter": "സഹായ കേന്ദ്രം",
+    "careerGuides": "കരിയർ ഗൈഡുകൾ",
+    "skillDevelopment": "വൈദഗ്ധ്യ വികസനം",
+    "interviewTips": "ഇന്റർവ്യൂ ടിപ്പുകൾ",
+    "resumeBuilder": "റെസ്യൂം ബിൽഡർ",
+    "aboutUs": "ഞങ്ങളെക്കുറിച്ച്",
+    "career": "കരിയർ",
+    "press": "പ്രസ്സ്",
+    "partnerWithUs": "ഞങ്ങളുടെ കൂടെ പങ്കാളിയാകുക",
+    "investorRelations": "നിക്ഷേപക ബന്ധങ്ങൾ",
+    "termsConditions": "നിബന്ധനകളും വ്യവസ്ഥകളും",
+    "privacyPolicy": "സ്വകാര്യതാ നയം",
+    "cookiePolicy": "കുക്കി നയം",
+    "dataProtection": "ഡാറ്റ പരിരക്ഷ",
+    "accessibility": "പ്രവേശനക്ഷമത",
+    "madeInIndia": "ഇന്ത്യയിൽ നിർമ്മിച്ചത്",
+    "securePlatform": "സുരക്ഷിത പ്ലാറ്റ്ഫോം",
+    "mobileFirst": "മൊബൈൽ ഫസ്റ്റ്",
+    "languagesSupported": "15+ ഭാഷകൾ",
+    "allRightsReserved": "എല്ലാ അവകാശങ്ങളും സംരക്ഷിക്കപ്പെട്ടിരിക്കുന്നു",
+    "contactEmail": "ബന്ധപ്പെടുക: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "ഭാഷ തിരഞ്ഞെടുക്കൽ",
+    "selectLanguage": "ഭാഷ തിരഞ്ഞെടുക്കുക",
+    "currentLanguage": "നിലവിലെ ഭാഷ",
+    "switchTo": "{{language}}ലേക്ക് മാറുക"
+  },
+  "locationSelector": {
+    "selectLocation": "സ്ഥലം തിരഞ്ഞെടുക്കുക",
+    "currentLocation": "നിലവിലെ സ്ഥലം",
+    "changeLocation": "സ്ഥലം മാറ്റുക"
+  },
+  "breadcrumb": {
+    "home": "ഹോം",
+    "dashboard": "ഡാഷ്ബോർഡ്",
+    "jobs": "ജോലികൾ",
+    "candidates": "അപേക്ഷകർ",
+    "organizations": "സ്ഥാപനങ്ങൾ",
+    "profile": "പ്രൊഫൈൽ",
+    "settings": "ക്രമീകരണങ്ങൾ"
+  },
+  "sidebar": {
+    "toggleSidebar": "സൈഡ്ബാർ ടോഗിൾ ചെയ്യുക",
+    "expandSidebar": "സൈഡ്ബാർ വികസിപ്പിക്കുക",
+    "collapseSidebar": "സൈഡ്ബാർ ചുരുക്കുക"
+  },
+  "menu": {
+    "mainMenu": "പ്രധാന മെനു",
+    "userMenu": "ഉപയോക്താവിന്റെ മെനു",
+    "mobileMenu": "മൊബൈൽ മെനു",
+    "contextMenu": "സന്ദർഭ മെനു"
+  },
+  "tabs": {
+    "overview": "അവലോകനം",
+    "details": "വിശദാംശങ്ങൾ",
+    "activity": "പ്രവർത്തനം",
+    "history": "ചരിത്രം",
+    "analytics": "അനലിറ്റിക്സ്",
+    "reports": "റിപ്പോർട്ടുകൾ"
+  }
+} 

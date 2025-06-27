@@ -1,0 +1,50 @@
+{
+  "create": {
+    "title": "संगठन बनाएं",
+    "organizationDetails": "संगठन विवरण",
+    "organizationName": "संगठन का नाम *",
+    "organizationNamePlaceholder": "संगठन का नाम दर्ज करें",
+    "address": "पता *",
+    "addressPlaceholder": "पूरा पता दर्ज करें",
+    "gstNumber": "जीएसटी नंबर / संगठन पहचानकर्ता",
+    "gstNumberPlaceholder": "जीएसटी नंबर दर्ज करें (वैकल्पिक - खाली छोड़ने पर स्वचालित रूप से जेनरेट होगा)",
+    "gstNumberDesc": "यह आपके जीएसटी नंबर और संगठन पहचानकर्ता दोनों के रूप में काम करता है। एक अनूठी आईडी स्वचालित रूप से जेनरेट करने के लिए खाली छोड़ें।",
+    "website": "वेबसाइट",
+    "websitePlaceholder": "https://आपकीकंपनी.com",
+    "logo": "संगठन लोगो",
+    "changeLogo": "लोगो बदलें",
+    "uploadLogo": "लोगो अपलोड करें",
+    "description": "विवरण",
+    "descriptionPlaceholder": "अपने संगठन का वर्णन करें",
+    "contactPersonDetails": "संपर्क व्यक्ति विवरण",
+    "contactPersonName": "संपर्क व्यक्ति का नाम *",
+    "contactPersonPlaceholder": "संपर्क व्यक्ति का नाम दर्ज करें",
+    "contactEmail": "संपर्क ईमेल *",
+    "contactEmailPlaceholder": "contact@company.com",
+    "contactPhone": "संपर्क फोन *",
+    "contactPhonePlaceholder": "+91 98765 43210",
+    "agreementText": "संगठन बनाकर, आप नौकरी पोस्ट करने और उम्मीदवारों के प्रबंधन के लिए संगठनों पर लागू नियम और शर्तों से सहमत हैं।",
+    "creating": "बनाया जा रहा है...",
+    "createButton": "संगठन बनाएं",
+    "createSuccess": "संगठन सफलतापूर्वक बनाया गया",
+    "createSuccessDesc": "{{name}} बनाया गया है और सक्रिय के रूप में सेट किया गया है।"
+  },
+  "select": {
+    "title": "संगठन चुनें",
+    "createNew": "नया संगठन बनाएं",
+    "description": "नौकरी और उम्मीदवारों के प्रबंधन के लिए एक संगठन चुनें",
+    "selectAction": "चुनें"
+  },
+  "profile": {
+    "title": "संगठन प्रोफाइल",
+    "edit": "संगठन संपादित करें",
+    "view": "संगठन देखें"
+  },
+  "errors": {
+    "slugExists": "संगठन पहचानकर्ता पहले से मौजूद है",
+    "createFailed": "संगठन बनाने में विफल",
+    "tryAgainLater": "कृपया बाद में पुनः प्रयास करें।",
+    "notFound": "संगठन नहीं मिला",
+    "unauthorized": "आपको इस संगठन तक पहुंचने की अनुमति नहीं है"
+  }
+} 
