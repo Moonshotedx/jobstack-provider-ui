@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "ਜੌਬਬ੍ਰਿਜ",
+    "findJobs": "ਨੌਕਰੀ ਲੱਭੋ",
+    "postJobs": "ਨੌਕਰੀ ਪੋਸਟ ਕਰੋ",
+    "login": "ਲੌਗਇਨ",
+    "logout": "ਲੌਗਆਊਟ",
+    "profile": "ਪ੍ਰੋਫਾਈਲ",
+    "dashboard": "ਡੈਸ਼ਬੋਰਡ",
+    "notifications": "ਸੂਚਨਾਵਾਂ",
+    "settings": "ਸੈਟਿੰਗਜ਼",
+    "help": "ਮਦਦ",
+    "support": "ਸਹਾਇਤਾ"
+  },
+  "footer": {
+    "platform": "ਪਲੈਟਫੌਰਮ",
+    "resources": "ਸੰਸਾਧਨ",
+    "company": "ਕੰਪਨੀ",
+    "legal": "ਕਾਨੂੰਨੀ",
+    "findJobs": "ਨੌਕਰੀ ਲੱਭੋ",
+    "postJob": "ਨੌਕਰੀ ਪੋਸਟ ਕਰੋ",
+    "issueCertificates": "ਸਰਟੀਫਿਕੇਟ ਜਾਰੀ ਕਰੋ",
+    "publicDashboard": "ਪਬਲਿਕ ਡੈਸ਼ਬੋਰਡ",
+    "mobileApp": "ਮੋਬਾਈਲ ਐਪ",
+    "helpCenter": "ਮਦਦ ਕੇਂਦਰ",
+    "careerGuides": "ਕਰੀਅਰ ਗਾਈਡ",
+    "skillDevelopment": "ਹੁਨਰ ਵਿਕਾਸ",
+    "interviewTips": "ਇੰਟਰਵਿਊ ਟਿਪਸ",
+    "resumeBuilder": "ਰਿਜ਼ਿਊਮੇ ਬਿਲਡਰ",
+    "aboutUs": "ਸਾਡੇ ਬਾਰੇ",
+    "career": "ਕਰੀਅਰ",
+    "press": "ਪ੍ਰੈਸ",
+    "partnerWithUs": "ਸਾਡੇ ਨਾਲ ਭਾਗੀਦਾਰ ਬਣੋ",
+    "investorRelations": "ਨਿਵੇਸ਼ਕ ਰਿਸ਼ਤੇ",
+    "termsConditions": "ਨਿਯਮ ਅਤੇ ਸ਼ਰਤਾਂ",
+    "privacyPolicy": "ਗੁਪਤਤਾ ਨੀਤੀ",
+    "cookiePolicy": "ਕੁਕੀ ਨੀਤੀ",
+    "dataProtection": "ਡੇਟਾ ਸੁਰੱਖਿਆ",
+    "accessibility": "ਪਹੁੰਚ",
+    "madeInIndia": "ਭਾਰਤ ਵਿੱਚ ਬਣਿਆ",
+    "securePlatform": "ਸੁਰੱਖਿਤ ਪਲੈਟਫੌਰਮ",
+    "mobileFirst": "ਮੋਬਾਈਲ ਫਸਟ",
+    "languagesSupported": "15+ ਭਾਸ਼ਾਵਾਂ",
+    "allRightsReserved": "ਸਾਰੇ ਅਧਿਕਾਰ ਸੁਰੱਖਿਅਤ",
+    "contactEmail": "ਸੰਪਰਕ: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "ਭਾਸ਼ਾ ਚੋਣਕਰਤਾ",
+    "selectLanguage": "ਭਾਸ਼ਾ ਚੁਣੋ",
+    "currentLanguage": "ਮੌਜੂਦਾ ਭਾਸ਼ਾ",
+    "switchTo": "{{language}} ਵਿੱਚ ਬਦਲੋ"
+  },
+  "locationSelector": {
+    "selectLocation": "ਸਥਾਨ ਚੁਣੋ",
+    "currentLocation": "ਮੌਜੂਦਾ ਸਥਾਨ",
+    "changeLocation": "ਸਥਾਨ ਬਦਲੋ"
+  },
+  "breadcrumb": {
+    "home": "ਘਰ",
+    "dashboard": "ਡੈਸ਼ਬੋਰਡ",
+    "jobs": "ਨੌਕਰੀਆਂ",
+    "candidates": "ਉਮੀਦਵਾਰ",
+    "organizations": "ਸੰਸਥਾਵਾਂ",
+    "profile": "ਪ੍ਰੋਫਾਈਲ",
+    "settings": "ਸੈਟਿੰਗਜ਼"
+  },
+  "sidebar": {
+    "toggleSidebar": "ਸਾਇਡਬਾਰ ਟੌਗਲ ਕਰੋ",
+    "expandSidebar": "ਸਾਇਡਬਾਰ ਫੈਲਾਓ",
+    "collapseSidebar": "ਸਾਇਡਬਾਰ ਸਮੇਟੋ"
+  },
+  "menu": {
+    "mainMenu": "ਮੁੱਖ ਮੀਨੂ",
+    "userMenu": "ਉਪਭੋਗਤਾ ਮੀਨੂ",
+    "mobileMenu": "ਮੋਬਾਈਲ ਮੀਨੂ",
+    "contextMenu": "ਸੰਦਰਭ ਮੀਨੂ"
+  },
+  "tabs": {
+    "overview": "ਜਾਣਕਾਰੀ",
+    "details": "ਵੇਰਵੇ",
+    "activity": "ਗਤੀਵਿਧੀ",
+    "history": "ਇਤਿਹਾਸ",
+    "analytics": "ਵਿਸ਼ਲੇਸ਼ਣ",
+    "reports": "ਰਿਪੋਰਟਾਂ"
+  }
+} 

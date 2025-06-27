@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "જોબ્બ્રિજ",
+    "findJobs": "નોકરી શોધો",
+    "postJobs": "નોકરી પોસ્ટ કરો",
+    "login": "લોગિન",
+    "logout": "લોગઆઉટ",
+    "profile": "પ્રોફાઇલ",
+    "dashboard": "ડેશબોર્ડ",
+    "notifications": "નોટિફિકેશન",
+    "settings": "સેટિંગ્સ",
+    "help": "મદદ",
+    "support": "સપોર્ટ"
+  },
+  "footer": {
+    "platform": "પ્લેટફોર્મ",
+    "resources": "સંસાધનો",
+    "company": "કંપની",
+    "legal": "કાનૂની",
+    "findJobs": "નોકરી શોધો",
+    "postJob": "નોકરી પોસ્ટ કરો",
+    "issueCertificates": "સર્ટિફિકેટ આપો",
+    "publicDashboard": "પબ્લિક ડેશબોર્ડ",
+    "mobileApp": "મોબાઇલ એપ",
+    "helpCenter": "મદદ કેન્દ્ર",
+    "careerGuides": "કેરિયર ગાઇડ",
+    "skillDevelopment": "કૌશલ્ય વિકાસ",
+    "interviewTips": "ઇન્ટરવ્યુ ટિપ્સ",
+    "resumeBuilder": "રિઝયુમે બિલ્ડર",
+    "aboutUs": "અમારા વિશે",
+    "career": "કેરિયર",
+    "press": "પ્રેસ",
+    "partnerWithUs": "અમારી સાથે ભાગીદાર બનો",
+    "investorRelations": "રોકાણકર્તા સંબંધો",
+    "termsConditions": "નિયમો અને શરતો",
+    "privacyPolicy": "ગોપનીયતા નીતિ",
+    "cookiePolicy": "કૂકી નીતિ",
+    "dataProtection": "ડેટા પ્રોટેક્શન",
+    "accessibility": "સુલભતા",
+    "madeInIndia": "ભારતમાં બનાવ્યું",
+    "securePlatform": "સુરક્ષિત પ્લેટફોર્મ",
+    "mobileFirst": "મોબાઇલ ફર્સ્ટ",
+    "languagesSupported": "15+ ભાષાઓ",
+    "allRightsReserved": "બધા અધિકારો સુરક્ષિત",
+    "contactEmail": "સંપર્ક: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "ભાષા પસંદકર્તા",
+    "selectLanguage": "ભાષા પસંદ કરો",
+    "currentLanguage": "વર્તમાન ભાષા",
+    "switchTo": "{{language}}માં સ્વિચ કરો"
+  },
+  "locationSelector": {
+    "selectLocation": "સ્થાન પસંદ કરો",
+    "currentLocation": "વર્તમાન સ્થાન",
+    "changeLocation": "સ્થાન બદલો"
+  },
+  "breadcrumb": {
+    "home": "ઘર",
+    "dashboard": "ડેશબોર્ડ",
+    "jobs": "નોકરીઓ",
+    "candidates": "ઉમેદવારો",
+    "organizations": "સંસ્થાઓ",
+    "profile": "પ્રોફાઇલ",
+    "settings": "સેટિંગ્સ"
+  },
+  "sidebar": {
+    "toggleSidebar": "સાઇડબાર ટૉગલ કરો",
+    "expandSidebar": "સાઇડબાર વિસ્તૃત કરો",
+    "collapseSidebar": "સાઇડબાર સંકુચિત કરો"
+  },
+  "menu": {
+    "mainMenu": "મુખ્ય મેનૂ",
+    "userMenu": "વપરાશકર્તા મેનૂ",
+    "mobileMenu": "મોબાઇલ મેનૂ",
+    "contextMenu": "સંદર્ભ મેનૂ"
+  },
+  "tabs": {
+    "overview": "ઝાંખી",
+    "details": "વિગતો",
+    "activity": "પ્રવૃત્તિ",
+    "history": "ઇતિહાસ",
+    "analytics": "વિશ્લેષણ",
+    "reports": "રિપોર્ટ્સ"
+  }
+} 

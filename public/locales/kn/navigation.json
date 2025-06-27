@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "ಜಾಬ್‌ಬ್ರಿಜ್",
+    "findJobs": "ಕೆಲಸ ಹುಡುಕಿ",
+    "postJobs": "ಕೆಲಸ ಪೋಸ್ಟ್ ಮಾಡಿ",
+    "login": "ಲಾಗಿನ್",
+    "logout": "ಲಾಗ್‌ಔಟ್",
+    "profile": "ಪ್ರೊಫೈಲ್",
+    "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    "notifications": "ಅಧಿಸೂಚನೆಗಳು",
+    "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು",
+    "help": "ಸಹಾಯ",
+    "support": "ಬೆಂಬಲ"
+  },
+  "footer": {
+    "platform": "ಪ್ಲಾಟ್‌ಫಾರ್ಮ್",
+    "resources": "ಸಂಪನ್ಮೂಲಗಳು",
+    "company": "ಕಂಪನಿ",
+    "legal": "ಕಾನೂನು",
+    "findJobs": "ಕೆಲಸ ಹುಡುಕಿ",
+    "postJob": "ಕೆಲಸ ಪೋಸ್ಟ್ ಮಾಡಿ",
+    "issueCertificates": "ಪ್ರಮಾಣಪತ್ರಗಳನ್ನು ನೀಡಿ",
+    "publicDashboard": "ಸಾರ್ವಜನಿಕ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    "mobileApp": "ಮೊಬೈಲ್ ಅಪ್ಲಿಕೇಶನ್",
+    "helpCenter": "ಸಹಾಯ ಕೇಂದ್ರ",
+    "careerGuides": "ವೃತ್ತಿಜೀವನ ಮಾರ್ಗದರ್ಶಿಗಳು",
+    "skillDevelopment": "ಕೌಶಲ್ಯ ಅಭಿವೃದ್ಧಿ",
+    "interviewTips": "ಸಂದರ್ಶನ ಸಲಹೆಗಳು",
+    "resumeBuilder": "ರೆಸ್ಯೂಮ್ ಬಿಲ್ಡರ್",
+    "aboutUs": "ನಮ್ಮ ಬಗ್ಗೆ",
+    "career": "ವೃತ್ತಿಜೀವನ",
+    "press": "ಪ್ರೆಸ್",
+    "partnerWithUs": "ನಮ್ಮೊಂದಿಗೆ ಭಾಗೀದಾರರಾಗಿ",
+    "investorRelations": "ಹೂಡಿಕೆದಾರ ಸಂಬಂಧಗಳು",
+    "termsConditions": "ನಿಯಮಗಳು ಮತ್ತು ಷರತ್ತುಗಳು",
+    "privacyPolicy": "ಗೌಪ್ಯತೆ ನೀತಿ",
+    "cookiePolicy": "ಕುಕೀ ನೀತಿ",
+    "dataProtection": "ಡೇಟಾ ಸಂರಕ್ಷಣೆ",
+    "accessibility": "ಪ್ರವೇಶಿಸುವಿಕೆ",
+    "madeInIndia": "ಭಾರತದಲ್ಲಿ ತಯಾರಿಸಲಾಗಿದೆ",
+    "securePlatform": "ಸುರಕ್ಷಿತ ಪ್ಲಾಟ್‌ಫಾರ್ಮ್",
+    "mobileFirst": "ಮೊಬೈಲ್ ಮೊದಲು",
+    "languagesSupported": "15+ ಭಾಷೆಗಳು",
+    "allRightsReserved": "ಎಲ್ಲಾ ಹಕ್ಕುಗಳು ಕಾಯ್ದಿರಿಸಲಾಗಿದೆ",
+    "contactEmail": "ಸಂಪರ್ಕಿಸಿ: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "ಭಾಷೆ ಆಯ್ಕೆಗಾರ",
+    "selectLanguage": "ಭಾಷೆ ಆಯ್ಕೆ ಮಾಡಿ",
+    "currentLanguage": "ಪ್ರಸ್ತುತ ಭಾಷೆ",
+    "switchTo": "{{language}}ಗೆ ಬದಲಾಯಿಸಿ"
+  },
+  "locationSelector": {
+    "selectLocation": "ಸ್ಥಳ ಆಯ್ಕೆ ಮಾಡಿ",
+    "currentLocation": "ಪ್ರಸ್ತುತ ಸ್ಥಳ",
+    "changeLocation": "ಸ್ಥಳ ಬದಲಾಯಿಸಿ"
+  },
+  "breadcrumb": {
+    "home": "ಮುಖ್ಯಪುಟ",
+    "dashboard": "ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+    "jobs": "ಕೆಲಸಗಳು",
+    "candidates": "ಅಭ್ಯರ್ಥಿಗಳು",
+    "organizations": "ಸಂಸ್ಥೆಗಳು",
+    "profile": "ಪ್ರೊಫೈಲ್",
+    "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
+  },
+  "sidebar": {
+    "toggleSidebar": "ಸೈಡ್‌ಬಾರ್ ಟಾಗಲ್ ಮಾಡಿ",
+    "expandSidebar": "ಸೈಡ್‌ಬಾರ್ ವಿಸ್ತರಿಸಿ",
+    "collapseSidebar": "ಸೈಡ್‌ಬಾರ್ ಕುಗ್ಗಿಸಿ"
+  },
+  "menu": {
+    "mainMenu": "ಮುಖ್ಯ ಮೆನು",
+    "userMenu": "ಬಳಕೆದಾರ ಮೆನು",
+    "mobileMenu": "ಮೊಬೈಲ್ ಮೆನು",
+    "contextMenu": "ಸಂದರ್ಭ ಮೆನು"
+  },
+  "tabs": {
+    "overview": "ಅವಲೋಕನ",
+    "details": "ವಿವರಗಳು",
+    "activity": "ಚಟುವಟಿಕೆ",
+    "history": "ಇತಿಹಾಸ",
+    "analytics": "ವಿಶ್ಲೇಷಣೆ",
+    "reports": "ವರದಿಗಳು"
+  }
+} 

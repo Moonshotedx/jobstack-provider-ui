@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search } from 'lucide-react';
 import { JOB_ROLES_BY_INDUSTRY } from '@/constants/jobRoles';
+import { useTranslation } from 'react-i18next';
 
 interface RoleSelectionStepProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   onBack,
   skipAuthSteps
 }) => {
+  const { t } = useTranslation('jobs');
   const [searchQuery, setSearchQuery] = useState('');
 
   // Get all roles from all industries in a flat array
@@ -55,20 +57,20 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Select Job Role</DialogTitle>
+          <DialogTitle>{t('posting.selectJobRole')}</DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Choose the specific role you want to hire for</CardTitle>
+              <CardTitle className="text-lg">{t('posting.roleSelectionSubtitle')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Search Bar */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                 <Input
-                  placeholder="Search job roles..."
+                  placeholder={t('posting.searchJobRoles')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
@@ -92,7 +94,7 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
               {/* Show message if no roles found */}
               {filteredRoles.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
-                  <p>No job roles found matching your search.</p>
+                  <p>{t('posting.noRolesFound')}</p>
                 </div>
               )}
 
@@ -101,10 +103,10 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                 <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium text-blue-900">Selected Role: {selectedJobRole}</p>
+                      <p className="font-medium text-blue-900">{t('posting.selectedRole', { role: selectedJobRole })}</p>
                     </div>
                     <Button onClick={onProceed}>
-                      Continue to Job Details
+                      {t('posting.continueToJobDetails')}
                     </Button>
                   </div>
                 </div>
@@ -115,11 +117,11 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
           <div className="flex gap-2">
             {!skipAuthSteps && (
               <Button variant="outline" onClick={onBack}>
-                Back
+                {t('posting.back')}
               </Button>
             )}
             <Button variant="outline" onClick={onClose}>
-              Cancel
+              {t('posting.cancel')}
             </Button>
           </div>
         </div>

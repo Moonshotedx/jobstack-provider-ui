@@ -16,12 +16,14 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle, Briefcase, Users, Plus, Building2, AlertCircle, Mail, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
+import { useTranslation } from 'react-i18next'
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardComponent,
 })
 
 function DashboardContent() {
+  const { t } = useTranslation('dashboard');
   const [activeTab, setActiveTab] = useState('my-jobs')
   const [showOrgProfile, setShowOrgProfile] = useState(false)
   const [showEmployerDialog, setShowEmployerDialog] = useState(false)
@@ -53,7 +55,7 @@ function DashboardContent() {
         
         // Show success message if user just got verified
         if (!wasVerified && isNowVerified) {
-          toast.success('Email verified successfully! Welcome to your dashboard.')
+          toast.success(t('verification.verificationSuccess'))
         }
         
         setHasCheckedInitialVerification(true)
@@ -80,13 +82,13 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, checkEmailVerification])
+  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, checkEmailVerification, t])
 
   const handleResendVerification = async () => {
     setIsResendingVerification(true)
     try {
       await resendVerificationEmail()
-      toast.success('Verification email resent!')
+      toast.success(t('verification.resendSuccess'))
     } catch (error: any) {
       toast.error(error.message || 'Failed to resend email')
     } finally {
@@ -108,7 +110,7 @@ function DashboardContent() {
             <div className="h-4 bg-muted rounded w-3/4 mx-auto mb-2"></div>
             <div className="h-4 bg-muted rounded w-1/2 mx-auto"></div>
           </div>
-          <p className="text-muted-foreground">Checking verification status...</p>
+          <p className="text-muted-foreground">{t('verification.checkingStatus')}</p>
         </div>
       </div>
     )
@@ -123,9 +125,9 @@ function DashboardContent() {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
               <AlertCircle className="h-8 w-8 text-yellow-600" />
             </div>
-            <h1 className="text-3xl font-bold">Email Verification Required</h1>
+            <h1 className="text-3xl font-bold">{t('verification.verificationRequired')}</h1>
             <p className="text-muted-foreground text-lg">
-              Please verify your email address to access your dashboard and start managing jobs.
+              {t('verification.verificationRequiredDesc')}
             </p>
           </div>
 
@@ -133,18 +135,17 @@ function DashboardContent() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Mail className="h-5 w-5" />
-                Verification Email Sent
+                {t('verification.verificationSent')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                We've sent a verification link to <strong>{user.email}</strong>. 
-                Click the link in your email to verify your account.
+                {t('verification.verificationLinkSent', { email: user.email })}
               </p>
               
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <p className="text-xs text-blue-800">
-                  💡 <strong>Tip:</strong> The verification link will redirect you back to this dashboard once verified.
+                  {t('verification.verificationTip')}
                 </p>
               </div>
               
@@ -157,19 +158,19 @@ function DashboardContent() {
                 {isResendingVerification ? (
                   <>
                     <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                    Resending...
+                    {t('verification.resending')}
                   </>
                 ) : (
                   <>
                     <Mail className="h-4 w-4 mr-2" />
-                    Resend Verification Email
+                    {t('verification.resendButton')}
                   </>
                 )}
               </Button>
               
               <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                 <p className="text-xs text-yellow-800">
-                  <strong>Can't find the email?</strong> Check your spam folder or try resending the verification email.
+                  {t('verification.cantFindEmail')}
                 </p>
               </div>
             </CardContent>
@@ -186,15 +187,15 @@ function DashboardContent() {
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="space-y-4">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-                      <h1 className="text-3xl font-bold">Welcome, {user.email}!</h1>
-          <p className="text-muted-foreground text-lg">
-            Let's set up your organization to start managing jobs and candidates.
-          </p>
+            <h1 className="text-3xl font-bold">{t('welcome.title', { email: user.email })}</h1>
+            <p className="text-muted-foreground text-lg">
+              {t('welcome.subtitle')}
+            </p>
           </div>
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>Create Your Organization</CardTitle>
+              <CardTitle>{t('welcome.createOrganization')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Button 
@@ -202,7 +203,7 @@ function DashboardContent() {
                 size="lg"
                 onClick={() => setShowOrgProfile(true)}
               >
-                Create Organization
+                {t('welcome.createOrganization')}
               </Button>
             </CardContent>
           </Card>
@@ -213,7 +214,7 @@ function DashboardContent() {
           onClose={() => setShowOrgProfile(false)}
           onSuccess={() => {
             setShowOrgProfile(false);
-            toast.success('Welcome to your dashboard! Your organization has been created successfully.');
+            toast.success(t('welcome.organizationCreated'));
           }}
         />
       </div>
@@ -225,9 +226,9 @@ function DashboardContent() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Provider Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage employers, job postings, and candidate applications
+            {t('subtitle')}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -236,14 +237,14 @@ function DashboardContent() {
             onClick={() => setShowPostJob(true)}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Post New Job
+            {t('quickActions.postNewJob')}
           </Button>
           <Button 
             variant="outline"
             onClick={handleManageEmployers}
           >
             <Building2 className="h-4 w-4 mr-2" />
-            Manage Employers
+            {t('quickActions.manageEmployers')}
           </Button>
         </div>
       </div>
@@ -254,7 +255,7 @@ function DashboardContent() {
           <div className="flex items-center gap-3">
             <Building2 className="h-5 w-5 text-primary" />
             <div>
-              <p className="font-medium">Your Organization: {user.profile.name}</p>
+              <p className="font-medium">{t('currentOrganization.title')}: {user.profile.name}</p>
               <p className="text-sm text-muted-foreground">{user.profile.contactEmail}</p>
               {user.profile.address && (
                 <p className="text-xs text-muted-foreground">{user.profile.address}</p>
@@ -271,7 +272,7 @@ function DashboardContent() {
             <Briefcase className="h-8 w-8 text-primary mr-4" />
             <div>
               <p className="text-2xl font-bold">12</p>
-              <p className="text-muted-foreground">Active Jobs</p>
+              <p className="text-muted-foreground">{t('stats.activeJobs')}</p>
             </div>
           </CardContent>
         </Card>
@@ -280,7 +281,7 @@ function DashboardContent() {
             <Users className="h-8 w-8 text-blue-500 mr-4" />
             <div>
               <p className="text-2xl font-bold">48</p>
-              <p className="text-muted-foreground">Total Applications</p>
+              <p className="text-muted-foreground">{t('stats.totalApplications')}</p>
             </div>
           </CardContent>
         </Card>
@@ -289,7 +290,7 @@ function DashboardContent() {
             <CheckCircle className="h-8 w-8 text-green-500 mr-4" />
             <div>
               <p className="text-2xl font-bold">5</p>
-              <p className="text-muted-foreground">Candidates Hired</p>
+              <p className="text-muted-foreground">{t('stats.candidatesHired')}</p>
             </div>
           </CardContent>
         </Card>
@@ -298,11 +299,10 @@ function DashboardContent() {
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="my-jobs">My Jobs</TabsTrigger>
-          <TabsTrigger value="candidates">Candidate Management</TabsTrigger>
-          <TabsTrigger value="employers">Employer Management</TabsTrigger>
+          <TabsTrigger value="my-jobs">{t('tabs.myJobs')}</TabsTrigger>
+          <TabsTrigger value="candidates" className="text-red-500 data-[state=active]:text-red-500">{t('tabs.candidateManagement')}</TabsTrigger>
+          <TabsTrigger value="employers" className="text-red-500 data-[state=active]:text-red-500">{t('tabs.employerManagement')}</TabsTrigger>
         </TabsList>
-        
         <TabsContent value="my-jobs" className="mt-0">
           <MyJobs />
         </TabsContent>

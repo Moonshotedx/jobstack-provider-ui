@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "ஜாப்பிஸ்",
+    "findJobs": "வேலைகளை தேடவும்",
+    "postJobs": "வேலைகளை போஸ்ட் செய்யவும்",
+    "login": "உள்நுழையவும்",
+    "logout": "வெளியேறவும்",
+    "profile": "சுயவிவரம்",
+    "dashboard": "டாஷ்போர்டு",
+    "notifications": "அறிவிப்புகள்",
+    "settings": "அமைப்புகள்",
+    "help": "உதவி",
+    "support": "ஆதரவு"
+  },
+  "footer": {
+    "platform": "தளம்",
+    "resources": "வளங்கள்",
+    "company": "நிறுவனம்",
+    "legal": "சட்டபூர்வ",
+    "findJobs": "வேலைகளை தேடவும்",
+    "postJob": "வேலை போஸ்ட் செய்யவும்",
+    "issueCertificates": "சான்றிதழ்களை வழங்கவும்",
+    "publicDashboard": "பொது டாஷ்போர்டு",
+    "mobileApp": "மொபைல் ஆப்",
+    "helpCenter": "உதவி மையம்",
+    "careerGuides": "வாழ்க்கை வழிகாட்டிகள்",
+    "skillDevelopment": "திறன் மேம்பாடு",
+    "interviewTips": "நேர்காணல் குறிப்புகள்",
+    "resumeBuilder": "ரிசியூம் பில்டர்",
+    "aboutUs": "எங்களைப் பற்றி",
+    "career": "வாழ்க்கை",
+    "press": "செய்தியாளர்",
+    "partnerWithUs": "எங்களுடன் பங்குதாரராக",
+    "investorRelations": "முதலீட்டாளர் உறவுகள்",
+    "termsConditions": "விதிமுறைகள் மற்றும் நிபந்தனைகள்",
+    "privacyPolicy": "தனியுரிமைக் கொள்கை",
+    "cookiePolicy": "குக்கீ கொள்கை",
+    "dataProtection": "தரவு பாதுகாப்பு",
+    "accessibility": "அணுகல்தன்மை",
+    "madeInIndia": "இந்தியாவில் உருவாக்கப்பட்டது",
+    "securePlatform": "பாதுகாப்பான தளம்",
+    "mobileFirst": "மொபைல் முதல்",
+    "languagesSupported": "15+ மொழிகள்",
+    "allRightsReserved": "அனைத்து உரிமைகளும் பாதுகாக்கப்பட்டது",
+    "contactEmail": "தொடர்பு: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "மொழி தேர்வாளர்",
+    "selectLanguage": "மொழியைத் தேர்ந்தெடுக்கவும்",
+    "currentLanguage": "தற்போதைய மொழி",
+    "switchTo": "{{language}}க்கு மாறவும்"
+  },
+  "locationSelector": {
+    "selectLocation": "இடத்தைத் தேர்ந்தெடுக்கவும்",
+    "currentLocation": "தற்போதைய இடம்",
+    "changeLocation": "இடத்தை மாற்றவும்"
+  },
+  "breadcrumb": {
+    "home": "முகப்பு",
+    "dashboard": "டாஷ்போர்டு",
+    "jobs": "வேலைகள்",
+    "candidates": "விண்ணப்பதாரர்கள்",
+    "organizations": "அமைப்புகள்",
+    "profile": "சுயவிவரம்",
+    "settings": "அமைப்புகள்"
+  },
+  "sidebar": {
+    "toggleSidebar": "பக்கப்பட்டியை மாற்றவும்",
+    "expandSidebar": "பக்கப்பட்டியை விரிவுபடுத்தவும்",
+    "collapseSidebar": "பக்கப்பட்டியை சுருக்கவும்"
+  },
+  "menu": {
+    "mainMenu": "முக்கிய மெனு",
+    "userMenu": "பயனர் மெனு",
+    "mobileMenu": "மொபைல் மெனு",
+    "contextMenu": "சூழல் மெனு"
+  },
+  "tabs": {
+    "overview": "மேலோட்டம்",
+    "details": "விவரங்கள்",
+    "activity": "செயல்பாடு",
+    "history": "வரலாறு",
+    "analytics": "பகுப்பாய்வு",
+    "reports": "அறிக்கைகள்"
+  }
+} 

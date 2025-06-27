@@ -20,6 +20,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Upload, Building, Loader2 } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { Label } from '@/components/ui/label';
+import { useTranslation } from 'react-i18next';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Organization name is required'),
@@ -42,6 +43,7 @@ interface CreateOrgProps {
 }
 
 export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps) {
+  const { t } = useTranslation('organizations');
   const [isLoading, setIsLoading] = useState(false);
   const { updateProfile } = useUserStore();
 
@@ -126,8 +128,8 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
 
         updateProfile(organizationProfile);
         
-        toast.success("Organization Created Successfully", {
-          description: `${data.name} has been created and set as active.`
+        toast.success(t('create.createSuccess'), {
+          description: t('create.createSuccessDesc', { name: data.name })
         });
 
         form.reset();
@@ -136,9 +138,16 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       }
     } catch (error: any) {
       console.error('Organization creation failed:', error);
-      toast.error("Failed to Create Organization", {
-        description: error.message || "Please try again later."
-      });
+      
+      if (error.message === 'Organization Identifier Already Exists') {
+        toast.error(t('errors.slugExists'), {
+          description: t('errors.tryAgainLater')
+        });
+      } else {
+        toast.error(t('errors.createFailed'), {
+          description: error.message || t('errors.tryAgainLater')
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -156,7 +165,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Organization Details</h3>
+          <h3 className="text-lg font-medium">{t('create.organizationDetails')}</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -165,9 +174,9 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Organization Name *</FormLabel>
+                    <FormLabel>{t('create.organizationName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter organization name" {...field} />
+                      <Input placeholder={t('create.organizationNamePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -181,10 +190,10 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Address *</FormLabel>
+                    <FormLabel>{t('create.address')}</FormLabel>
                     <FormControl>
                       <Textarea 
-                        placeholder="Enter complete address" 
+                        placeholder={t('create.addressPlaceholder')} 
                         rows={3}
                         {...field} 
                       />
@@ -201,13 +210,13 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="gstNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>GST Number / Organization Identifier</FormLabel>
+                    <FormLabel>{t('create.gstNumber')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter GST number (optional - auto-generated if empty)" {...field} />
+                      <Input placeholder={t('create.gstNumberPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                     <p className="text-xs text-muted-foreground">
-                      This serves as both your GST number and organization identifier. Leave empty to auto-generate a unique ID.
+                      {t('create.gstNumberDesc')}
                     </p>
                   </FormItem>
                 )}
@@ -220,9 +229,9 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="website"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Website</FormLabel>
+                    <FormLabel>{t('create.website')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="https://yourcompany.com" {...field} />
+                      <Input placeholder={t('create.websitePlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -232,14 +241,14 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
           </div>
 
           <div>
-            <Label>Organization Logo</Label>
+            <Label>{t('create.logo')}</Label>
             <Card className="border-dashed">
               <CardContent className="p-6 text-center">
                 {form.watch('logo') ? (
                   <div className="space-y-2">
                     <img src={form.watch('logo')} alt="Logo" className="h-16 w-16 mx-auto rounded" />
                     <Button type="button" variant="outline" onClick={handleLogoUpload}>
-                      Change Logo
+                      {t('create.changeLogo')}
                     </Button>
                   </div>
                 ) : (
@@ -247,7 +256,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                     <Building className="h-12 w-12 mx-auto text-muted-foreground" />
                     <Button type="button" onClick={handleLogoUpload}>
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload Logo
+                      {t('create.uploadLogo')}
                     </Button>
                   </div>
                 )}
@@ -261,10 +270,10 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>{t('create.description')}</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Describe your organization" 
+                      placeholder={t('create.descriptionPlaceholder')} 
                       rows={3}
                       {...field} 
                     />
@@ -277,7 +286,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         </div>
 
         <div className="space-y-4">
-          <h3 className="text-lg font-medium">Contact Person Details</h3>
+          <h3 className="text-lg font-medium">{t('create.contactPersonDetails')}</h3>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
@@ -286,9 +295,9 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="contactPersonName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Person Name *</FormLabel>
+                    <FormLabel>{t('create.contactPersonName')}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Enter contact person name" {...field} />
+                      <Input placeholder={t('create.contactPersonPlaceholder')} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -302,11 +311,11 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="contactEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Email *</FormLabel>
+                    <FormLabel>{t('create.contactEmail')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 
-                        placeholder="contact@company.com" 
+                        placeholder={t('create.contactEmailPlaceholder')} 
                         {...field} 
                       />
                     </FormControl>
@@ -322,11 +331,11 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="contactPhone"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Contact Phone *</FormLabel>
+                    <FormLabel>{t('create.contactPhone')}</FormLabel>
                     <FormControl>
                       <Input 
                         type="tel" 
-                        placeholder="+91 98765 43210" 
+                        placeholder={t('create.contactPhonePlaceholder')} 
                         {...field} 
                       />
                     </FormControl>
@@ -341,8 +350,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         <Card className="bg-muted/50">
           <CardContent className="p-4">
             <p className="text-sm text-muted-foreground">
-              By creating an organization, you agree to the terms and conditions 
-              applicable to organizations for posting jobs and managing candidates.
+              {t('create.agreementText')}
             </p>
           </CardContent>
         </Card>
@@ -357,10 +365,10 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
             {isLoading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Creating...
+                {t('create.creating')}
               </>
             ) : (
-              'Create Organization'
+              t('create.createButton')
             )}
           </Button>
         </div>
@@ -373,7 +381,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create Organization</DialogTitle>
+            <DialogTitle>{t('create.title')}</DialogTitle>
           </DialogHeader>
           {content}
         </DialogContent>

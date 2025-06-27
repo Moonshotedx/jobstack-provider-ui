@@ -1,0 +1,101 @@
+{
+  "header": {
+    "appName": "JobBridge",
+    "findJobs": "Find Jobs",
+    "postJobs": "Post Jobs",
+    "login": "Login",
+    "logout": "Logout",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "help": "Help",
+    "support": "Support"
+  },
+  "footer": {
+    "platform": "Platform",
+    "resources": "Resources",
+    "company": "Company",
+    "legal": "Legal",
+    "findJobs": "Find Jobs",
+    "postJob": "Post a Job",
+    "issueCertificates": "Issue Certificates",
+    "publicDashboard": "Public Dashboard",
+    "mobileApp": "Mobile App",
+    "helpCenter": "Help Center",
+    "careerGuides": "Career Guides",
+    "skillDevelopment": "Skill Development",
+    "interviewTips": "Interview Tips",
+    "resumeBuilder": "Resume Builder",
+    "aboutUs": "About Us",
+    "career": "Career",
+    "press": "Press",
+    "partnerWithUs": "Partner with Us",
+    "investorRelations": "Investor Relations",
+    "termsConditions": "Terms & Conditions",
+    "privacyPolicy": "Privacy Policy",
+    "cookiePolicy": "Cookie Policy",
+    "dataProtection": "Data Protection",
+    "accessibility": "Accessibility",
+    "madeInIndia": "Made in India",
+    "securePlatform": "Secure Platform",
+    "mobileFirst": "Mobile First",
+    "languagesSupported": "15+ Languages",
+    "allRightsReserved": "All rights reserved",
+    "contactEmail": "Contact: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "Language Selector",
+    "selectLanguage": "Select Language",
+    "currentLanguage": "Current Language",
+    "switchTo": "Switch to {{language}}"
+  },
+  "locationSelector": {
+    "selectLocation": "Select Location",
+    "currentLocation": "Current Location",
+    "changeLocation": "Change Location"
+  },
+  "breadcrumb": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "jobs": "Jobs",
+    "candidates": "Candidates",
+    "organizations": "Organizations",
+    "profile": "Profile",
+    "settings": "Settings"
+  },
+  "sidebar": {
+    "toggleSidebar": "Toggle Sidebar",
+    "expandSidebar": "Expand Sidebar",
+    "collapseSidebar": "Collapse Sidebar",
+    "opportunities": "Opportunities",
+    "nearMe": "Near Me",
+    "city": "City",
+    "anywhere": "Anywhere",
+    "newCalendar": "New Calendar"
+  },
+  "menu": {
+    "mainMenu": "Main Menu",
+    "userMenu": "User Menu",
+    "mobileMenu": "Mobile Menu",
+    "contextMenu": "Context Menu"
+  },
+  "tabs": {
+    "all": "All",
+    "active": "Active",
+    "pending": "Pending",
+    "shortlisted": "Shortlisted",
+    "hired": "Hired",
+    "rejected": "Rejected",
+    "overview": "Overview",
+    "details": "Details",
+    "applications": "Applications",
+    "analytics": "Analytics"
+  },
+  "userMenu": {
+    "profile": "Profile",
+    "offers": "Offers",
+    "notifications": "Notifications",
+    "logOut": "Log out"
+  }
+} 

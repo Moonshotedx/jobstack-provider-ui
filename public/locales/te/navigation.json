@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "జాబ్‌బ్రిడ్జ్",
+    "findJobs": "ఉద్యోగాలు వెతకండి",
+    "postJobs": "ఉద్యోగాలు పోస్ట్ చేయండి",
+    "login": "లాగిన్",
+    "logout": "లాగ్అవుట్",
+    "profile": "ప్రొఫైల్",
+    "dashboard": "డాష్‌బోర్డ్",
+    "notifications": "నోటిఫికేషన్లు",
+    "settings": "సెట్టింగ్‌లు",
+    "help": "సహాయం",
+    "support": "మద్దతు"
+  },
+  "footer": {
+    "platform": "ప్లాట్‌ఫామ్",
+    "resources": "వనరులు",
+    "company": "కంపెనీ",
+    "legal": "చట్టపరమైన",
+    "findJobs": "ఉద్యోగాలు వెతకండి",
+    "postJob": "ఉద్యోగం పోస్ట్ చేయండి",
+    "issueCertificates": "సర్టిఫికేట్లు జారీ చేయండి",
+    "publicDashboard": "పబ్లిక్ డాష్‌బోర్డ్",
+    "mobileApp": "మొబైల్ యాప్",
+    "helpCenter": "సహాయ కేంద్రం",
+    "careerGuides": "కెరీర్ గైడ్‌లు",
+    "skillDevelopment": "నైపుణ్య అభివృద్ధి",
+    "interviewTips": "ఇంటర్వ్యూ చిట్కాలు",
+    "resumeBuilder": "రిజ్యూమ్ బిల్డర్",
+    "aboutUs": "మా గురించి",
+    "career": "కెరీర్",
+    "press": "ప్రెస్",
+    "partnerWithUs": "మాతో భాగస్వామి అవ్వండి",
+    "investorRelations": "పెట్టుబడిదారుల సంబంధాలు",
+    "termsConditions": "నియమాలు మరియు షరతులు",
+    "privacyPolicy": "గోప్యతా విధానం",
+    "cookiePolicy": "కుకీ విధానం",
+    "dataProtection": "డేటా రక్షణ",
+    "accessibility": "అందుబాటు",
+    "madeInIndia": "భారతదేశంలో తయారు చేయబడింది",
+    "securePlatform": "సురక్షిత ప్లాట్‌ఫామ్",
+    "mobileFirst": "మొబైల్ ఫస్ట్",
+    "languagesSupported": "15+ భాషలు",
+    "allRightsReserved": "అన్ని హక్కులు సురక్షితం",
+    "contactEmail": "సంప్రదించండి: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "భాష ఎంపిక",
+    "selectLanguage": "భాష ఎంచుకోండి",
+    "currentLanguage": "ప్రస్తుత భాష",
+    "switchTo": "{{language}}కి మార్చండి"
+  },
+  "locationSelector": {
+    "selectLocation": "స్థానం ఎంచుకోండి",
+    "currentLocation": "ప్రస్తుత స్థానం",
+    "changeLocation": "స్థానం మార్చండి"
+  },
+  "breadcrumb": {
+    "home": "హోమ్",
+    "dashboard": "డాష్‌బోర్డ్",
+    "jobs": "ఉద్యోగాలు",
+    "candidates": "అభ్యర్థులు",
+    "organizations": "సంస్థలు",
+    "profile": "ప్రొఫైల్",
+    "settings": "సెట్టింగ్‌లు"
+  },
+  "sidebar": {
+    "toggleSidebar": "సైడ్‌బార్ టోగుల్ చేయండి",
+    "expandSidebar": "సైడ్‌బార్ విస్తరించండి",
+    "collapseSidebar": "సైడ్‌బార్ కుదించండి"
+  },
+  "menu": {
+    "mainMenu": "ప్రధాన మెనూ",
+    "userMenu": "వినియోగదారు మెనూ",
+    "mobileMenu": "మొబైల్ మెనూ",
+    "contextMenu": "సందర్భ మెనూ"
+  },
+  "tabs": {
+    "overview": "అవలోకనం",
+    "details": "వివరాలు",
+    "activity": "కార్యకలాపం",
+    "history": "చరిత్ర",
+    "analytics": "విశ్లేషణలు",
+    "reports": "నివేదికలు"
+  }
+} 

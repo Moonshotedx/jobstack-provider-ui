@@ -1,0 +1,86 @@
+{
+  "header": {
+    "appName": "জববিজ",
+    "findJobs": "চাকরি খুঁজুন",
+    "postJobs": "চাকরি পোস্ট করুন",
+    "login": "লগিন",
+    "logout": "লগআউট",
+    "profile": "প্রোফাইল",
+    "dashboard": "ড্যাশবোর্ড",
+    "notifications": "বিজ্ঞপ্তি",
+    "settings": "সেটিংস",
+    "help": "সাহায্য",
+    "support": "সহায়তা"
+  },
+  "footer": {
+    "platform": "প্ল্যাটফর্ম",
+    "resources": "সম্পদ",
+    "company": "কোম্পানি",
+    "legal": "আইনি",
+    "findJobs": "চাকরি খুঁজুন",
+    "postJob": "চাকরি পোস্ট করুন",
+    "issueCertificates": "সার্টিফিকেট প্রদান করুন",
+    "publicDashboard": "পাবলিক ড্যাশবোর্ড",
+    "mobileApp": "মোবাইল অ্যাপ",
+    "helpCenter": "সহায়তা কেন্দ্র",
+    "careerGuides": "ক্যারিয়ার গাইড",
+    "skillDevelopment": "দক্ষতা উন্নয়ন",
+    "interviewTips": "ইন্টারভিউ টিপস",
+    "resumeBuilder": "রিজিউমে বিল্ডার",
+    "aboutUs": "আমাদের সম্পর্কে",
+    "career": "ক্যারিয়ার",
+    "press": "প্রেস",
+    "partnerWithUs": "আমাদের সাথে অংশীদার হন",
+    "investorRelations": "বিনিয়োগকারী সম্পর্ক",
+    "termsConditions": "নিয়ম ও শর্তাবলী",
+    "privacyPolicy": "গোপনীয়তা নীতি",
+    "cookiePolicy": "কুকি নীতি",
+    "dataProtection": "ডেটা সুরক্ষা",
+    "accessibility": "অ্যাক্সেসিবিলিটি",
+    "madeInIndia": "ভারতে তৈরি",
+    "securePlatform": "নিরাপদ প্ল্যাটফর্ম",
+    "mobileFirst": "মোবাইল ফার্স্ট",
+    "languagesSupported": "১৫+ ভাষা",
+    "allRightsReserved": "সমস্ত অধিকার সংরক্ষিত",
+    "contactEmail": "যোগাযোগ: support@jobbridge.in"
+  },
+  "language": {
+    "selector": "ভাষা নির্বাচক",
+    "selectLanguage": "ভাষা নির্বাচন করুন",
+    "currentLanguage": "বর্তমান ভাষা",
+    "switchTo": "{{language}}-এ স্যুইচ করুন"
+  },
+  "locationSelector": {
+    "selectLocation": "অবস্থান নির্বাচন করুন",
+    "currentLocation": "বর্তমান অবস্থান", 
+    "changeLocation": "অবস্থান পরিবর্তন করুন"
+  },
+  "breadcrumb": {
+    "home": "হোম",
+    "dashboard": "ড্যাশবোর্ড",
+    "jobs": "চাকরি",
+    "candidates": "প্রার্থী",
+    "organizations": "সংস্থা",
+    "profile": "প্রোফাইল",
+    "settings": "সেটিংস"
+  },
+  "sidebar": {
+    "toggleSidebar": "সাইডবার টগল করুন",
+    "expandSidebar": "সাইডবার প্রসারিত করুন",
+    "collapseSidebar": "সাইডবার সংকুচিত করুন"
+  },
+  "menu": {
+    "mainMenu": "প্রধান মেনু",
+    "userMenu": "ব্যবহারকারী মেনু",
+    "mobileMenu": "মোবাইল মেনু",
+    "contextMenu": "প্রসঙ্গ মেনু"
+  },
+  "tabs": {
+    "overview": "সংক্ষিপ্ত বিবরণ",
+    "details": "বিস্তারিত",
+    "activity": "কার্যকলাপ",
+    "history": "ইতিহাস",
+    "analytics": "বিশ্লেষণ",
+    "reports": "রিপোর্ট"
+  }
+} 
