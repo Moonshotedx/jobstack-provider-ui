@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import RoleSelectionStep from './postJob/RoleSelectionStep';
 import JobPostStep from './postJob/JobPostStep';
 import type { PostJobDialogProps, JobPostStep as StepType, JobData, OrgData } from '@/types/jobPost';
+import { transformJobDataToCreateJobRequest } from '@/types/jobPost';
 import { toast } from 'sonner';
+import { useCreateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
 
 const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuthSteps = false }) => {
   const [step, setStep] = useState<StepType>(
@@ -10,6 +12,10 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
   );
   const [selectedJobRole, setSelectedJobRole] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
+  
+  // API hooks
+  const createJobMutation = useCreateJob();
+  const activeOrganizationId = useActiveOrganizationId();
   
   const [jobData, setJobData] = useState<JobData>({
     title: '',
@@ -105,12 +111,46 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     setStep('roleSelection');
   };
 
-  const handleJobSubmit = () => {
-    console.log('Submitting job:', jobData);
-    toast.success("Job posted successfully!");
-    onClose();
+  const handleJobSubmit = async () => {
+    console.log('handleJobSubmit called');
+    console.log('activeOrganizationId:', activeOrganizationId);
     
-    // Reset form
+    if (!activeOrganizationId) {
+      console.error('No active organization ID found');
+      toast.error('No active organization found. Please select an organization first.');
+      return;
+    }
+
+    try {
+      // Transform the job data to match the backend API
+      const createJobRequest = transformJobDataToCreateJobRequest(
+        jobData,
+        selectedIndustry,
+        selectedJobRole
+        // Note: We're not handling location data yet - can be added later
+      );
+
+      console.log('Submitting job request:', {
+        organizationId: activeOrganizationId,
+        jobData: createJobRequest
+      });
+
+      // Submit the job using the API
+      await createJobMutation.mutateAsync({
+        organizationId: activeOrganizationId,
+        jobData: createJobRequest,
+      });
+
+      // Close dialog and reset form on success
+      onClose();
+      resetForm();
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Failed to submit job:', error);
+    }
+  };
+
+  const resetForm = () => {
     setJobData({
       title: '',
       location: '',
@@ -203,6 +243,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
         setJobData={setJobData}
         onSubmit={handleJobSubmit}
         onBack={handleBackToRoleSelection}
+        isSubmitting={createJobMutation.isPending}
       />
     );
   }

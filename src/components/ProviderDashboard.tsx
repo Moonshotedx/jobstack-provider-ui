@@ -10,6 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
+import { useActiveOrganizationId } from '@/hooks/useJobsApi';
+import { authClient } from '@/lib/auth-client';
+import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
@@ -19,6 +23,14 @@ const ProviderDashboard = () => {
   // const { user } = useAuth();
   const user = useUserStore((state) => state.user);
   const navigate = useNavigate();
+  
+  // Debug: Get session information
+  const activeOrganizationId = useActiveOrganizationId();
+  const { data: session } = useQuery({
+    queryKey: ['session-debug'],
+    queryFn: () => authClient.getSession(),
+    staleTime: 5 * 60 * 1000,
+  });
 
   // If user is not logged in, show authentication flow
   if (!user) {
@@ -117,6 +129,112 @@ const ProviderDashboard = () => {
           Post New Job
         </Button>
       </div>
+
+      {/* Debug Section - Remove this after fixing the issue */}
+      <Card className="mb-6 bg-yellow-50 border-yellow-200">
+        <CardHeader>
+          <CardTitle className="text-sm text-yellow-800">Debug Information (Remove Later)</CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm">
+          <div className="space-y-2">
+            <div>
+              <strong>Active Organization ID:</strong> {activeOrganizationId || 'Not found'}
+            </div>
+            <div>
+              <strong>Session Structure:</strong>
+              <pre className="text-xs bg-white p-2 rounded mt-1 overflow-auto max-h-32">
+                {JSON.stringify(session, null, 2)}
+              </pre>
+            </div>
+            <div>
+              <strong>User from Store:</strong>
+              <pre className="text-xs bg-white p-2 rounded mt-1 overflow-auto max-h-16">
+                {JSON.stringify(user, null, 2)}
+              </pre>
+            </div>
+            <div className="pt-2">
+              <div className="flex gap-2">
+                <Button 
+                  onClick={async () => {
+                    try {
+                      console.log('Testing auth session...');
+                      const sessionResult = await authClient.getSession();
+                      console.log('Auth Session Result:', sessionResult);
+                      toast.success(`Session: ${sessionResult.data?.user ? 'Valid' : 'Invalid'}`);
+                    } catch (error) {
+                      console.error('Auth Session Error:', error);
+                      toast.error('Auth session test failed');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test Auth Session
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      console.log('Testing API call...');
+                      
+                      // Test with fetch first
+                      const response = await fetch('http://localhost:3001/api/v1/jobs/test-org-id', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                      });
+                      
+                      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                      console.log('Response status:', response.status);
+                      
+                      const data = await response.text();
+                      console.log('API Response:', { status: response.status, data });
+                      
+                      if (response.status === 401) {
+                        toast.error('Authentication failed - user not logged in or session expired');
+                      } else {
+                        toast.info(`API Test: ${response.status} - ${data.substring(0, 100)}`);
+                      }
+                    } catch (error) {
+                      console.error('API Test Error:', error);
+                      toast.error('API Test failed');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test API Call
+                </Button>
+                <Button 
+                  onClick={async () => {
+                    try {
+                      console.log('Testing auth endpoint...');
+                      const response = await fetch('http://localhost:3001/api/v1/auth/session', {
+                        method: 'GET',
+                        credentials: 'include',
+                        headers: {
+                          'Content-Type': 'application/json',
+                        },
+                      });
+                      const data = await response.json();
+                      console.log('Auth endpoint response:', data);
+                      toast.info(`Auth Test: ${response.status} - ${data.user ? 'Logged in' : 'Not logged in'}`);
+                    } catch (error) {
+                      console.error('Auth Test Error:', error);
+                      toast.error('Auth Test failed');
+                    }
+                  }}
+                  variant="outline"
+                  size="sm"
+                >
+                  Test Auth Endpoint
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
