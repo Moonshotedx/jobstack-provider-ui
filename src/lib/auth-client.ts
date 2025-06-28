@@ -9,7 +9,7 @@ export const authClient = createAuthClient({
 });
 
 export const checkSession = async () => {
-  return await authClient.getSession();
+  return await authClient.getSession(undefined, { credentials: 'include' });
 };
 
 export const createOrganisation = async (orgInfo: {
@@ -21,32 +21,32 @@ export const createOrganisation = async (orgInfo: {
   const slugCheckResult = await authClient.organization.checkSlug({
     slug: orgInfo.slug,
   });
-  
+
   // Check if the API call failed
   if (slugCheckResult.error) {
     throw new Error(`Slug check failed: ${slugCheckResult.error.message}`);
   }
-  
+
   // The response should be {"status": true} if slug is available
   // {"status": false} or falsy if slug is taken
   const isSlugAvailable = slugCheckResult.data?.status === true;
-  
+
   if (!isSlugAvailable) {
     // Slug is taken, throw error
     throw new Error('Organization Identifier Already Exists');
   }
-  
+
   // Slug is available, create organization
   const org = await authClient.organization.create({
     name: orgInfo.name,
     slug: orgInfo.slug,
     logo: orgInfo.logo,
-    metadata: orgInfo.metadata
+    metadata: orgInfo.metadata,
   });
-  
+
   if (org.error) {
     throw new Error(org.error.message);
   }
-  
+
   return org.data;
 };
