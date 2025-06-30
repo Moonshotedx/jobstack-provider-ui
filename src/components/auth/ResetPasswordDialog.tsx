@@ -44,6 +44,18 @@ const ResetPasswordDialog: React.FC<ResetPasswordDialogProps> = ({
     resolver: zodResolver(ResetPasswordSchema)
   });
 
+  // Validate token before rendering
+  const isValidToken = token && 
+                      token.trim() !== '' && 
+                      token.length > 10 && 
+                      !token.includes('undefined') && 
+                      !token.includes('null');
+
+  // Don't render if token is invalid
+  if (!isValidToken) {
+    return null;
+  }
+
   const onSubmit = async (data: ResetPasswordInputs) => {
     setIsLoading(true);
     try {

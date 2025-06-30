@@ -41,7 +41,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
     try {
       await login(data);
       onClose();
-      navigate({ to: '/dashboard' });
+      // Clear any potential URL params before navigation
+      navigate({ to: '/dashboard', replace: true });
       toast.success(t('login.signInSuccess'));
     } catch (error: any) {
       toast.error(error.message || t('errors.loginFailed'));
@@ -59,6 +60,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   };
 
   const handleBackToLogin = () => {
+    // Ensure forgot password modal is closed
     setShowForgotPassword(false);
   };
 
@@ -95,6 +97,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
               <div className="flex items-center justify-between">
                 <Label htmlFor="login-password">{t('login.passwordLabel')}</Label>
                 <Button 
+                  type="button"
                   variant="ghost" 
                   className="text-sm text-primary p-0 h-auto"
                   onClick={handleForgotPassword}
@@ -156,11 +159,13 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
         </div>
       </DialogContent>
       
-      <ForgotPasswordDialog
-        isOpen={showForgotPassword}
-        onClose={() => setShowForgotPassword(false)}
-        onBackToLogin={handleBackToLogin}
-      />
+      {showForgotPassword && (
+        <ForgotPasswordDialog
+          isOpen={true}
+          onClose={() => setShowForgotPassword(false)}
+          onBackToLogin={handleBackToLogin}
+        />
+      )}
     </Dialog>
   );
 };

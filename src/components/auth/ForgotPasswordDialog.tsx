@@ -64,7 +64,12 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
   };
 
   const handleBackToLogin = () => {
-    handleClose();
+    // Clear all state before closing
+    form.reset();
+    setEmailSent(false);
+    setSentToEmail('');
+    onClose();
+    // Call the callback to switch to login
     onBackToLogin();
   };
 

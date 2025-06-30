@@ -16,7 +16,7 @@ export const checkSession = async () => {
 export const forgetPassword = async (email: string) => {
   return await authClient.forgetPassword({
     email,
-    redirectTo: `${window.location.origin}/auth/reset-password`, // Where to redirect after clicking email link
+    redirectTo: `${window.location.origin}/auth/reset-password`,
   });
 };
 
