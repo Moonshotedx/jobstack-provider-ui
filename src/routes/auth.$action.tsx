@@ -22,6 +22,13 @@ function AuthModalRoute() {
     setIsOpen(true)
   }, [action])
 
+  // Cleanup effect to prevent modal state issues
+  useEffect(() => {
+    return () => {
+      setIsOpen(false)
+    }
+  }, [])
+
   useEffect(() => {
     // If invalid action, redirect to login
     if (!isLogin && !isSignup) {
@@ -35,7 +42,7 @@ function AuthModalRoute() {
 
   const handleClose = () => {
     setIsOpen(false)
-    // Navigate back to the previous page or home
+    // Navigate back to the previous page or home and clear any URL params
     navigate({ to: '/', replace: true })
   }
 
