@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authClient } from '@/lib/auth-client';
+import { authClient, forgetPassword as authForgetPassword, resetPassword as authResetPassword } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
@@ -29,6 +29,8 @@ interface UseAuthReturn {
   checkSession: () => Promise<void>;
   checkEmailVerification: () => Promise<boolean>;
   resendVerificationEmail: () => Promise<void>;
+  forgotPassword: (email: string) => Promise<void>;
+  resetPassword: (token: string, password: string) => Promise<void>;
 }
 
 export const useAuth = (): UseAuthReturn => {
@@ -268,6 +270,30 @@ export const useAuth = (): UseAuthReturn => {
     }
   }, [pendingVerificationEmail]);
 
+  const forgotPassword = useCallback(async (email: string) => {
+    try {
+      const result = await authForgetPassword(email);
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      throw error;
+    }
+  }, []);
+
+  const resetPassword = useCallback(async (token: string, password: string) => {
+    try {
+      const result = await authResetPassword(token, password);
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+    } catch (error) {
+      console.error('Failed to reset password:', error);
+      throw error;
+    }
+  }, []);
+
   // Check session on mount
   useEffect(() => {
     checkSession();
@@ -282,5 +308,7 @@ export const useAuth = (): UseAuthReturn => {
     checkSession,
     checkEmailVerification,
     resendVerificationEmail,
+    forgotPassword,
+    resetPassword,
   };
 }; 

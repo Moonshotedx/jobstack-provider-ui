@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, X, Mic, Play, Upload } from 'lucide-react';
+import { Plus, X, Mic, Play, Upload, FileImage, CheckCircle, XCircle } from 'lucide-react';
 import type { JobData } from '@/types/jobPost';
 
 interface JobPostStepProps {
@@ -35,6 +35,106 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
   isSubmitting = false
 }) => {
   const [isRecording, setIsRecording] = useState(false);
+  const [registrationValidation, setRegistrationValidation] = useState<{
+    isValid: boolean;
+    type: string;
+    message: string;
+  }>({ isValid: false, type: '', message: '' });
+
+  // Validation function for registration details
+  const validateRegistration = (value: string) => {
+    if (!value) {
+      setRegistrationValidation({ isValid: false, type: '', message: '' });
+      return;
+    }
+
+    const gstRegex = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+    const cinRegex = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
+    const tanRegex = /^[A-Z]{4}[0-9]{5}[A-Z]{1}$/;
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+
+    if (gstRegex.test(value)) {
+      setRegistrationValidation({
+        isValid: true,
+        type: 'GST',
+        message: '✓ Valid GST Number Format'
+      });
+    } else if (cinRegex.test(value)) {
+      setRegistrationValidation({
+        isValid: true,
+        type: 'CIN',
+        message: '✓ Valid CIN Number Format'
+      });
+    } else if (tanRegex.test(value)) {
+      setRegistrationValidation({
+        isValid: true,
+        type: 'TAN',
+        message: '✓ Valid TAN Number Format'
+      });
+    } else if (panRegex.test(value)) {
+      setRegistrationValidation({
+        isValid: true,
+        type: 'PAN',
+        message: '✓ Valid PAN Number Format'
+      });
+    } else {
+      // Check for partial matches to provide helpful hints
+      if (value.length === 15 && /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/i.test(value)) {
+        setRegistrationValidation({
+          isValid: false,
+          type: 'GST',
+          message: '⚠ Invalid GST format. Expected format: 22AAAAA0000A1Z5'
+        });
+      } else if (value.length === 21 && /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/i.test(value)) {
+        setRegistrationValidation({
+          isValid: false,
+          type: 'CIN',
+          message: '⚠ Invalid CIN format. Expected format: L12345AB2000ABC123456'
+        });
+      } else if (value.length === 10 && /^[A-Z]{4}[0-9]{5}[A-Z]{1}$/i.test(value)) {
+        setRegistrationValidation({
+          isValid: false,
+          type: 'TAN',
+          message: '⚠ Invalid TAN format. Expected format: ABCD12345E'
+        });
+      } else if (value.length === 10 && /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/i.test(value)) {
+        setRegistrationValidation({
+          isValid: false,
+          type: 'PAN',
+          message: '⚠ Invalid PAN format. Expected format: ABCDE1234F'
+        });
+      } else {
+        setRegistrationValidation({
+          isValid: false,
+          type: 'UNKNOWN',
+          message: '⚠ Enter GST (15 chars), CIN (21 chars), TAN/PAN (10 chars), or other valid registration number'
+        });
+      }
+    }
+  };
+
+  const handleRegistrationChange = (value: string) => {
+    const upperValue = value.toUpperCase();
+    setJobData(prev => ({ ...prev, jobProviderRegistration: upperValue }));
+    validateRegistration(upperValue);
+  };
+
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        alert('Please select an image file');
+        return;
+      }
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size should be less than 5MB');
+        return;
+      }
+      setJobData(prev => ({ ...prev, jobProviderLogo: file }));
+    }
+  };
 
   const handleVoiceInput = (field: string) => {
     if (isRecording) {
@@ -90,6 +190,89 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
               <CardTitle className="text-lg">Basic Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Job Provider Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-blue-50 rounded-lg border">
+                <div className="md:col-span-2">
+                  <Label className="text-sm font-semibold text-blue-900">Job Provider Information</Label>
+                </div>
+                
+                <div>
+                  <Label htmlFor="jobProviderName">Job Provider Name *</Label>
+                  <Input
+                    id="jobProviderName"
+                    value={jobData.jobProviderName}
+                    onChange={(e) => setJobData(prev => ({ ...prev, jobProviderName: e.target.value }))}
+                    placeholder="Enter job provider/company name"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="jobProviderRegistration">Job Provider Registration Details *</Label>
+                  <Input
+                    id="jobProviderRegistration"
+                    value={jobData.jobProviderRegistration}
+                    onChange={(e) => handleRegistrationChange(e.target.value)}
+                    placeholder="GST, CIN, TAN, PAN or other registration number"
+                    className={registrationValidation.message ? 
+                      (registrationValidation.isValid ? 'border-green-500' : 'border-orange-500') : ''
+                    }
+                  />
+                  {registrationValidation.message && (
+                    <div className={`text-xs mt-1 flex items-center gap-1 ${
+                      registrationValidation.isValid ? 'text-green-600' : 'text-orange-600'
+                    }`}>
+                      {registrationValidation.isValid ? (
+                        <CheckCircle className="h-3 w-3" />
+                      ) : (
+                        <XCircle className="h-3 w-3" />
+                      )}
+                      {registrationValidation.message}
+                    </div>
+                  )}
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label htmlFor="jobProviderLogo">Job Provider Logo</Label>
+                  <div className="mt-2">
+                    <input
+                      id="jobProviderLogo"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoUpload}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('jobProviderLogo')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Logo
+                      </Button>
+                      {jobData.jobProviderLogo && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <FileImage className="h-4 w-4" />
+                          {jobData.jobProviderLogo.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setJobData(prev => ({ ...prev, jobProviderLogo: null }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload company logo (PNG, JPG, max 5MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="jobTitle">Job Title *</Label>
@@ -177,6 +360,7 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                     min="1"
                   />
                 </div>
+                {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
                 <div>
                   <Label htmlFor="lastDate">Last Date to Apply</Label>
                   <Input
@@ -186,6 +370,7 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                     onChange={(e) => setJobData(prev => ({ ...prev, lastDate: e.target.value }))}
                   />
                 </div>
+                )}
               </div>
 
               {/* Overtime fields for Textile -> Tailor role */}
@@ -251,6 +436,57 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Hiring Manager Details */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="managerName">Provider Contact Name *</Label>
+                  <Input
+                    id="managerName"
+                    value={jobData.hiringManager.managerName}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      hiringManager: { 
+                        ...prev.hiringManager, 
+                        managerName: e.target.value 
+                      } 
+                    }))}
+                    placeholder="Enter manager name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="phoneNo">Provider Contact Phone No *</Label>
+                  <Input
+                    id="phoneNo"
+                    type="tel"
+                    value={jobData.hiringManager.phoneNo}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      hiringManager: { 
+                        ...prev.hiringManager, 
+                        phoneNo: e.target.value 
+                      } 
+                    }))}
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="emailId">Provider Contact Email ID *</Label>
+                  <Input
+                    id="emailId"
+                    type="email"
+                    value={jobData.hiringManager.emailId}
+                    onChange={(e) => setJobData(prev => ({ 
+                      ...prev, 
+                      hiringManager: { 
+                        ...prev.hiringManager, 
+                        emailId: e.target.value 
+                      } 
+                    }))}
+                    placeholder="manager@company.com"
+                  />
+                </div>
+              </div>
             </CardContent>
           </Card>
 
@@ -1200,64 +1436,6 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                   <Plus className="h-4 w-4 mr-2" />
                   Add Question
                 </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Hiring Manager Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Hiring Manager Details</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="managerName">Manager Name *</Label>
-                  <Input
-                    id="managerName"
-                    value={jobData.hiringManager.managerName}
-                    onChange={(e) => setJobData(prev => ({ 
-                      ...prev, 
-                      hiringManager: { 
-                        ...prev.hiringManager, 
-                        managerName: e.target.value 
-                      } 
-                    }))}
-                    placeholder="Enter manager name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phoneNo">Phone No *</Label>
-                  <Input
-                    id="phoneNo"
-                    type="tel"
-                    value={jobData.hiringManager.phoneNo}
-                    onChange={(e) => setJobData(prev => ({ 
-                      ...prev, 
-                      hiringManager: { 
-                        ...prev.hiringManager, 
-                        phoneNo: e.target.value 
-                      } 
-                    }))}
-                    placeholder="+91 98765 43210"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="emailId">Email ID *</Label>
-                  <Input
-                    id="emailId"
-                    type="email"
-                    value={jobData.hiringManager.emailId}
-                    onChange={(e) => setJobData(prev => ({ 
-                      ...prev, 
-                      hiringManager: { 
-                        ...prev.hiringManager, 
-                        emailId: e.target.value 
-                      } 
-                    }))}
-                    placeholder="manager@company.com"
-                  />
-                </div>
               </div>
             </CardContent>
           </Card>

@@ -16,6 +16,10 @@ export interface JobData {
   positions: number;
   lastDate: string;
   workDays: string;
+  // Job Provider Information
+  jobProviderName: string;
+  jobProviderRegistration: string;
+  jobProviderLogo?: File | null;
   // Overtime fields for Textile -> Tailor role
   overtime?: string;
   overtimePay?: string;
@@ -129,6 +133,11 @@ export const transformJobDataToCreateJobRequest = (
     positions: jobData.positions,
     lastDate: jobData.lastDate,
     workDays: jobData.workDays,
+    
+    // Job Provider Information
+    jobProviderName: jobData.jobProviderName,
+    jobProviderRegistration: jobData.jobProviderRegistration,
+    // Note: jobProviderLogo will need to be handled separately as file upload
     
     // Industry and role information
     industry: selectedIndustry,

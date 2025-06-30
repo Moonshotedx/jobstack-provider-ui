@@ -12,6 +12,21 @@ export const checkSession = async () => {
   return await authClient.getSession(undefined, { credentials: 'include' });
 };
 
+// Password reset functionality
+export const forgetPassword = async (email: string) => {
+  return await authClient.forgetPassword({
+    email,
+    redirectTo: `${window.location.origin}/auth/reset-password`, // Where to redirect after clicking email link
+  });
+};
+
+export const resetPassword = async (token: string, password: string) => {
+  return await authClient.resetPassword({
+    token,
+    newPassword: password,
+  });
+};
+
 export const createOrganisation = async (orgInfo: {
   name: string;
   slug: string;

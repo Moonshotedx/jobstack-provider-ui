@@ -33,6 +33,10 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     positions: 1,
     lastDate: '',
     workDays: '',
+    // Job Provider Information
+    jobProviderName: '',
+    jobProviderRegistration: '',
+    jobProviderLogo: null,
     overtime: '',
     overtimePay: '',
     education: '',
@@ -138,6 +142,10 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       positions: 1,
       lastDate: '',
       workDays: '',
+      // Job Provider Information
+      jobProviderName: '',
+      jobProviderRegistration: '',
+      jobProviderLogo: null,
       overtime: '',
       overtimePay: '',
       education: '',

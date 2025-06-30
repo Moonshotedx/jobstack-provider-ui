@@ -22,10 +22,6 @@ const Header = () => {
   const { logout, checkSession } = useAuth();
   const queryClient = useQueryClient();
 
-  const handleFindJobs = () => {
-    navigate({ to: '/' });
-  };
-
   const handlePostJobs = () => {
     // If user is logged in with profile, redirect to dashboard
     if (user && user.profile) {
@@ -79,13 +75,6 @@ const Header = () => {
 
             {/* Navigation Links */}
             <nav className="hidden md:flex items-center gap-6">
-              <Button 
-                variant="ghost" 
-                onClick={handleFindJobs}
-                className="text-sm font-medium"
-              >
-                {t('header.findJobs')}
-              </Button>
               <Button 
                 variant="ghost" 
                 onClick={handlePostJobs}
