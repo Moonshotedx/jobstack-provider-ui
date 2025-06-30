@@ -34,7 +34,7 @@ function DashboardContent() {
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
   
   const { user } = useUserStore()
-  const { checkEmailVerification, resendVerificationEmail } = useAuth()
+  const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth()
 
   // Check verification status on mount and periodically
   useEffect(() => {
@@ -212,8 +212,10 @@ function DashboardContent() {
         <CreateOrg
           isOpen={showOrgProfile}
           onClose={() => setShowOrgProfile(false)}
-          onSuccess={() => {
+          onSuccess={async () => {
             setShowOrgProfile(false);
+            // Force reload the user session to get the updated activeOrganizationId
+            await checkSession();
             toast.success(t('welcome.organizationCreated'));
           }}
         />
