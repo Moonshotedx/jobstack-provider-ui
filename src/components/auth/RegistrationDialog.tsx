@@ -17,7 +17,7 @@ const SignUpSchema = z.object({
   firstName: z.string().nonempty().describe('Enter First Name'),
   surname: z.string().nonempty().describe('Enter Surname'),
   email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string().min(6, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
   role: z.enum(['individual', 'organization']),
   termsAccepted: z.boolean().refine(val => val, "Please accept the terms and conditions"),
