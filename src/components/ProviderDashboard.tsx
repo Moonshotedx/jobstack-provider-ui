@@ -5,6 +5,7 @@ import MyJobs from './MyJobs';
 import CandidateManagement from './CandidateManagement';
 
 import PostJobDialog from './PostJobDialog';
+import { CreateOrg } from './organisation/CreateOrg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
@@ -14,6 +15,7 @@ import { useUserStore } from '@/stores/authStore';
 const ProviderDashboard = () => {
   const [activeTab, setActiveTab] = useState('my-jobs');
   const [showPostJob, setShowPostJob] = useState(false);
+  const [showCreateOrg, setShowCreateOrg] = useState(false);
   
   // const { user } = useAuth();
   const user = useUserStore((state) => state.user);
@@ -67,6 +69,36 @@ const ProviderDashboard = () => {
     );
   }
 
+  // IMPORTANT: Check email verification before allowing access
+  if (user && !user.isVerified) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <div className="space-y-4">
+            <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+              <CheckCircle className="h-8 w-8 text-yellow-600" />
+            </div>
+            <h1 className="text-3xl font-bold">Email Verification Required</h1>
+            <p className="text-muted-foreground text-lg">
+              Please verify your email address to access the dashboard.
+            </p>
+          </div>
+
+          <Card className="p-6">
+            <CardHeader>
+              <CardTitle>Check Your Email</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground mb-4">
+                We've sent a verification link to {user.email}. Click the link to verify your account.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+
   // If user doesn't have organization profile, show profile creation
   if (user && !user.profile) {
     return (
@@ -88,7 +120,7 @@ const ProviderDashboard = () => {
               <Button 
                 className="w-full" 
                 size="lg"
-                onClick={() => setShowPostJob(true)}
+                onClick={() => setShowCreateOrg(true)}
               >
                 Create Organization Profile
               </Button>
@@ -167,6 +199,12 @@ const ProviderDashboard = () => {
         isOpen={showPostJob}
         onClose={() => setShowPostJob(false)}
         skipAuthSteps={true}
+      />
+
+      {/* Create Organization Dialog */}
+      <CreateOrg 
+        isOpen={showCreateOrg}
+        onClose={() => setShowCreateOrg(false)}
       />
     </div>
   );

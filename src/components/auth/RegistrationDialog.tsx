@@ -71,15 +71,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         lastName: data.surname
       });
       
-      if (result.needsVerification) {
-        setShowVerificationPending(true);
-        toast.success(t('register.accountCreated'));
-      } else {
-        // If somehow already verified, go to dashboard
-        onClose();
-        navigate({ to: '/dashboard' });
-        toast.success("Account created and verified!");
-      }
+      // Always show verification screen for new registrations
+      // Even if the backend says no verification needed, we should verify for security
+      setShowVerificationPending(true);
+      toast.success(t('register.accountCreated'));
+      
+      // Remove the else clause that would skip verification
     } catch (error: any) {
       toast.error(error.message || t('errors.registrationFailed'));
     }

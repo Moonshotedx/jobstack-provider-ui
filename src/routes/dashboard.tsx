@@ -38,16 +38,20 @@ function DashboardContent() {
   const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth()
   const queryClient = useQueryClient()
 
+  // Safety check: If no user, they shouldn't be here
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    )
+  }
+
   // Check verification status on mount and periodically
   useEffect(() => {
     if (!user) return
-
-    // If user is already verified, no need to check
-    if (user.isVerified) {
-      setHasCheckedInitialVerification(true)
-      setIsCheckingVerification(false)
-      return
-    }
 
     const checkVerification = async () => {
       setIsCheckingVerification(true)
@@ -68,8 +72,10 @@ function DashboardContent() {
       }
     }
 
-    // Only check verification if we haven't done the initial check
+    // Always do initial verification check from server for security
     if (!hasCheckedInitialVerification) {
+      // For new users or on fresh page load, always verify from server
+      setIsCheckingVerification(true)
       checkVerification()
     } else {
       setIsCheckingVerification(false)
@@ -102,8 +108,8 @@ function DashboardContent() {
     setShowManageEmployers(true)
   }
 
-  // Show loading state while checking verification
-  if (user && isCheckingVerification) {
+  // Show loading state while checking verification (be more conservative)
+  if (user && (isCheckingVerification || !hasCheckedInitialVerification)) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center space-y-6">
@@ -119,6 +125,7 @@ function DashboardContent() {
   }
 
   // Show verification required screen
+  // IMPORTANT: All users must verify their email before accessing dashboard features
   if (user && !user.isVerified && !isCheckingVerification) {
     return (
       <div className="container mx-auto px-4 py-8">
