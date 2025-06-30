@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, Mail, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -41,7 +40,6 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   onSwitchToLogin 
 }) => {
   const { t } = useTranslation('auth');
-  const navigate = useNavigate();
   const { register, resendVerificationEmail, isLoading, pendingVerificationEmail } = useAuth();
   const [showVerificationPending, setShowVerificationPending] = useState(false);
   const [isResending, setIsResending] = useState(false);
@@ -63,7 +61,7 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
 
   const onSignUpSubmit = async (data: SignUpInputs) => {
     try {
-      const result = await register({ 
+      await register({ 
         email: data.email,
         password: data.password,
         role: data.role,
@@ -71,15 +69,12 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
         lastName: data.surname
       });
       
-      if (result.needsVerification) {
-        setShowVerificationPending(true);
-        toast.success(t('register.accountCreated'));
-      } else {
-        // If somehow already verified, go to dashboard
-        onClose();
-        navigate({ to: '/dashboard' });
-        toast.success("Account created and verified!");
-      }
+      // Always show verification screen for new registrations
+      // Even if the backend says no verification needed, we should verify for security
+      setShowVerificationPending(true);
+      toast.success(t('register.accountCreated'));
+      
+      // Remove the else clause that would skip verification
     } catch (error: any) {
       toast.error(error.message || t('errors.registrationFailed'));
     }

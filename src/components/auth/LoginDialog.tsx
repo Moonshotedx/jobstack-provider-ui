@@ -11,6 +11,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import ForgotPasswordDialog from './ForgotPasswordDialog';
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -30,6 +31,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)
@@ -48,7 +50,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
 
   const handleClose = () => {
     signInForm.reset();
+    setShowForgotPassword(false);
     onClose();
+  };
+
+  const handleForgotPassword = () => {
+    setShowForgotPassword(true);
+  };
+
+  const handleBackToLogin = () => {
+    setShowForgotPassword(false);
   };
 
   return (
@@ -83,7 +94,11 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
             <div>
               <div className="flex items-center justify-between">
                 <Label htmlFor="login-password">{t('login.passwordLabel')}</Label>
-                <Button variant="ghost" className="text-sm text-primary p-0 h-auto">
+                <Button 
+                  variant="ghost" 
+                  className="text-sm text-primary p-0 h-auto"
+                  onClick={handleForgotPassword}
+                >
                   {t('login.forgotPassword')}
                 </Button>
               </div>
@@ -140,6 +155,12 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
           </form>
         </div>
       </DialogContent>
+      
+      <ForgotPasswordDialog
+        isOpen={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onBackToLogin={handleBackToLogin}
+      />
     </Dialog>
   );
 };
