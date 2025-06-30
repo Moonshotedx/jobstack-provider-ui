@@ -1,57 +1,103 @@
 {
-  "title": "డ్యాష్‌బోర్డ్",
-  "welcome": "స్వాగతం",
-  "overview": "సమీక్ష",
+  "title": "ప్రొవైడర్ డ్యాష్‌బోర్డ్",
+  "subtitle": "యజమానులు, ఉద్యోగ పోస్టింగ్‌లు మరియు అభ్యర్థుల దరఖాస్తులను నిర్వహించండి",
+  "landing": {
+    "welcome": "ఉద్యోగ ప్రొవైడర్ పోర్టల్‌కు స్వాగతం",
+    "subtitle": "ఉద్యోగాలను పోస్ట్ చేయండి, దరఖాస్తులను నిర్వహించండి మరియు మీ సంస్థకు సరైన అభ్యర్థులను కనుగొనండి.",
+    "getStarted": "ప్రారంభించండి",
+    "loginButton": "మీ అకౌంట్‌లోకి లాగిన్ చేయండి",
+    "createAccountButton": "ప్రొవైడర్ అకౌంట్ సృష్టించండి",
+    "newUserMessage": "మా ప్లాట్‌ఫారమ్‌కు కొత్తవారా? ఉద్యోగాలను పోస్ట్ చేయడం మరియు అభ్యర్థులను నిర్వహించడం ప్రారంభించడానికి ఒక అకౌంట్ సృష్టించండి."
+  },
+  "welcome": {
+    "title": "స్వాగతం, {{email}}!",
+    "subtitle": "ఉద్యోగాలు మరియు అభ్యర్థులను నిర్వహించడం ప్రారంభించడానికి మీ సంస్థను సెటప్ చేయండి.",
+    "createOrganization": "మీ సంస్థను సృష్టించండి",
+    "organizationCreated": "మీ డ్యాష్‌బోర్డ్‌కు స్వాగతం! మీ సంస్థ విజయవంతంగా సృష్టించబడింది."
+  },
+  "setup": {
+    "setupMessage": "ఉద్యోగాలను పోస్ట్ చేయడం ప్రారంభించడానికి మీ సంస్థ ప్రొఫైల్‌ను సెటప్ చేయండి.",
+    "completeProfileTitle": "మీ సంస్థ ప్రొఫైల్‌ను పూర్తి చేయండి",
+    "createProfileButton": "సంస్థ ప్రొఫైల్ సృష్టించండి"
+  },
+  "verification": {
+    "verificationRequired": "ఇమెయిల్ ధృవీకరణ అవసరం",
+    "verificationRequiredDesc": "మీ డ్యాష్‌బోర్డ్‌ను యాక్సెస్ చేయడానికి మరియు ఉద్యోగాలను నిర్వహించడం ప్రారంభించడానికి దయచేసి మీ ఇమెయిల్ చిరునామాను ధృవీకరించండి.",
+    "verificationSuccess": "ఇమెయిల్ విజయవంతంగా ధృవీకరించబడింది! మీ డ్యాష్‌బోర్డ్‌కు స్వాగతం.",
+    "checkingStatus": "ధృవీకరణ స్థితిని తనిఖీ చేస్తున్నాము...",
+    "verificationSent": "ధృవీకరణ ఇమెయిల్ పంపబడింది",
+    "verificationLinkSent": "మేము {{email}}కు ధృవీకరణ లింక్‌ను పంపాము. మీ అకౌంట్‌ను ధృవీకరించడానికి మీ ఇమెయిల్‌లోని లింక్‌పై క్లిక్ చేయండి.",
+    "verificationTip": "💡 చిట్కా: ధృవీకరణ లింక్ ధృవీకరించబడిన తర్వాత మిమ్మల్ని ఈ డ్యాష్‌బోర్డ్‌కు తిరిగి మళ్లిస్తుంది.",
+    "checkEmailTitle": "మీ ఇమెయిల్‌ను తనిఖీ చేయండి",
+    "emailSentMessage": "మేము {{email}}కు ధృవీకరణ లింక్‌ను పంపాము. మీ అకౌంట్‌ను ధృవీకరించడానికి లింక్‌పై క్లిక్ చేయండి.",
+    "resendSuccess": "ధృవీకరణ ఇమెయిల్ మళ్లీ పంపబడింది!",
+    "resending": "మళ్లీ పంపుతున్నాము...",
+    "resendButton": "ధృవీకరణ ఇమెయిల్‌ను మళ్లీ పంపండి",
+    "cantFindEmail": "ఇమెయిల్ దొరకలేదా? మీ స్పామ్ ఫోల్డర్‌ను తనిఖీ చేయండి లేదా ధృవీకరణ ఇమెయిల్‌ను మళ్లీ పంపడానికి ప్రయత్నించండి."
+  },
   "stats": {
-    "totalJobs": "మొత్తం ఉద్యోగాలు",
     "activeJobs": "సక్రియ ఉద్యోగాలు",
-    "applications": "దరఖాస్తులు",
-    "totalApplications": "మొత్తం దరఖాస్తులు",
-    "pendingApplications": "పెండింగ్ దరఖాస్తులు",
-    "shortlisted": "షార్ట్‌లిస్ట్ చేయబడింది",
-    "hired": "నియామకం చేయబడింది",
+    "totalApplications": "మొత్తం దరఖాస్తులు", 
     "candidatesHired": "నియామకం చేయబడిన అభ్యర్థులు",
-    "views": "వీక్షణలు",
-    "responses": "ప్రతిస్పందనలు",
-    "responseRate": "ప్రతిస్పందన రేటు"
+    "totalJobs": "మొత్తం ఉద్యోగాలు",
+    "pendingApplications": "పెండింగ్ దరఖాస్తులు",
+    "scheduledInterviews": "షెడ్యూల్ చేయబడిన ఇంటర్వ్యూలు",
+    "newApplicationsToday": "ఈరోజు కొత్త దరఖాస్తులు",
+    "jobsPostedThisMonth": "ఈ నెలలో పోస్ట్ చేయబడిన ఉద్యోగాలు"
   },
   "quickActions": {
-    "title": "త్వరిత చర్యలు",
-    "postJob": "ఉద్యోగం పోస్ట్ చేయండి",
-    "viewApplications": "దరఖాస్తులు చూడండి",
-    "manageJobs": "ఉద్యోగాలను నిర్వహించండి",
-    "addCandidate": "అభ్యర్థిని జోడించండి",
-    "createOrganization": "సంస్థను సృష్టించండి",
-    "viewReports": "నివేదికలు చూడండి"
+    "postNewJob": "కొత్త ఉద్యోగం పోస్ట్ చేయండి",
+    "manageEmployers": "యజమానులను నిర్వహించండి",
+    "viewApplications": "దరఖాస్తులను చూడండి",
+    "createJob": "మీ మొదటి ఉద్యోగాన్ని సృష్టించండి",
+    "reviewCandidates": "అభ్యర్థులను సమీక్షించండి",
+    "scheduleInterview": "ఇంటర్వ్యూను షెడ్యూల్ చేయండి",
+    "exportData": "డేటాను ఎగుమతి చేయండి"
+  },
+  "currentOrganization": {
+    "title": "మీ సంస్థ",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "నా ఉద్యోగాలు",
+    "candidateManagement": "అభ్యర్థుల నిర్వహణ",
+    "employerManagement": "యజమాన నిర్వహణ",
+    "analytics": "విశ్లేషణలు",
+    "settings": "సెట్టింగులు"
   },
   "recentActivity": {
     "title": "తాజా కార్యకలాపాలు",
-    "newApplication": "కొత్త దరఖాస్తు",
-    "jobPosted": "ఉద్యోగం పోస్ట్ చేయబడింది",
-    "candidateShortlisted": "అభ్యర్థి షార్ట్‌లిస్ట్ చేయబడింది",
-    "jobExpired": "ఉద్యోగం గడువు ముగిసింది",
-    "noActivity": "తాజా కార్యకలాపాలు లేవు"
-  },
-  "tabs": {
-    "overview": "సమీక్ష",
-    "jobs": "ఉద్యోగాలు",
-    "myJobs": "నా ఉద్యోగాలు",
-    "applications": "దరఖాస్తులు",
-    "candidates": "అభ్యర్థులు",
-    "candidateManagement": "అభ్యర్థుల నిర్వహణ",
-    "organizations": "సంస్థలు",
-    "settings": "సెట్టింగులు",
-    "profile": "ప్రొఫైల్",
-    "reports": "నివేదికలు",
-    "analytics": "విశ్లేషణలు"
+    "noActivity": "తాజా కార్యకలాపాలు లేవు",
+    "newApplication": "{{jobTitle}}కు కొత్త దరఖాస్తు",
+    "jobPosted": "ఉద్యోగం పోస్ట్ చేయబడింది: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}}కు అభ్యర్థి నియామకం చేయబడింది",
+    "interviewScheduled": "{{candidateName}}కు ఇంటర్వ్యూ షెడ్యూల్ చేయబడింది"
   },
   "notifications": {
-    "title": "తాకిడలు",
-    "markAllRead": "అన్నింటినీ చదివినట్లు గుర్తు పెట్టండి",
-    "noNotifications": "తాకిడలు లేవు",
-    "newApplication": "కొత్త దరఖాస్తు వచ్చింది",
-    "applicationUpdate": "దరఖాస్తు అప్‌డేట్",
-    "jobExpiring": "ఉద్యోగం త్వరలో గడువు ముగుస్తుంది",
-    "systemUpdate": "సిస్టమ్ అప్‌డేట్"
+    "title": "నోటిఫికేషన్లు",
+    "noNotifications": "కొత్త నోటిఫికేషన్లు లేవు",
+    "markAllRead": "అన్నింటినీ చదివినట్లుగా మార్క్ చేయండి",
+    "newApplicationNotification": "{{jobTitle}}కు కొత్త దరఖాస్తు వచ్చింది",
+    "interviewReminderNotification": "ఇంటర్వ్యూ రిమైండర్: {{candidateName}} {{time}}కు"
+  },
+  "overview": {
+    "title": "సమీక్ష",
+    "jobPerformance": "ఉద్యోగ పనితీరు",
+    "applicationTrends": "దరఖాస్తు ట్రెండ్‌లు",
+    "hiringMetrics": "నియామక మెట్రిక్స్",
+    "topPerformingJobs": "టాప్ పర్ఫార్మింగ్ ఉద్యోగాలు",
+    "averageTimeToHire": "నియామకానికి సగటు సమయం",
+    "applicationConversionRate": "దరఖాస్తు కన్వర్షన్ రేట్"
+  },
+  "shortcuts": {
+    "title": "త్వరిత షార్ట్‌కట్‌లు",
+    "postJob": "ఉద్యోగం పోస్ట్ చేయండి",
+    "reviewApplications": "దరఖాస్తులను సమీక్షించండి",
+    "scheduleInterviews": "ఇంటర్వ్యూలను షెడ్యూల్ చేయండి",
+    "manageTeam": "టీమ్‌ను నిర్వహించండి",
+    "viewReports": "రిపోర్ట్‌లను చూడండి",
+    "organizationSettings": "సంస్థ సెట్టింగులు"
   }
 } 

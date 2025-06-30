@@ -1,11 +1,24 @@
 {
   "title": "प्रदाता डैशबोर्ड",
   "subtitle": "नियोक्ताओं, नौकरी पोस्टिंग और उम्मीदवार आवेदनों का प्रबंधन करें",
+  "landing": {
+    "welcome": "जॉब प्रदाता पोर्टल में आपका स्वागत है",
+    "subtitle": "नौकरियां पोस्ट करें, आवेदनों का प्रबंधन करें, और अपने संगठन के लिए सही उम्मीदवार खोजें।",
+    "getStarted": "शुरुआत करें",
+    "loginButton": "अपने खाते में लॉगिन करें",
+    "createAccountButton": "प्रदाता खाता बनाएं",
+    "newUserMessage": "हमारे प्लेटफॉर्म पर नए हैं? नौकरियां पोस्ट करने और उम्मीदवारों का प्रबंधन करने के लिए एक खाता बनाएं।"
+  },
   "welcome": {
     "title": "स्वागत है, {{email}}!",
     "subtitle": "नौकरियों और उम्मीदवारों का प्रबंधन शुरू करने के लिए अपना संगठन सेट करें।",
     "createOrganization": "अपना संगठन बनाएं",
     "organizationCreated": "आपके डैशबोर्ड में आपका स्वागत है! आपका संगठन सफलतापूर्वक बनाया गया है।"
+  },
+  "setup": {
+    "setupMessage": "नौकरियां पोस्ट करना शुरू करने के लिए अपना संगठन प्रोफाइल सेट करें।",
+    "completeProfileTitle": "अपना संगठन प्रोफाइल पूरा करें",
+    "createProfileButton": "संगठन प्रोफाइल बनाएं"
   },
   "verification": {
     "verificationRequired": "ईमेल सत्यापन आवश्यक",
@@ -13,12 +26,14 @@
     "verificationSuccess": "ईमेल सफलतापूर्वक सत्यापित! आपके डैशबोर्ड में आपका स्वागत है।",
     "checkingStatus": "सत्यापन स्थिति जांची जा रही है...",
     "verificationSent": "सत्यापन ईमेल भेजा गया",
-    "verificationLinkSent": "हमने {{email}} पर एक सत्यापन लिंक भेजा है। अपना खाता सत्यापित करने के लिए अपने ईमेल में लिंक पर क्लिक करें।",
-    "verificationTip": "💡 सुझाव: सत्यापित होने के बाद सत्यापन लिंक आपको वापस इस डैशबोर्ड पर पुनर्निर्देशित कर देगा।",
+    "verificationLinkSent": "हमने {{email}} पर एक सत्यापन लिंक भेजा है। अपने खाते को सत्यापित करने के लिए अपने ईमेल में लिंक पर क्लिक करें।",
+    "verificationTip": "💡 सुझाव: सत्यापन लिंक सत्यापित होने के बाद आपको इस डैशबोर्ड पर वापस भेज देगा।",
+    "checkEmailTitle": "अपना ईमेल चेक करें",
+    "emailSentMessage": "हमने {{email}} पर एक सत्यापन लिंक भेजा है। अपने खाते को सत्यापित करने के लिए लिंक पर क्लिक करें।",
     "resendSuccess": "सत्यापन ईमेल फिर से भेजा गया!",
     "resending": "फिर से भेजा जा रहा है...",
     "resendButton": "सत्यापन ईमेल फिर से भेजें",
-    "cantFindEmail": "ईमेल नहीं मिल रहा? अपना स्पैम फ़ोल्डर जांचें या सत्यापन ईमेल फिर से भेजने का प्रयास करें।"
+    "cantFindEmail": "ईमेल नहीं मिल रहा? अपना स्पैम फ़ोल्डर चेक करें या सत्यापन ईमेल फिर से भेजने का प्रयास करें।"
   },
   "stats": {
     "activeJobs": "सक्रिय नौकरियां",
@@ -27,7 +42,7 @@
     "totalJobs": "कुल नौकरियां",
     "pendingApplications": "लंबित आवेदन",
     "scheduledInterviews": "निर्धारित साक्षात्कार",
-    "newApplicationsToday": "आज के नए आवेदन",
+    "newApplicationsToday": "आज नए आवेदन",
     "jobsPostedThisMonth": "इस महीने पोस्ट की गई नौकरियां"
   },
   "quickActions": {
@@ -57,23 +72,23 @@
     "noActivity": "कोई हाल की गतिविधि नहीं",
     "newApplication": "{{jobTitle}} के लिए नया आवेदन",
     "jobPosted": "नौकरी पोस्ट की गई: {{jobTitle}}",
-    "candidateHired": "{{jobTitle}} के लिए उम्मीदवार नियुक्त",
+    "candidateHired": "{{jobTitle}} के लिए उम्मीदवार को नियुक्त किया गया",
     "interviewScheduled": "{{candidateName}} के लिए साक्षात्कार निर्धारित"
   },
   "notifications": {
     "title": "सूचनाएं",
     "noNotifications": "कोई नई सूचना नहीं",
     "markAllRead": "सभी को पढ़ा हुआ चिह्नित करें",
-    "newApplicationNotification": "{{jobTitle}} के लिए नया आवेदन प्राप्त",
-    "interviewReminderNotification": "साक्षात्कार रिमाइंडर: {{candidateName}} {{time}} पर"
+    "newApplicationNotification": "{{jobTitle}} के लिए नया आवेदन प्राप्त हुआ",
+    "interviewReminderNotification": "साक्षात्कार अनुस्मारक: {{candidateName}} {{time}} बजे"
   },
   "overview": {
     "title": "अवलोकन",
     "jobPerformance": "नौकरी प्रदर्शन",
     "applicationTrends": "आवेदन रुझान",
     "hiringMetrics": "भर्ती मेट्रिक्स",
-    "topPerformingJobs": "सर्वोत्तम प्रदर्शन करने वाली नौकरियां",
-    "averageTimeToHire": "भर्ती में औसत समय",
+    "topPerformingJobs": "सर्वोत्तम प्रदर्शन वाली नौकरियां",
+    "averageTimeToHire": "भर्ती का औसत समय",
     "applicationConversionRate": "आवेदन रूपांतरण दर"
   },
   "shortcuts": {

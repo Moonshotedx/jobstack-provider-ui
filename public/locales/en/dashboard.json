@@ -1,11 +1,24 @@
 {
   "title": "Provider Dashboard",
   "subtitle": "Manage employers, job postings, and candidate applications",
+  "landing": {
+    "welcome": "Welcome to Job Provider Portal",
+    "subtitle": "Post jobs, manage applications, and find the perfect candidates for your organization.",
+    "getStarted": "Get Started",
+    "loginButton": "Login to Your Account",
+    "createAccountButton": "Create Provider Account",
+    "newUserMessage": "New to our platform? Create an account to start posting jobs and managing candidates."
+  },
   "welcome": {
     "title": "Welcome, {{email}}!",
     "subtitle": "Let's set up your organization to start managing jobs and candidates.",
     "createOrganization": "Create Your Organization",
     "organizationCreated": "Welcome to your dashboard! Your organization has been created successfully."
+  },
+  "setup": {
+    "setupMessage": "Let's set up your organization profile to start posting jobs.",
+    "completeProfileTitle": "Complete Your Organization Profile",
+    "createProfileButton": "Create Organization Profile"
   },
   "verification": {
     "verificationRequired": "Email Verification Required",
@@ -15,6 +28,8 @@
     "verificationSent": "Verification Email Sent",
     "verificationLinkSent": "We've sent a verification link to {{email}}. Click the link in your email to verify your account.",
     "verificationTip": "💡 Tip: The verification link will redirect you back to this dashboard once verified.",
+    "checkEmailTitle": "Check Your Email",
+    "emailSentMessage": "We've sent a verification link to {{email}}. Click the link to verify your account.",
     "resendSuccess": "Verification email resent!",
     "resending": "Resending...",
     "resendButton": "Resend Verification Email",

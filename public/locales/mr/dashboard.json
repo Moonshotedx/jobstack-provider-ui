@@ -1,0 +1,103 @@
+{
+  "title": "प्रदाता डॅशबोर्ड",
+  "subtitle": "नियोक्ते, नोकरी पोस्टिंग आणि उमेदवार अर्जांचे व्यवस्थापन करा",
+  "landing": {
+    "welcome": "नोकरी प्रदाता पोर्टलमध्ये आपले स्वागत आहे",
+    "subtitle": "नोकऱ्या पोस्ट करा, अर्जांचे व्यवस्थापन करा आणि आपल्या संस्थेसाठी योग्य उमेदवार शोधा.",
+    "getStarted": "सुरुवात करा",
+    "loginButton": "आपल्या खात्यात लॉगिन करा",
+    "createAccountButton": "प्रदाता खाते तयार करा",
+    "newUserMessage": "आमच्या प्लॅटफॉर्मवर नवीन आहात? नोकऱ्या पोस्ट करण्यासाठी आणि उमेदवारांचे व्यवस्थापन करण्यासाठी खाते तयार करा."
+  },
+  "welcome": {
+    "title": "स्वागत आहे, {{email}}!",
+    "subtitle": "नोकऱ्या आणि उमेदवारांचे व्यवस्थापन सुरू करण्यासाठी आपली संस्था सेट करा.",
+    "createOrganization": "आपली संस्था तयार करा",
+    "organizationCreated": "आपल्या डॅशबोर्डमध्ये आपले स्वागत आहे! आपली संस्था यशस्वीरित्या तयार केली गेली आहे."
+  },
+  "setup": {
+    "setupMessage": "नोकऱ्या पोस्ट करण्यास सुरुवात करण्यासाठी आपली संस्था प्रोफाइल सेट करा.",
+    "completeProfileTitle": "आपली संस्था प्रोफाइल पूर्ण करा",
+    "createProfileButton": "संस्था प्रोफाइल तयार करा"
+  },
+  "verification": {
+    "verificationRequired": "ईमेल पडताळणी आवश्यक",
+    "verificationRequiredDesc": "आपले डॅशबोर्ड ऍक्सेस करण्यासाठी आणि नोकऱ्यांचे व्यवस्थापन सुरू करण्यासाठी कृपया आपला ईमेल पत्ता पडताळून पहा.",
+    "verificationSuccess": "ईमेल यशस्वीरित्या पडताळली गेली! आपल्या डॅशबोर्डमध्ये आपले स्वागत आहे.",
+    "checkingStatus": "पडताळणी स्थिती तपासत आहे...",
+    "verificationSent": "पडताळणी ईमेल पाठविला",
+    "verificationLinkSent": "आम्ही {{email}} वर पडताळणी लिंक पाठविली आहे. आपले खाते पडताळण्यासाठी आपल्या ईमेलमधील लिंकवर क्लिक करा.",
+    "verificationTip": "💡 टीप: पडताळणी लिंक पडताळल्यानंतर आपल्याला या डॅशबोर्डवर परत पाठविले जाईल.",
+    "checkEmailTitle": "आपला ईमेल तपासा",
+    "emailSentMessage": "आम्ही {{email}} वर पडताळणी लिंक पाठविली आहे. आपले खाते पडताळण्यासाठी लिंकवर क्लिक करा.",
+    "resendSuccess": "पडताळणी ईमेल पुन्हा पाठविला!",
+    "resending": "पुन्हा पाठवत आहे...",
+    "resendButton": "पडताळणी ईमेल पुन्हा पाठवा",
+    "cantFindEmail": "ईमेल सापडत नाही? आपले स्पॅम फोल्डर तपासा किंवा पडताळणी ईमेल पुन्हा पाठवण्याचा प्रयत्न करा."
+  },
+  "stats": {
+    "activeJobs": "सक्रिय नोकऱ्या",
+    "totalApplications": "एकूण अर्ज",
+    "candidatesHired": "नियुक्त केलेले उमेदवार",
+    "totalJobs": "एकूण नोकऱ्या",
+    "pendingApplications": "प्रलंबित अर्ज",
+    "scheduledInterviews": "नियोजित मुलाखती",
+    "newApplicationsToday": "आजचे नवीन अर्ज",
+    "jobsPostedThisMonth": "या महिन्यात पोस्ट केलेल्या नोकऱ्या"
+  },
+  "quickActions": {
+    "postNewJob": "नवीन नोकरी पोस्ट करा",
+    "manageEmployers": "नियोक्त्यांचे व्यवस्थापन करा",
+    "viewApplications": "अर्ज पहा",
+    "createJob": "आपली पहिली नोकरी तयार करा",
+    "reviewCandidates": "उमेदवारांचे पुनरावलोकन करा",
+    "scheduleInterview": "मुलाखत नियोजित करा",
+    "exportData": "डेटा निर्यात करा"
+  },
+  "currentOrganization": {
+    "title": "आपली संस्था",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "माझ्या नोकऱ्या",
+    "candidateManagement": "उमेदवार व्यवस्थापन",
+    "employerManagement": "नियोक्ता व्यवस्थापन",
+    "analytics": "विश्लेषण",
+    "settings": "सेटिंग्ज"
+  },
+  "recentActivity": {
+    "title": "अलीकडील क्रियाकलाप",
+    "noActivity": "अलीकडील क्रियाकलाप नाही",
+    "newApplication": "{{jobTitle}} साठी नवीन अर्ज",
+    "jobPosted": "नोकरी पोस्ट केली: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}} साठी उमेदवार नियुक्त केला",
+    "interviewScheduled": "{{candidateName}} साठी मुलाखत नियोजित केली"
+  },
+  "notifications": {
+    "title": "सूचना",
+    "noNotifications": "नवीन सूचना नाहीत",
+    "markAllRead": "सर्व वाचले म्हणून चिन्हांकित करा",
+    "newApplicationNotification": "{{jobTitle}} साठी नवीन अर्ज प्राप्त झाला",
+    "interviewReminderNotification": "मुलाखत स्मरणपत्र: {{candidateName}} {{time}} वाजता"
+  },
+  "overview": {
+    "title": "आढावा",
+    "jobPerformance": "नोकरी कामगिरी",
+    "applicationTrends": "अर्ज प्रवृत्ती",
+    "hiringMetrics": "भरती मेट्रिक्स",
+    "topPerformingJobs": "सर्वोत्तम कामगिरी करणाऱ्या नोकऱ्या",
+    "averageTimeToHire": "नियुक्तीसाठी सरासरी वेळ",
+    "applicationConversionRate": "अर्ज रूपांतरण दर"
+  },
+  "shortcuts": {
+    "title": "जलद शॉर्टकट",
+    "postJob": "नोकरी पोस्ट करा",
+    "reviewApplications": "अर्जांचे पुनरावलोकन करा",
+    "scheduleInterviews": "मुलाखती नियोजित करा",
+    "manageTeam": "संघाचे व्यवस्थापन करा",
+    "viewReports": "अहवाल पहा",
+    "organizationSettings": "संस्था सेटिंग्ज"
+  }
+} 

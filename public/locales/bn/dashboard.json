@@ -1,57 +1,103 @@
 {
-  "title": "ড্যাশবোর্ড",
-  "welcome": "স্বাগতম",
-  "overview": "সংক্ষিপ্ত বিবরণ",
+  "title": "প্রদানকারী ড্যাশবোর্ড",
+  "subtitle": "নিয়োগকর্তা, চাকরি পোস্টিং এবং প্রার্থী আবেদন পরিচালনা করুন",
+  "landing": {
+    "welcome": "চাকরি প্রদানকারী পোর্টালে স্বাগতম",
+    "subtitle": "চাকরি পোস্ট করুন, আবেদন পরিচালনা করুন, এবং আপনার সংস্থার জন্য নিখুঁত প্রার্থী খুঁজুন।",
+    "getStarted": "শুরু করুন",
+    "loginButton": "আপনার অ্যাকাউন্টে লগইন করুন",
+    "createAccountButton": "প্রদানকারী অ্যাকাউন্ট তৈরি করুন",
+    "newUserMessage": "আমাদের প্ল্যাটফর্মে নতুন? চাকরি পোস্ট করা এবং প্রার্থী পরিচালনা শুরু করতে একটি অ্যাকাউন্ট তৈরি করুন।"
+  },
+  "welcome": {
+    "title": "স্বাগতম, {{email}}!",
+    "subtitle": "চাকরি এবং প্রার্থী পরিচালনা শুরু করতে আপনার সংস্থা সেট আপ করুন।",
+    "createOrganization": "আপনার সংস্থা তৈরি করুন",
+    "organizationCreated": "আপনার ড্যাশবোর্ডে স্বাগতম! আপনার সংস্থা সফলভাবে তৈরি হয়েছে।"
+  },
+  "setup": {
+    "setupMessage": "চাকরি পোস্ট করা শুরু করতে আপনার সংস্থার প্রোফাইল সেট আপ করুন।",
+    "completeProfileTitle": "আপনার সংস্থার প্রোফাইল সম্পূর্ণ করুন",
+    "createProfileButton": "সংস্থার প্রোফাইল তৈরি করুন"
+  },
+  "verification": {
+    "verificationRequired": "ইমেইল যাচাইকরণ প্রয়োজন",
+    "verificationRequiredDesc": "আপনার ড্যাশবোর্ডে অ্যাক্সেস করতে এবং চাকরি পরিচালনা শুরু করতে অনুগ্রহ করে আপনার ইমেইল ঠিকানা যাচাই করুন।",
+    "verificationSuccess": "ইমেইল সফলভাবে যাচাই করা হয়েছে! আপনার ড্যাশবোর্ডে স্বাগতম।",
+    "checkingStatus": "যাচাইকরণ অবস্থা পরীক্ষা করা হচ্ছে...",
+    "verificationSent": "যাচাইকরণ ইমেইল পাঠানো হয়েছে",
+    "verificationLinkSent": "আমরা {{email}} এ একটি যাচাইকরণ লিংক পাঠিয়েছি। আপনার অ্যাকাউন্ট যাচাই করতে আপনার ইমেইলের লিংকে ক্লিক করুন।",
+    "verificationTip": "💡 টিপ: যাচাইকরণ লিংক যাচাই হওয়ার পর আপনাকে এই ড্যাশবোর্ডে ফিরিয়ে দেবে।",
+    "checkEmailTitle": "আপনার ইমেইল চেক করুন",
+    "emailSentMessage": "আমরা {{email}} এ একটি যাচাইকরণ লিংক পাঠিয়েছি। আপনার অ্যাকাউন্ট যাচাই করতে লিংকে ক্লিক করুন।",
+    "resendSuccess": "যাচাইকরণ ইমেইল পুনরায় পাঠানো হয়েছে!",
+    "resending": "পুনরায় পাঠানো হচ্ছে...",
+    "resendButton": "যাচাইকরণ ইমেইল পুনরায় পাঠান",
+    "cantFindEmail": "ইমেইল খুঁজে পাচ্ছেন না? আপনার স্প্যাম ফোল্ডার চেক করুন বা যাচাইকরণ ইমেইল পুনরায় পাঠানোর চেষ্টা করুন।"
+  },
   "stats": {
-    "totalJobs": "মোট চাকরি",
     "activeJobs": "সক্রিয় চাকরি",
-    "applications": "আবেদন",
-    "totalApplications": "মোট আবেদন",
-    "pendingApplications": "অমীমাংসিত আবেদন",
-    "shortlisted": "নির্বাচিত",
-    "hired": "নিয়োগপ্রাপ্ত",
+    "totalApplications": "মোট আবেদন", 
     "candidatesHired": "নিয়োগপ্রাপ্ত প্রার্থী",
-    "views": "দেখা হয়েছে",
-    "responses": "প্রতিক্রিয়া",
-    "responseRate": "প্রতিক্রিয়ার হার"
+    "totalJobs": "মোট চাকরি",
+    "pendingApplications": "অপেক্ষমাণ আবেদন",
+    "scheduledInterviews": "নির্ধারিত সাক্ষাৎকার",
+    "newApplicationsToday": "আজকের নতুন আবেদন",
+    "jobsPostedThisMonth": "এই মাসে পোস্ট করা চাকরি"
   },
   "quickActions": {
-    "title": "দ্রুত কাজ",
-    "postJob": "চাকরি পোস্ট করুন",
+    "postNewJob": "নতুন চাকরি পোস্ট করুন",
+    "manageEmployers": "নিয়োগকর্তা পরিচালনা করুন",
     "viewApplications": "আবেদন দেখুন",
-    "manageJobs": "চাকরি পরিচালনা করুন",
-    "addCandidate": "প্রার্থী যোগ করুন",
-    "createOrganization": "প্রতিষ্ঠান তৈরি করুন",
-    "viewReports": "রিপোর্ট দেখুন"
+    "createJob": "আপনার প্রথম চাকরি তৈরি করুন",
+    "reviewCandidates": "প্রার্থী পর্যালোচনা করুন",
+    "scheduleInterview": "সাক্ষাৎকার নির্ধারণ করুন",
+    "exportData": "ডেটা রপ্তানি করুন"
+  },
+  "currentOrganization": {
+    "title": "আপনার সংস্থা",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "আমার চাকরি",
+    "candidateManagement": "প্রার্থী ব্যবস্থাপনা",
+    "employerManagement": "নিয়োগকর্তা ব্যবস্থাপনা",
+    "analytics": "বিশ্লেষণ",
+    "settings": "সেটিংস"
   },
   "recentActivity": {
     "title": "সাম্প্রতিক কার্যকলাপ",
-    "newApplication": "নতুন আবেদন",
-    "jobPosted": "চাকরি পোস্ট করা হয়েছে",
-    "candidateShortlisted": "প্রার্থী নির্বাচিত",
-    "jobExpired": "চাকরির মেয়াদ শেষ",
-    "noActivity": "কোনো সাম্প্রতিক কার্যকলাপ নেই"
-  },
-  "tabs": {
-    "overview": "সংক্ষিপ্ত বিবরণ",
-    "jobs": "চাকরি",
-    "myJobs": "আমার চাকরি",
-    "applications": "আবেদন",
-    "candidates": "প্রার্থী",
-    "candidateManagement": "প্রার্থী পরিচালনা",
-    "organizations": "প্রতিষ্ঠান",
-    "settings": "সেটিংস",
-    "profile": "প্রোফাইল",
-    "reports": "রিপোর্ট",
-    "analytics": "বিশ্লেষণ"
+    "noActivity": "কোনো সাম্প্রতিক কার্যকলাপ নেই",
+    "newApplication": "{{jobTitle}} এর জন্য নতুন আবেদন",
+    "jobPosted": "চাকরি পোস্ট করা হয়েছে: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}} এর জন্য প্রার্থী নিয়োগ দেওয়া হয়েছে",
+    "interviewScheduled": "{{candidateName}} এর জন্য সাক্ষাৎকার নির্ধারিত"
   },
   "notifications": {
     "title": "বিজ্ঞপ্তি",
-    "markAllRead": "সব পড়া হয়েছে চিহ্নিত করুন",
-    "noNotifications": "কোনো বিজ্ঞপ্তি নেই",
-    "newApplication": "নতুন আবেদন পেয়েছেন",
-    "applicationUpdate": "আবেদনের আপডেট",
-    "jobExpiring": "চাকরির মেয়াদ শীঘ্রই শেষ হবে",
-    "systemUpdate": "সিস্টেম আপডেট"
+    "noNotifications": "কোনো নতুন বিজ্ঞপ্তি নেই",
+    "markAllRead": "সব পড়া হিসেবে চিহ্নিত করুন",
+    "newApplicationNotification": "{{jobTitle}} এর জন্য নতুন আবেদন পাওয়া গেছে",
+    "interviewReminderNotification": "সাক্ষাৎকার অনুস্মারক: {{candidateName}} {{time}} এ"
+  },
+  "overview": {
+    "title": "সংক্ষিপ্ত বিবরণ",
+    "jobPerformance": "চাকরির কর্মক্ষমতা",
+    "applicationTrends": "আবেদনের প্রবণতা",
+    "hiringMetrics": "নিয়োগের মেট্রিক্স",
+    "topPerformingJobs": "সেরা পারফরমিং চাকরি",
+    "averageTimeToHire": "নিয়োগের গড় সময়",
+    "applicationConversionRate": "আবেদন রূপান্তর হার"
+  },
+  "shortcuts": {
+    "title": "দ্রুত শর্টকাট",
+    "postJob": "একটি চাকরি পোস্ট করুন",
+    "reviewApplications": "আবেদন পর্যালোচনা করুন",
+    "scheduleInterviews": "সাক্ষাৎকার নির্ধারণ করুন",
+    "manageTeam": "টিম পরিচালনা করুন",
+    "viewReports": "রিপোর্ট দেখুন",
+    "organizationSettings": "সংস্থার সেটিংস"
   }
 } 

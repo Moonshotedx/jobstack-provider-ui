@@ -1,0 +1,103 @@
+{
+  "title": "ਪ੍ਰਦਾਤਾ ਡੈਸ਼ਬੋਰਡ",
+  "subtitle": "ਮਾਲਕਾਂ, ਨੌਕਰੀ ਪੋਸਟਿੰਗ ਅਤੇ ਉਮੀਦਵਾਰਾਂ ਦੀਆਂ ਅਰਜ਼ੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+  "landing": {
+    "welcome": "ਨੌਕਰੀ ਪ੍ਰਦਾਤਾ ਪੋਰਟਲ ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ",
+    "subtitle": "ਨੌਕਰੀਆਂ ਪੋਸਟ ਕਰੋ, ਅਰਜ਼ੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ, ਅਤੇ ਆਪਣੀ ਸੰਸਥਾ ਲਈ ਸਹੀ ਉਮੀਦਵਾਰ ਲੱਭੋ।",
+    "getStarted": "ਸ਼ੁਰੂ ਕਰੋ",
+    "loginButton": "ਆਪਣੇ ਖਾਤੇ ਵਿੱਚ ਲਾਗਇਨ ਕਰੋ",
+    "createAccountButton": "ਪ੍ਰਦਾਤਾ ਖਾਤਾ ਬਣਾਓ",
+    "newUserMessage": "ਸਾਡੇ ਪਲੇਟਫਾਰਮ ਤੇ ਨਵੇਂ ਹੋ? ਨੌਕਰੀਆਂ ਪੋਸਟ ਕਰਨ ਅਤੇ ਉਮੀਦਵਾਰਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰਨ ਲਈ ਖਾਤਾ ਬਣਾਓ।"
+  },
+  "welcome": {
+    "title": "ਸੁਆਗਤ ਹੈ, {{email}}!",
+    "subtitle": "ਨੌਕਰੀਆਂ ਅਤੇ ਉਮੀਦਵਾਰਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਆਪਣੀ ਸੰਸਥਾ ਸੈੱਟਅੱਪ ਕਰੋ।",
+    "createOrganization": "ਆਪਣੀ ਸੰਸਥਾ ਬਣਾਓ",
+    "organizationCreated": "ਤੁਹਾਡੇ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਸੁਆਗਤ ਹੈ! ਤੁਹਾਡੀ ਸੰਸਥਾ ਸਫਲਤਾਪੂਰਵਕ ਬਣਾਈ ਗਈ ਹੈ।"
+  },
+  "setup": {
+    "setupMessage": "ਨੌਕਰੀਆਂ ਪੋਸਟ ਕਰਨਾ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਆਪਣੀ ਸੰਸਥਾ ਦੀ ਪ੍ਰੋਫਾਈਲ ਸੈੱਟਅੱਪ ਕਰੋ।",
+    "completeProfileTitle": "ਆਪਣੀ ਸੰਸਥਾ ਦੀ ਪ੍ਰੋਫਾਈਲ ਪੂਰੀ ਕਰੋ",
+    "createProfileButton": "ਸੰਸਥਾ ਪ੍ਰੋਫਾਈਲ ਬਣਾਓ"
+  },
+  "verification": {
+    "verificationRequired": "ਈਮੇਲ ਤਸਦੀਕ ਦੀ ਲੋੜ",
+    "verificationRequiredDesc": "ਆਪਣੇ ਡੈਸ਼ਬੋਰਡ ਤੱਕ ਪਹੁੰਚ ਕਰਨ ਅਤੇ ਨੌਕਰੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ ਸ਼ੁਰੂ ਕਰਨ ਲਈ ਕਿਰਪਾ ਕਰਕੇ ਆਪਣਾ ਈਮੇਲ ਪਤਾ ਤਸਦੀਕ ਕਰੋ।",
+    "verificationSuccess": "ਈਮੇਲ ਸਫਲਤਾਪੂਰਵਕ ਤਸਦੀਕ ਹੋ ਗਿਆ! ਤੁਹਾਡੇ ਡੈਸ਼ਬੋਰਡ ਵਿੱਚ ਸੁਆਗਤ ਹੈ।",
+    "checkingStatus": "ਤਸਦੀਕ ਦੀ ਸਥਿਤੀ ਦੀ ਜਾਂਚ ਕੀਤੀ ਜਾ ਰਹੀ ਹੈ...",
+    "verificationSent": "ਤਸਦੀਕ ਈਮੇਲ ਭੇਜਿਆ ਗਿਆ",
+    "verificationLinkSent": "ਅਸੀਂ {{email}} ਤੇ ਇੱਕ ਤਸਦੀਕ ਲਿੰਕ ਭੇਜਿਆ ਹੈ। ਆਪਣੇ ਖਾਤੇ ਦੀ ਤਸਦੀਕ ਕਰਨ ਲਈ ਆਪਣੀ ਈਮੇਲ ਵਿੱਚ ਲਿੰਕ ਤੇ ਕਲਿੱਕ ਕਰੋ।",
+    "verificationTip": "💡 ਸੁਝਾਅ: ਤਸਦੀਕ ਲਿੰਕ ਤਸਦੀਕ ਹੋਣ ਤੋਂ ਬਾਅਦ ਤੁਹਾਨੂੰ ਇਸ ਡੈਸ਼ਬੋਰਡ ਤੇ ਵਾਪਸ ਭੇਜ ਦੇਵੇਗਾ।",
+    "checkEmailTitle": "ਆਪਣੀ ਈਮੇਲ ਦੇਖੋ",
+    "emailSentMessage": "ਅਸੀਂ {{email}} ਤੇ ਇੱਕ ਤਸਦੀਕ ਲਿੰਕ ਭੇਜਿਆ ਹੈ। ਆਪਣੇ ਖਾਤੇ ਦੀ ਤਸਦੀਕ ਕਰਨ ਲਈ ਲਿੰਕ ਤੇ ਕਲਿੱਕ ਕਰੋ।",
+    "resendSuccess": "ਤਸਦੀਕ ਈਮੇਲ ਮੁੜ ਭੇਜਿਆ ਗਿਆ!",
+    "resending": "ਮੁੜ ਭੇਜਿਆ ਜਾ ਰਿਹਾ ਹੈ...",
+    "resendButton": "ਤਸਦੀਕ ਈਮੇਲ ਮੁੜ ਭੇਜੋ",
+    "cantFindEmail": "ਈਮੇਲ ਨਹੀਂ ਮਿਲ ਰਹੀ? ਆਪਣਾ ਸਪੈਮ ਫੋਲਡਰ ਜਾਂਚੋ ਜਾਂ ਤਸਦੀਕ ਈਮੇਲ ਮੁੜ ਭੇਜਣ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+  },
+  "stats": {
+    "activeJobs": "ਸਰਗਰਮ ਨੌਕਰੀਆਂ",
+    "totalApplications": "ਕੁੱਲ ਅਰਜ਼ੀਆਂ",
+    "candidatesHired": "ਨਿਯੁਕਤ ਕੀਤੇ ਉਮੀਦਵਾਰ",
+    "totalJobs": "ਕੁੱਲ ਨੌਕਰੀਆਂ",
+    "pendingApplications": "ਬਕਾਇਆ ਅਰਜ਼ੀਆਂ",
+    "scheduledInterviews": "ਨਿਰਧਾਰਿਤ ਇੰਟਰਵਿਊ",
+    "newApplicationsToday": "ਅੱਜ ਦੀਆਂ ਨਵੀਆਂ ਅਰਜ਼ੀਆਂ",
+    "jobsPostedThisMonth": "ਇਸ ਮਹੀਨੇ ਪੋਸਟ ਕੀਤੀਆਂ ਨੌਕਰੀਆਂ"
+  },
+  "quickActions": {
+    "postNewJob": "ਨਵੀਂ ਨੌਕਰੀ ਪੋਸਟ ਕਰੋ",
+    "manageEmployers": "ਮਾਲਕਾਂ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "viewApplications": "ਅਰਜ਼ੀਆਂ ਦੇਖੋ",
+    "createJob": "ਆਪਣੀ ਪਹਿਲੀ ਨੌਕਰੀ ਬਣਾਓ",
+    "reviewCandidates": "ਉਮੀਦਵਾਰਾਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ",
+    "scheduleInterview": "ਇੰਟਰਵਿਊ ਦਾ ਸਮਾਂ ਤੈਅ ਕਰੋ",
+    "exportData": "ਡਾਟਾ ਐਕਸਪੋਰਟ ਕਰੋ"
+  },
+  "currentOrganization": {
+    "title": "ਤੁਹਾਡੀ ਸੰਸਥਾ",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "ਮੇਰੀਆਂ ਨੌਕਰੀਆਂ",
+    "candidateManagement": "ਉਮੀਦਵਾਰ ਪ੍ਰਬੰਧਨ",
+    "employerManagement": "ਮਾਲਕ ਪ੍ਰਬੰਧਨ",
+    "analytics": "ਵਿਸ਼ਲੇਸ਼ਣ",
+    "settings": "ਸੈਟਿੰਗਾਂ"
+  },
+  "recentActivity": {
+    "title": "ਹਾਲ ਦੀ ਗਤੀਵਿਧੀ",
+    "noActivity": "ਕੋਈ ਹਾਲ ਦੀ ਗਤੀਵਿਧੀ ਨਹੀਂ",
+    "newApplication": "{{jobTitle}} ਲਈ ਨਵੀਂ ਅਰਜ਼ੀ",
+    "jobPosted": "ਨੌਕਰੀ ਪੋਸਟ ਕੀਤੀ: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}} ਲਈ ਉਮੀਦਵਾਰ ਨਿਯੁਕਤ ਕੀਤਾ",
+    "interviewScheduled": "{{candidateName}} ਲਈ ਇੰਟਰਵਿਊ ਨਿਰਧਾਰਿਤ"
+  },
+  "notifications": {
+    "title": "ਸੂਚਨਾਵਾਂ",
+    "noNotifications": "ਕੋਈ ਨਵੀਆਂ ਸੂਚਨਾਵਾਂ ਨਹੀਂ",
+    "markAllRead": "ਸਭ ਨੂੰ ਪੜ੍ਹਿਆ ਹੋਇਆ ਚਿਨ੍ਹਿਤ ਕਰੋ",
+    "newApplicationNotification": "{{jobTitle}} ਲਈ ਨਵੀਂ ਅਰਜ਼ੀ ਪ੍ਰਾਪਤ ਹੋਈ",
+    "interviewReminderNotification": "ਇੰਟਰਵਿਊ ਯਾਦਦਾਸ਼ਤ: {{candidateName}} {{time}} ਵਜੇ"
+  },
+  "overview": {
+    "title": "ਸੰਖੇਪ",
+    "jobPerformance": "ਨੌਕਰੀ ਦੀ ਕਾਰਗੁਜ਼ਾਰੀ",
+    "applicationTrends": "ਅਰਜ਼ੀ ਰੁਝਾਨ",
+    "hiringMetrics": "ਭਰਤੀ ਮੈਟ੍ਰਿਕਸ",
+    "topPerformingJobs": "ਸਭ ਤੋਂ ਵਧੀਆ ਪ੍ਰਦਰਸ਼ਨ ਕਰਨ ਵਾਲੀਆਂ ਨੌਕਰੀਆਂ",
+    "averageTimeToHire": "ਭਰਤੀ ਲਈ ਔਸਤ ਸਮਾਂ",
+    "applicationConversionRate": "ਅਰਜ਼ੀ ਰੂਪਾਂਤਰਣ ਦਰ"
+  },
+  "shortcuts": {
+    "title": "ਤੇਜ਼ ਸ਼ਾਰਟਕੱਟ",
+    "postJob": "ਨੌਕਰੀ ਪੋਸਟ ਕਰੋ",
+    "reviewApplications": "ਅਰਜ਼ੀਆਂ ਦੀ ਸਮੀਖਿਆ ਕਰੋ",
+    "scheduleInterviews": "ਇੰਟਰਵਿਊ ਨਿਰਧਾਰਿਤ ਕਰੋ",
+    "manageTeam": "ਟੀਮ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰੋ",
+    "viewReports": "ਰਿਪੋਰਟਾਂ ਦੇਖੋ",
+    "organizationSettings": "ਸੰਸਥਾ ਸੈਟਿੰਗਾਂ"
+  }
+} 

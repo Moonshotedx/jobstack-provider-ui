@@ -1,0 +1,103 @@
+{
+  "title": "પ્રદાતા ડેશબોર્ડ",
+  "subtitle": "નિયોક્તાઓ, નોકરી પોસ્ટિંગ અને ઉમેદવાર અરજીઓનું સંચાલન કરો",
+  "landing": {
+    "welcome": "નોકરી પ્રદાતા પોર્ટલમાં આપનું સ્વાગત છે",
+    "subtitle": "નોકરી પોસ્ટ કરો, અરજીઓનું સંચાલન કરો, અને તમારી સંસ્થા માટે સંપૂર્ણ ઉમેદવારો શોધો.",
+    "getStarted": "શરૂ કરો",
+    "loginButton": "તમારા ખાતામાં લૉગિન કરો",
+    "createAccountButton": "પ્રદાતા ખાતું બનાવો",
+    "newUserMessage": "અમારા પ્લેટફોર્મ પર નવા છો? નોકરી પોસ્ટ કરવા અને ઉમેદવારોનું સંચાલન કરવા માટે એક ખાતું બનાવો."
+  },
+  "welcome": {
+    "title": "સ્વાગત છે, {{email}}!",
+    "subtitle": "નોકરીઓ અને ઉમેદવારોનું સંચાલન કરવાનું શરૂ કરવા માટે તમારી સંસ્થા સેટ કરો.",
+    "createOrganization": "તમારી સંસ્થા બનાવો",
+    "organizationCreated": "તમારા ડેશબોર્ડમાં આપનું સ્વાગત છે! તમારી સંસ્થા સફળતાપૂર્વક બનાવવામાં આવી છે."
+  },
+  "setup": {
+    "setupMessage": "નોકરી પોસ્ટ કરવાનું શરૂ કરવા માટે તમારી સંસ્થાની પ્રોફાઇલ સેટ કરો.",
+    "completeProfileTitle": "તમારી સંસ્થાની પ્રોફાઇલ પૂર્ણ કરો",
+    "createProfileButton": "સંસ્થાની પ્રોફાઇલ બનાવો"
+  },
+  "verification": {
+    "verificationRequired": "ઇમેઇલ વેરિફિકેશન આવશ્યક",
+    "verificationRequiredDesc": "તમારા ડેશબોર્ડને એક્સેસ કરવા અને નોકરીઓનું સંચાલન કરવાનું શરૂ કરવા માટે કૃપા કરીને તમારા ઇમેઇલ સરનામાંને વેરિફાઇ કરો.",
+    "verificationSuccess": "ઇમેઇલ સફળતાપૂર્વક વેરિફાઇ થયો! તમારા ડેશબોર્ડમાં આપનું સ્વાગત છે.",
+    "checkingStatus": "વેરિફિકેશન સ્થિતિ તપાસી રહ્યા છીએ...",
+    "verificationSent": "વેરિફિકેશન ઇમેઇલ મોકલવામાં આવ્યો",
+    "verificationLinkSent": "અમે {{email}} પર એક વેરિફિકેશન લિંક મોકલ્યું છે. તમારા ખાતાને વેરિફાઇ કરવા માટે તમારા ઇમેઇલમાં લિંક પર ક્લિક કરો.",
+    "verificationTip": "💡 ટિપ: વેરિફિકેશન લિંક વેરિફાઇ થયા પછી તમને આ ડેશબોર્ડ પર પાછા રીડાયરેક્ટ કરશે.",
+    "checkEmailTitle": "તમારો ઇમેઇલ તપાસો",
+    "emailSentMessage": "અમે {{email}} પર એક વેરિફિકેશન લિંક મોકલ્યું છે. તમારા ખાતાને વેરિફાઇ કરવા માટે લિંક પર ક્લિક કરો.",
+    "resendSuccess": "વેરિફિકેશન ઇમેઇલ ફરીથી મોકલવામાં આવ્યો!",
+    "resending": "ફરીથી મોકલી રહ્યા છીએ...",
+    "resendButton": "વેરિફિકેશન ઇમેઇલ ફરીથી મોકલો",
+    "cantFindEmail": "ઇમેઇલ મળતો નથી? તમારા સ્પામ ફોલ્ડરને તપાસો અથવા વેરિફિકેશન ઇમેઇલ ફરીથી મોકલવાનો પ્રયાસ કરો."
+  },
+  "stats": {
+    "activeJobs": "સક્રિય નોકરીઓ",
+    "totalApplications": "કુલ અરજીઓ",
+    "candidatesHired": "હાયર કરાયેલા ઉમેદવારો",
+    "totalJobs": "કુલ નોકરીઓ",
+    "pendingApplications": "બાકી અરજીઓ",
+    "scheduledInterviews": "સુનિશ્ચિત ઇન્ટરવ્યૂ",
+    "newApplicationsToday": "આજની નવી અરજીઓ",
+    "jobsPostedThisMonth": "આ મહિને પોસ્ટ કરાયેલી નોકરીઓ"
+  },
+  "quickActions": {
+    "postNewJob": "નવી નોકરી પોસ્ટ કરો",
+    "manageEmployers": "નિયોક્તાઓનું સંચાલન કરો",
+    "viewApplications": "અરજીઓ જુઓ",
+    "createJob": "તમારી પ્રથમ નોકરી બનાવો",
+    "reviewCandidates": "ઉમેદવારોની સમીક્ષા કરો",
+    "scheduleInterview": "ઇન્ટરવ્યૂ શેડ્યૂલ કરો",
+    "exportData": "ડેટા એક્સપોર્ટ કરો"
+  },
+  "currentOrganization": {
+    "title": "તમારી સંસ્થા",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "મારી નોકરીઓ",
+    "candidateManagement": "ઉમેદવાર વ્યવસ્થાપન",
+    "employerManagement": "નિયોક્તા વ્યવસ્થાપન",
+    "analytics": "વિશ્લેષણ",
+    "settings": "સેટિંગ્સ"
+  },
+  "recentActivity": {
+    "title": "તાજેતરની પ્રવૃત્તિ",
+    "noActivity": "કોઈ તાજેતરની પ્રવૃત્તિ નથી",
+    "newApplication": "{{jobTitle}} માટે નવી અરજી",
+    "jobPosted": "નોકરી પોસ્ટ કરવામાં આવી: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}} માટે ઉમેદવાર હાયર કરવામાં આવ્યો",
+    "interviewScheduled": "{{candidateName}} માટે ઇન્ટરવ્યૂ શેડ્યૂલ કરવામાં આવ્યો"
+  },
+  "notifications": {
+    "title": "સૂચનાઓ",
+    "noNotifications": "કોઈ નવી સૂચનાઓ નથી",
+    "markAllRead": "બધાને વાંચ્યા તરીકે માર્ક કરો",
+    "newApplicationNotification": "{{jobTitle}} માટે નવી અરજી પ્રાપ્ત થઈ",
+    "interviewReminderNotification": "ઇન્ટરવ્યૂ રિમાઇન્ડર: {{candidateName}} {{time}} વાગ્યે"
+  },
+  "overview": {
+    "title": "વિહંગાવલોકન",
+    "jobPerformance": "નોકરીની કામગીરી",
+    "applicationTrends": "અરજીના વલણો",
+    "hiringMetrics": "હાયરિંગ મેટ્રિક્સ",
+    "topPerformingJobs": "ટોપ પર્ફોર્મિંગ નોકરીઓ",
+    "averageTimeToHire": "હાયર કરવાનો સરેરાશ સમય",
+    "applicationConversionRate": "અરજી કન્વર્ઝન રેટ"
+  },
+  "shortcuts": {
+    "title": "ઝડપી શોર્ટકટ્સ",
+    "postJob": "નોકરી પોસ્ટ કરો",
+    "reviewApplications": "અરજીઓની સમીક્ષા કરો",
+    "scheduleInterviews": "ઇન્ટરવ્યૂ શેડ્યૂલ કરો",
+    "manageTeam": "ટીમનું સંચાલન કરો",
+    "viewReports": "રિપોર્ટ્સ જુઓ",
+    "organizationSettings": "સંસ્થાની સેટિંગ્સ"
+  }
+} 
