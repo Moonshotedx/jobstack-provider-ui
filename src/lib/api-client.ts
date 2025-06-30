@@ -67,7 +67,10 @@ export interface JobPosting {
   title: string;
   description: string;
   locationId: string | null;
+  location: Record<string, any>;
+  contact: Record<string, any>;
   metadata: Record<string, any>;
+  organizationName: string;
   organizationId: string;
   createdBy: string;
   createdAt: string;
@@ -85,7 +88,11 @@ export interface CreateJobResponse {
 }
 
 export interface GetJobsResponse {
-  postings: JobPosting[];
+  jobs: JobPosting[];
+  pagination: {
+    page: number;
+    limit: number;
+  };
 }
 
 // Job API methods
@@ -104,7 +111,7 @@ export const jobsApi = {
     const response = await apiClient.get<ApiResponse<GetJobsResponse>>(
       `/jobs/${organizationId}`
     );
-    return response.data.data.postings;
+    return response.data.data.jobs;
   },
 };
 
