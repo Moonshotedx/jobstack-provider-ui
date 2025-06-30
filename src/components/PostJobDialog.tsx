@@ -104,16 +104,15 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
         jobData,
         selectedIndustry,
         selectedJobRole
-        // Note: We're not handling location data yet - can be added later
       );
 
-      // Submit the job using the API
+      // Submit the job using the API and wait for completion
       await createJobMutation.mutateAsync({
         organizationId: activeOrganizationId,
         jobData: createJobRequest,
       });
 
-      // Close dialog and reset form on success
+      // Only close dialog and reset form after successful creation
       onClose();
       resetForm();
     } catch (error) {

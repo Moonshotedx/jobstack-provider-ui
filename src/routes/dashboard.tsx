@@ -1,5 +1,6 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import Header from '@/components/Header'
 import { useUserStore } from '@/stores/authStore'
 import { useAuth } from '@/hooks/useAuth'
@@ -35,6 +36,7 @@ function DashboardContent() {
   
   const { user } = useUserStore()
   const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth()
+  const queryClient = useQueryClient()
 
   // Check verification status on mount and periodically
   useEffect(() => {
@@ -214,8 +216,10 @@ function DashboardContent() {
           onClose={() => setShowOrgProfile(false)}
           onSuccess={async () => {
             setShowOrgProfile(false);
-            // Force reload the user session to get the updated activeOrganizationId
+            // Force session reload and invalidate all caches
             await checkSession();
+            // Invalidate all queries to ensure fresh data
+            queryClient.invalidateQueries();
             toast.success(t('welcome.organizationCreated'));
           }}
         />

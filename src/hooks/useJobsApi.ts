@@ -14,9 +14,14 @@ export const useGetJobs = (organizationId: string) => {
   return useQuery({
     queryKey: jobsQueryKeys.byOrg(organizationId),
     queryFn: () => jobsApi.getJobs(organizationId),
-    enabled: !!organizationId,
-    staleTime: 2 * 60 * 1000, // Reduced to 2 minutes for more frequent updates
-    retry: 2,
+    enabled: !!organizationId && organizationId.length > 0,
+    staleTime: 30 * 1000, // 30 seconds
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 2;
+    },
   });
 };
 
@@ -27,20 +32,18 @@ export const useCreateJob = () => {
   return useMutation({
     mutationFn: ({ organizationId, jobData }: { organizationId: string; jobData: CreateJobRequest }) =>
       jobsApi.createJob(organizationId, jobData),
-    onSuccess: (newJob, { organizationId }) => {
-      // Invalidate and refetch jobs for this organization
-      queryClient.invalidateQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) });
+    onSuccess: async (newJob, { organizationId }) => {
+      // First, invalidate session to ensure it's current
+      await queryClient.invalidateQueries({ queryKey: ['session'] });
       
-      // Optionally update the cache directly
-      queryClient.setQueryData<JobPosting[]>(
-        jobsQueryKeys.byOrg(organizationId),
-        (oldData) => {
-          if (oldData) {
-            return [newJob, ...oldData];
-          }
-          return [newJob];
-        }
-      );
+      // Then invalidate and refetch jobs queries
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) }),
+        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.all }),
+      ]);
+      
+      // Force immediate refetch of jobs for this organization
+      await queryClient.refetchQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) });
 
       toast.success('Job posted successfully!', {
         description: `"${newJob.title}" has been created.`,
@@ -60,40 +63,47 @@ export const useCreateJob = () => {
 
 // Hook to get the current active organization's jobs
 export const useCurrentOrganizationJobs = () => {
-  const { data: session } = useQuery({
+  const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
     queryKey: ['session'],
     queryFn: () => authClient.getSession(),
-    staleTime: 30 * 1000, // Reduced to 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    staleTime: 0, // Always fetch fresh session data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 2,
   });
 
-  // Access the correct path based on the session structure
   const activeOrgId = session?.data?.session?.activeOrganizationId;
-
-  return useGetJobs(activeOrgId || '');
+  const jobsQuery = useGetJobs(activeOrgId || '');
+  
+  return {
+    ...jobsQuery,
+    isLoading: sessionLoading || (!!activeOrgId && jobsQuery.isLoading),
+    error: sessionError || (!activeOrgId && !sessionLoading ? new Error('No active organization found') : jobsQuery.error),
+    data: activeOrgId ? jobsQuery.data : [],
+  };
 };
 
 // Hook to get active organization ID
 export const useActiveOrganizationId = () => {
-  const { data: session } = useQuery({
+  const { data: session, isLoading } = useQuery({
     queryKey: ['session'],
-    queryFn: async () => {
-      const sessionData = await authClient.getSession();
-      return sessionData;
-    },
-    staleTime: 30 * 1000, // Reduced to 30 seconds
-    refetchOnWindowFocus: true, // Refetch when window gains focus
+    queryFn: () => authClient.getSession(),
+    staleTime: 0, // Always fetch fresh session data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    retry: 2,
   });
 
-  // Check if user is actually logged in
-  const isLoggedIn = !!session?.data?.user;
-  const activeOrgId = session?.data?.session?.activeOrganizationId;
+  if (isLoading) {
+    return undefined;
+  }
 
+  const isLoggedIn = !!session?.data?.user;
   if (!isLoggedIn) {
     return undefined;
   }
 
-  return activeOrgId;
+  return session?.data?.session?.activeOrganizationId;
 };
 
 // Export types for use in components

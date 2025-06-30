@@ -103,14 +103,20 @@ const MyJobs = () => {
   }
 
   if (error) {
+    let errorTitle = t('management.errorLoadingJobs');
+    let errorDescription = t('management.errorLoadingDesc');
+    
+    if (error.message === 'No active organization found') {
+      errorTitle = 'No Organization Selected';
+      errorDescription = 'Please create or select an organization to view jobs.';
+    }
+    
     return (
       <div className="space-y-6">
         <Card>
           <CardContent className="text-center py-12">
-            <h3 className="text-lg font-medium mb-2 text-red-600">{t('management.errorLoadingJobs')}</h3>
-            <p className="text-muted-foreground mb-4">
-              {t('management.errorLoadingDesc')}
-            </p>
+            <h3 className="text-lg font-medium mb-2 text-red-600">{errorTitle}</h3>
+            <p className="text-muted-foreground mb-4">{errorDescription}</p>
             <Button onClick={() => window.location.reload()}>Retry</Button>
           </CardContent>
         </Card>
