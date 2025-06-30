@@ -1,0 +1,103 @@
+{
+  "title": "ಒದಗಿಸುವವರ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್",
+  "subtitle": "ಉದ್ಯೋಗದಾತರು, ಉದ್ಯೋಗ ಪೋಸ್ಟಿಂಗ್ ಮತ್ತು ಅಭ್ಯರ್ಥಿ ಅರ್ಜಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ",
+  "landing": {
+    "welcome": "ಉದ್ಯೋಗ ಒದಗಿಸುವವರ ಪೋರ್ಟಲ್‌ಗೆ ಸ್ವಾಗತ",
+    "subtitle": "ಉದ್ಯೋಗಗಳನ್ನು ಪೋಸ್ಟ್ ಮಾಡಿ, ಅರ್ಜಿಗಳನ್ನು ನಿರ್ವಹಿಸಿ, ಮತ್ತು ನಿಮ್ಮ ಸಂಸ್ಥೆಗೆ ಪರಿಪೂರ್ಣ ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಹುಡುಕಿ.",
+    "getStarted": "ಪ್ರಾರಂಭಿಸಿ",
+    "loginButton": "ನಿಮ್ಮ ಖಾತೆಗೆ ಲಾಗಿನ್ ಮಾಡಿ",
+    "createAccountButton": "ಒದಗಿಸುವವರ ಖಾತೆ ರಚಿಸಿ",
+    "newUserMessage": "ನಮ್ಮ ಪ್ಲ್ಯಾಟ್‌ಫಾರ್ಮ್‌ಗೆ ಹೊಸಬರಾ? ಉದ್ಯೋಗಗಳನ್ನು ಪೋಸ್ಟ್ ಮಾಡಲು ಮತ್ತು ಅಭ್ಯರ್ಥಿಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಖಾತೆ ರಚಿಸಿ."
+  },
+  "welcome": {
+    "title": "ಸ್ವಾಗತ, {{email}}!",
+    "subtitle": "ಉದ್ಯೋಗಗಳು ಮತ್ತು ಅಭ್ಯರ್ಥಿಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಸಂಸ್ಥೆಯನ್ನು ಸೆಟಪ್ ಮಾಡಿ.",
+    "createOrganization": "ನಿಮ್ಮ ಸಂಸ್ಥೆಯನ್ನು ರಚಿಸಿ",
+    "organizationCreated": "ನಿಮ್ಮ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಸ್ವಾಗತ! ನಿಮ್ಮ ಸಂಸ್ಥೆಯನ್ನು ಯಶಸ್ವಿಯಾಗಿ ರಚಿಸಲಾಗಿದೆ."
+  },
+  "setup": {
+    "setupMessage": "ಉದ್ಯೋಗಗಳನ್ನು ಪೋಸ್ಟ್ ಮಾಡಲು ಪ್ರಾರಂಭಿಸಲು ನಿಮ್ಮ ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಸೆಟಪ್ ಮಾಡಿ.",
+    "completeProfileTitle": "ನಿಮ್ಮ ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್ ಅನ್ನು ಪೂರ್ಣಗೊಳಿಸಿ",
+    "createProfileButton": "ಸಂಸ್ಥೆಯ ಪ್ರೊಫೈಲ್ ರಚಿಸಿ"
+  },
+  "verification": {
+    "verificationRequired": "ಇಮೇಲ್ ಪರಿಶೀಲನೆ ಅಗತ್ಯ",
+    "verificationRequiredDesc": "ನಿಮ್ಮ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್ ಅನ್ನು ಪ್ರವೇಶಿಸಲು ಮತ್ತು ಉದ್ಯೋಗಗಳನ್ನು ನಿರ್ವಹಿಸಲು ಪ್ರಾರಂಭಿಸಲು ದಯವಿಟ್ಟು ನಿಮ್ಮ ಇಮೇಲ್ ವಿಳಾಸವನ್ನು ಪರಿಶೀಲಿಸಿ.",
+    "verificationSuccess": "ಇಮೇಲ್ ಯಶಸ್ವಿಯಾಗಿ ಪರಿಶೀಲಿಸಲಾಗಿದೆ! ನಿಮ್ಮ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಸ್ವಾಗತ.",
+    "checkingStatus": "ಪರಿಶೀಲನೆ ಸ್ಥಿತಿಯನ್ನು ಪರಿಶೀಲಿಸುತ್ತಿದ್ದೇವೆ...",
+    "verificationSent": "ಪರಿಶೀಲನೆ ಇಮೇಲ್ ಕಳುಹಿಸಲಾಗಿದೆ",
+    "verificationLinkSent": "ನಾವು {{email}} ಗೆ ಪರಿಶೀಲನೆ ಲಿಂಕ್ ಕಳುಹಿಸಿದ್ದೇವೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಪರಿಶೀಲಿಸಲು ನಿಮ್ಮ ಇಮೇಲ್‌ನಲ್ಲಿರುವ ಲಿಂಕ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    "verificationTip": "💡 ಸುಳಿವು: ಪರಿಶೀಲನೆ ಲಿಂಕ್ ಪರಿಶೀಲಿಸಿದ ನಂತರ ನಿಮ್ಮನ್ನು ಈ ಡ್ಯಾಶ್‌ಬೋರ್ಡ್‌ಗೆ ಮರಳಿ ನಿರ್ದೇಶಿಸುತ್ತದೆ.",
+    "checkEmailTitle": "ನಿಮ್ಮ ಇಮೇಲ್ ಅನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "emailSentMessage": "ನಾವು {{email}} ಗೆ ಪರಿಶೀಲನೆ ಲಿಂಕ್ ಕಳುಹಿಸಿದ್ದೇವೆ. ನಿಮ್ಮ ಖಾತೆಯನ್ನು ಪರಿಶೀಲಿಸಲು ಲಿಂಕ್ ಅನ್ನು ಕ್ಲಿಕ್ ಮಾಡಿ.",
+    "resendSuccess": "ಪರಿಶೀಲನೆ ಇಮೇಲ್ ಮರು ಕಳುಹಿಸಲಾಗಿದೆ!",
+    "resending": "ಮರು ಕಳುಹಿಸುತ್ತಿದ್ದೇವೆ...",
+    "resendButton": "ಪರಿಶೀಲನೆ ಇಮೇಲ್ ಮರು ಕಳುಹಿಸಿ",
+    "cantFindEmail": "ಇಮೇಲ್ ಸಿಗುತ್ತಿಲ್ಲವೇ? ನಿಮ್ಮ ಸ್ಪ್ಯಾಮ್ ಫೋಲ್ಡರ್ ಅನ್ನು ಪರಿಶೀಲಿಸಿ ಅಥವಾ ಪರಿಶೀಲನೆ ಇಮೇಲ್ ಮರು ಕಳುಹಿಸಲು ಪ್ರಯತ್ನಿಸಿ."
+  },
+  "stats": {
+    "activeJobs": "ಸಕ್ರಿಯ ಉದ್ಯೋಗಗಳು",
+    "totalApplications": "ಒಟ್ಟು ಅರ್ಜಿಗಳು",
+    "candidatesHired": "ನೇಮಕಗೊಂಡ ಅಭ್ಯರ್ಥಿಗಳು",
+    "totalJobs": "ಒಟ್ಟು ಉದ್ಯೋಗಗಳು",
+    "pendingApplications": "ಬಾಕಿ ಅರ್ಜಿಗಳು",
+    "scheduledInterviews": "ನಿಗದಿಪಡಿಸಿದ ಸಂದರ್ಶನಗಳು",
+    "newApplicationsToday": "ಇಂದಿನ ಹೊಸ ಅರ್ಜಿಗಳು",
+    "jobsPostedThisMonth": "ಈ ತಿಂಗಳು ಪೋಸ್ಟ್ ಮಾಡಿದ ಉದ್ಯೋಗಗಳು"
+  },
+  "quickActions": {
+    "postNewJob": "ಹೊಸ ಉದ್ಯೋಗ ಪೋಸ್ಟ್ ಮಾಡಿ",
+    "manageEmployers": "ಉದ್ಯೋಗದಾತರನ್ನು ನಿರ್ವಹಿಸಿ",
+    "viewApplications": "ಅರ್ಜಿಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+    "createJob": "ನಿಮ್ಮ ಮೊದಲ ಉದ್ಯೋಗವನ್ನು ರಚಿಸಿ",
+    "reviewCandidates": "ಅಭ್ಯರ್ಥಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "scheduleInterview": "ಸಂದರ್ಶನವನ್ನು ನಿಗದಿಪಡಿಸಿ",
+    "exportData": "ಡೇಟಾವನ್ನು ರಫ್ತು ಮಾಡಿ"
+  },
+  "currentOrganization": {
+    "title": "ನಿಮ್ಮ ಸಂಸ್ಥೆ",
+    "name": "{{name}}",
+    "email": "{{email}}",
+    "address": "{{address}}"
+  },
+  "tabs": {
+    "myJobs": "ನನ್ನ ಉದ್ಯೋಗಗಳು",
+    "candidateManagement": "ಅಭ್ಯರ್ಥಿ ನಿರ್ವಹಣೆ",
+    "employerManagement": "ಉದ್ಯೋಗದಾತ ನಿರ್ವಹಣೆ",
+    "analytics": "ವಿಶ್ಲೇಷಣೆ",
+    "settings": "ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
+  },
+  "recentActivity": {
+    "title": "ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ",
+    "noActivity": "ಇತ್ತೀಚಿನ ಚಟುವಟಿಕೆ ಇಲ್ಲ",
+    "newApplication": "{{jobTitle}} ಗಾಗಿ ಹೊಸ ಅರ್ಜಿ",
+    "jobPosted": "ಉದ್ಯೋಗ ಪೋಸ್ಟ್ ಮಾಡಲಾಗಿದೆ: {{jobTitle}}",
+    "candidateHired": "{{jobTitle}} ಗಾಗಿ ಅಭ್ಯರ್ಥಿಯನ್ನು ನೇಮಿಸಲಾಗಿದೆ",
+    "interviewScheduled": "{{candidateName}} ಗಾಗಿ ಸಂದರ್ಶನ ನಿಗದಿಪಡಿಸಲಾಗಿದೆ"
+  },
+  "notifications": {
+    "title": "ಅಧಿಸೂಚನೆಗಳು",
+    "noNotifications": "ಹೊಸ ಅಧಿಸೂಚನೆಗಳಿಲ್ಲ",
+    "markAllRead": "ಎಲ್ಲವನ್ನೂ ಓದಲಾಗಿದೆ ಎಂದು ಗುರುತಿಸಿ",
+    "newApplicationNotification": "{{jobTitle}} ಗಾಗಿ ಹೊಸ ಅರ್ಜಿ ಬಂದಿದೆ",
+    "interviewReminderNotification": "ಸಂದರ್ಶನ ಜ್ಞಾಪನೆ: {{candidateName}} {{time}} ಗೆ"
+  },
+  "overview": {
+    "title": "ಅವಲೋಕನ",
+    "jobPerformance": "ಉದ್ಯೋಗ ಕಾರ್ಯಕ್ಷಮತೆ",
+    "applicationTrends": "ಅರ್ಜಿ ಪ್ರವೃತ್ತಿಗಳು",
+    "hiringMetrics": "ನೇಮಕಾತಿ ಮೆಟ್ರಿಕ್ಸ್",
+    "topPerformingJobs": "ಅತ್ಯುತ್ತಮ ಕಾರ್ಯಕ್ಷಮತೆಯ ಉದ್ಯೋಗಗಳು",
+    "averageTimeToHire": "ನೇಮಿಸಲು ಸರಾಸರಿ ಸಮಯ",
+    "applicationConversionRate": "ಅರ್ಜಿ ಪರಿವರ್ತನೆ ದರ"
+  },
+  "shortcuts": {
+    "title": "ತ್ವರಿತ ಶಾರ್ಟ್‌ಕಟ್‌ಗಳು",
+    "postJob": "ಉದ್ಯೋಗ ಪೋಸ್ಟ್ ಮಾಡಿ",
+    "reviewApplications": "ಅರ್ಜಿಗಳನ್ನು ಪರಿಶೀಲಿಸಿ",
+    "scheduleInterviews": "ಸಂದರ್ಶನಗಳನ್ನು ನಿಗದಿಪಡಿಸಿ",
+    "manageTeam": "ತಂಡವನ್ನು ನಿರ್ವಹಿಸಿ",
+    "viewReports": "ವರದಿಗಳನ್ನು ವೀಕ್ಷಿಸಿ",
+    "organizationSettings": "ಸಂಸ್ಥೆಯ ಸೆಟ್ಟಿಂಗ್‌ಗಳು"
+  }
+} 

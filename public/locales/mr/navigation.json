@@ -1,5 +1,8 @@
 {
   "header": {
+    "appName": "जॉबबिज",
+    "findJobs": "नोकरी शोधा",
+    "postJobs": "नोकरी पोस्ट करा",
     "logo": "लोगो",
     "home": "मुख्यपृष्ठ",
     "dashboard": "डॅशबोर्ड",
@@ -14,7 +17,8 @@
     "search": "शोधा",
     "notifications": "सूचना",
     "messages": "संदेश",
-    "help": "मदत"
+    "help": "मदत",
+    "support": "सहाय्य"
   },
   "footer": {
     "aboutUs": "आमच्याबद्दल",

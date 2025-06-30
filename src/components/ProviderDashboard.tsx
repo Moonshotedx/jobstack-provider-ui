@@ -11,8 +11,10 @@ import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
+import { useTranslation } from 'react-i18next';
 
 const ProviderDashboard = () => {
+  const { t } = useTranslation('dashboard');
   const [activeTab, setActiveTab] = useState('my-jobs');
   const [showPostJob, setShowPostJob] = useState(false);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
@@ -30,15 +32,15 @@ const ProviderDashboard = () => {
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto">
               <Briefcase className="h-8 w-8 text-primary-foreground" />
             </div>
-            <h1 className="text-3xl font-bold">Welcome to Job Provider Portal</h1>
+            <h1 className="text-3xl font-bold">{t('landing.welcome')}</h1>
             <p className="text-muted-foreground text-lg">
-              Post jobs, manage applications, and find the perfect candidates for your organization.
+              {t('landing.subtitle')}
             </p>
           </div>
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>Get Started</CardTitle>
+              <CardTitle>{t('landing.getStarted')}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
@@ -47,7 +49,7 @@ const ProviderDashboard = () => {
                   size="lg"
                   onClick={() => navigate({ to: "/auth/$action", params: { action: "login" } })}
                 >
-                  Login to Your Account
+                  {t('landing.loginButton')}
                 </Button>
                 <Button 
                   variant="outline" 
@@ -55,12 +57,12 @@ const ProviderDashboard = () => {
                   size="lg"
                   onClick={() => navigate({ to: "/auth/$action", params: { action: "signup" } })}
                 >
-                  Create Provider Account
+                  {t('landing.createAccountButton')}
                 </Button>
               </div>
               
               <div className="text-sm text-muted-foreground">
-                New to our platform? Create an account to start posting jobs and managing candidates.
+                {t('landing.newUserMessage')}
               </div>
             </CardContent>
           </Card>
@@ -78,19 +80,19 @@ const ProviderDashboard = () => {
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
               <CheckCircle className="h-8 w-8 text-yellow-600" />
             </div>
-            <h1 className="text-3xl font-bold">Email Verification Required</h1>
+            <h1 className="text-3xl font-bold">{t('verification.verificationRequired')}</h1>
             <p className="text-muted-foreground text-lg">
-              Please verify your email address to access the dashboard.
+              {t('verification.verificationRequiredDesc')}
             </p>
           </div>
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>Check Your Email</CardTitle>
+              <CardTitle>{t('verification.checkEmailTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground mb-4">
-                We've sent a verification link to {user.email}. Click the link to verify your account.
+                {t('verification.emailSentMessage', { email: user.email })}
               </p>
             </CardContent>
           </Card>
@@ -106,15 +108,15 @@ const ProviderDashboard = () => {
         <div className="max-w-2xl mx-auto text-center space-y-6">
           <div className="space-y-4">
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto" />
-            <h1 className="text-3xl font-bold">Welcome, {user.email}!</h1>
+            <h1 className="text-3xl font-bold">{t('welcome.title', { email: user.email })}</h1>
             <p className="text-muted-foreground text-lg">
-              Let's set up your organization profile to start posting jobs.
+              {t('setup.setupMessage')}
             </p>
           </div>
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>Complete Your Organization Profile</CardTitle>
+              <CardTitle>{t('setup.completeProfileTitle')}</CardTitle>
             </CardHeader>
             <CardContent>
               <Button 
@@ -122,7 +124,7 @@ const ProviderDashboard = () => {
                 size="lg"
                 onClick={() => setShowCreateOrg(true)}
               >
-                Create Organization Profile
+                {t('setup.createProfileButton')}
               </Button>
             </CardContent>
           </Card>
@@ -136,14 +138,14 @@ const ProviderDashboard = () => {
     <div className="container mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Provider Dashboard</h1>
+          <h1 className="text-3xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">
-            Manage your job postings and candidate applications
+            {t('subtitle')}
           </p>
         </div>
         <Button onClick={() => setShowPostJob(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Post New Job
+          {t('quickActions.postNewJob')}
         </Button>
       </div>
 
@@ -154,7 +156,7 @@ const ProviderDashboard = () => {
             <Briefcase className="h-8 w-8 text-primary mr-4" />
             <div>
               <p className="text-2xl font-bold">12</p>
-              <p className="text-muted-foreground">Active Jobs</p>
+              <p className="text-muted-foreground">{t('stats.activeJobs')}</p>
             </div>
           </CardContent>
         </Card>
@@ -163,7 +165,7 @@ const ProviderDashboard = () => {
             <Users className="h-8 w-8 text-blue-500 mr-4" />
             <div>
               <p className="text-2xl font-bold">48</p>
-              <p className="text-muted-foreground">Total Applications</p>
+              <p className="text-muted-foreground">{t('stats.totalApplications')}</p>
             </div>
           </CardContent>
         </Card>
@@ -172,7 +174,7 @@ const ProviderDashboard = () => {
             <CheckCircle className="h-8 w-8 text-green-500 mr-4" />
             <div>
               <p className="text-2xl font-bold">5</p>
-              <p className="text-muted-foreground">Candidates Hired</p>
+              <p className="text-muted-foreground">{t('stats.candidatesHired')}</p>
             </div>
           </CardContent>
         </Card>
@@ -181,8 +183,8 @@ const ProviderDashboard = () => {
       {/* Main Content Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="my-jobs">My Jobs</TabsTrigger>
-          <TabsTrigger value="candidates">Candidate Management</TabsTrigger>
+          <TabsTrigger value="my-jobs">{t('tabs.myJobs')}</TabsTrigger>
+          <TabsTrigger value="candidates">{t('tabs.candidateManagement')}</TabsTrigger>
         </TabsList>
         
         <TabsContent value="my-jobs" className="mt-0">
