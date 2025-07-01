@@ -102,7 +102,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         try {
           const setActiveResult = await authClient.organization.setActive({ 
             organizationId: organization.id 
-          });
+          }, { credentials: 'include' });
           
           if (setActiveResult.error) {
             console.error('Failed to set organization as active:', setActiveResult.error);

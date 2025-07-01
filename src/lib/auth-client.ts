@@ -17,14 +17,14 @@ export const forgetPassword = async (email: string) => {
   return await authClient.forgetPassword({
     email,
     redirectTo: `${window.location.origin}/auth/reset-password`,
-  });
+  }, { credentials: 'include' });
 };
 
 export const resetPassword = async (token: string, password: string) => {
   return await authClient.resetPassword({
     token,
     newPassword: password,
-  });
+  }, { credentials: 'include' });
 };
 
 export const createOrganisation = async (orgInfo: {
@@ -35,7 +35,7 @@ export const createOrganisation = async (orgInfo: {
 }) => {
   const slugCheckResult = await authClient.organization.checkSlug({
     slug: orgInfo.slug,
-  });
+  }, { credentials: 'include' });
 
   // Check if the API call failed
   if (slugCheckResult.error) {
@@ -57,7 +57,7 @@ export const createOrganisation = async (orgInfo: {
     slug: orgInfo.slug,
     logo: orgInfo.logo,
     metadata: orgInfo.metadata,
-  });
+  }, { credentials: 'include' });
 
   if (org.error) {
     throw new Error(org.error.message);

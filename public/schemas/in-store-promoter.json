@@ -1,0 +1,197 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "In Store Promoter Job Posting",
+  "type": "object",
+  "properties": {
+    "basicInfo": {
+      "type": "object",
+      "title": "Basic Information",
+      "x-section": "basic-info",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Job Title",
+          "default": "In Store Promoter"
+        },
+        "location": {
+          "type": "string",
+          "title": "Location",
+          "description": "Provide the specific location where candidates will work"
+        },
+        "jobType": {
+          "type": "string",
+          "title": "Job Type",
+          "enum": ["full-time", "part-time", "contract"],
+          "enumNames": ["Full-time", "Part-time", "Contract"]
+        },
+        "salary": {
+          "type": "string",
+          "title": "Salary Range",
+          "description": "e.g., ₹15,000 - ₹25,000"
+        },
+        "payFrequency": {
+          "type": "string",
+          "title": "Pay Frequency",
+          "enum": ["daily", "weekly", "monthly"],
+          "enumNames": ["Daily", "Weekly", "Monthly"]
+        },
+        "experience": {
+          "type": "string",
+          "title": "Experience Required",
+          "description": "e.g., 2-5 years"
+        },
+        "positions": {
+          "type": "number",
+          "title": "Number of Positions",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "required": ["title", "location", "jobType", "salary", "payFrequency"]
+    },
+    "promoterSpecific": {
+      "type": "object",
+      "title": "Promoter Specific Requirements",
+      "x-section": "promoter-specific",
+      "properties": {
+        "brandProducts": {
+          "type": "string",
+          "title": "Brand/Products to Promote",
+          "description": "Specific brands or product categories"
+        },
+        "storeType": {
+          "type": "string",
+          "title": "Store Type",
+          "enum": ["retail-chain", "department-store", "supermarket", "electronics-store"],
+          "enumNames": ["Retail Chain", "Department Store", "Supermarket", "Electronics Store"]
+        },
+        "workingHours": {
+          "type": "string",
+          "title": "Working Hours",
+          "description": "Store timings and shift details"
+        },
+        "languageRequirements": {
+          "type": "array",
+          "title": "Language Requirements",
+          "items": {
+            "type": "string",
+            "enum": ["hindi", "english", "local-language", "regional-language"],
+            "enumNames": ["Hindi", "English", "Local Language", "Regional Language"]
+          },
+          "uniqueItems": true
+        },
+        "presentationSkills": {
+          "type": "boolean",
+          "title": "Presentation Skills Required",
+          "default": true
+        }
+      }
+    },
+    "jobDescription": {
+      "type": "object",
+      "title": "Job Description",
+      "x-section": "job-description",
+      "properties": {
+        "description": {
+          "type": "string",
+          "title": "Job Description",
+          "description": "Describe the job role, responsibilities, and what you're looking for..."
+        },
+        "workTimings": {
+          "type": "string",
+          "title": "Work Timings",
+          "description": "e.g., 9 AM - 6 PM"
+        },
+        "workDays": {
+          "type": "string",
+          "title": "Work Days",
+          "description": "e.g., Monday to Friday"
+        }
+      },
+      "required": ["description"]
+    },
+    "requirements": {
+      "type": "object",
+      "title": "Requirements & Benefits",
+      "x-section": "requirements-benefits",
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "title": "Job Requirements",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [""]
+        },
+        "benefits": {
+          "type": "array",
+          "title": "Benefits & Perks",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [""]
+        }
+      }
+    },
+    "applicationDetails": {
+      "type": "object",
+      "title": "Application Details",
+      "x-section": "application-details",
+      "properties": {
+        "lastDate": {
+          "type": "string",
+          "title": "Last Date to Apply",
+          "format": "date"
+        },
+        "questions": {
+          "type": "array",
+          "title": "Custom Questions for Applicants",
+          "items": {
+            "type": "string"
+          },
+          "default": [""]
+        }
+      }
+    },
+    "jobProviderInfo": {
+      "type": "object",
+      "title": "Job Provider Information",
+      "x-section": "job-provider-info",
+      "properties": {
+        "jobProviderName": {
+          "type": "string",
+          "title": "Job Provider Name"
+        },
+        "jobProviderRegistration": {
+          "type": "string",
+          "title": "Job Provider Registration Details",
+          "description": "GST, CIN, TAN, PAN or other registration number"
+        }
+      },
+      "required": ["jobProviderName", "jobProviderRegistration"]
+    },
+    "hiringManager": {
+      "type": "object",
+      "title": "Hiring Manager Details",
+      "x-section": "hiring-manager",
+      "properties": {
+        "managerName": {
+          "type": "string",
+          "title": "Provider Contact Name"
+        },
+        "phoneNo": {
+          "type": "string",
+          "title": "Provider Contact Phone No"
+        },
+        "emailId": {
+          "type": "string",
+          "title": "Provider Contact Email ID",
+          "format": "email"
+        }
+      },
+      "required": ["managerName", "phoneNo", "emailId"]
+    }
+  }
+} 
