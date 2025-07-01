@@ -1,196 +1,106 @@
 import React, { useState } from 'react';
 import RoleSelectionStep from './postJob/RoleSelectionStep';
-import JobPostStep from './postJob/JobPostStep';
-import type { PostJobDialogProps, JobPostStep as StepType, JobData } from '@/types/jobPost';
-import { transformJobDataToCreateJobRequest } from '@/types/jobPost';
+import RJSFJobPostStep from './postJob/RJSFJobPostStep';
+import type { PostJobDialogProps, JobPostStep as StepType } from '@/types/jobPost';
 import { toast } from 'sonner';
 import { useCreateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
+import type { JobRoleName } from '@/lib/role-schema-loader';
+import { getRoleDisplayInfo } from '@/lib/role-schema-loader';
 
 const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuthSteps = false }) => {
   const [step, setStep] = useState<StepType>(
     skipAuthSteps ? 'roleSelection' : 'login'
   );
-  const [selectedJobRole, setSelectedJobRole] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedJobRole, setSelectedJobRole] = useState<JobRoleName | null>(null);
   
   // API hooks
   const createJobMutation = useCreateJob();
   const activeOrganizationId = useActiveOrganizationId();
-  
-  const [jobData, setJobData] = useState<JobData>({
-    title: '',
-    location: '',
-    jobType: '',
-    salary: '',
-    payFrequency: '',
-    workTimings: '',
-    experience: '',
-    description: '',
-    requirements: [''],
-    benefits: [''],
-    documentsRequired: [],
-    questions: [''],
-    positions: 1,
-    lastDate: '',
-    workDays: '',
-    // Job Provider Information
-    jobProviderName: '',
-    jobProviderRegistration: '',
-    jobProviderLogo: null,
-    overtime: '',
-    overtimePay: '',
-    education: '',
-    tailorSkills: {
-      electricSewingMachine: false,
-      machineControl: false,
-      stitchFastStraightLine: false
-    },
-    factoryEnvironment: {
-      computedTrustScore: false,
-      videoWalkthrough: false,
-      videoTestimonial: false,
-      videoWalkthroughFile: null,
-      videoTestimonialFile: null
-    },
-    industrialTailorDetails: {
-      employmentType: '',
-      salaryDisbursementFrequency: '',
-      salaryCTC: 0,
-      fixedAnnual: 0,
-      overtime: '',
-      overtimeTerms: '',
-      minimumOvertimeCommitted: 0,
-      monthlyInHand: 0,
-      monthlyPfEsicBenefits: 0,
-      monthlyPfEsicExplanation: '',
-      salaryAdvanceFacility: '',
-      salaryAdvanceTerms: '',
-      officePhotos: [],
-      testimonialVideos: [],
-      weeklyHolidays: '',
-      weeklyHolidaysOther: '',
-      workingMode: '',
-      regionalScope: '',
-      genderSpecific: '',
-      ageRangeAllowed: ''
-    },
-    hiringManager: {
-      managerName: '',
-      phoneNo: '',
-      emailId: ''
-    }
-  });
 
-  const handleRoleSelection = (role: string, industry: string) => {
+  const handleRoleSelection = (role: JobRoleName) => {
     setSelectedJobRole(role);
-    setSelectedIndustry(industry);
   };
 
   const proceedToJobForm = () => {
-    // Pre-populate job title with selected role
-    setJobData(prev => ({ ...prev, title: selectedJobRole }));
-    setStep('jobPost');
+    if (selectedJobRole) {
+      setStep('jobPost');
+    }
   };
 
   const handleBackToRoleSelection = () => {
     setStep('roleSelection');
   };
 
-  const handleJobSubmit = async () => {
+  const handleJobSubmit = async (formData: any) => {
     if (!activeOrganizationId) {
       toast.error('No active organization found. Please select an organization first.');
       return;
     }
 
-    try {
-      // Transform the job data to match the backend API
-      const createJobRequest = transformJobDataToCreateJobRequest(
-        jobData,
-        selectedIndustry,
-        selectedJobRole
-      );
+    if (!selectedJobRole) {
+      toast.error('No job role selected.');
+      return;
+    }
 
-      // Submit the job using the API and wait for completion
+    try {
+      // Get role category for metadata (now async)
+      const roleInfo = await getRoleDisplayInfo(selectedJobRole);
+      
+      // Extract address from jobProviderLocation in basicInfo
+      const jobProviderLocation = formData.basicInfo?.jobProviderLocation || '';
+      
+      if (!jobProviderLocation) {
+        toast.error('Job Provider Location is required.');
+        return;
+      }
+      
+      // Transform RJSF form data to match backend API
+      const createJobRequest = {
+        title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
+        description: formData.jobDescription?.description || '',
+        location: {
+          address: jobProviderLocation, // Use jobProviderLocation as main address
+          city: '',
+          state: '',
+          country: 'India',
+          gps: { lat: 0, lng: 0 }
+        },
+        metadata: {
+          ...formData,
+          role: selectedJobRole,
+          category: roleInfo.category,
+          status: 'active',
+          applicationsCount: 0,
+          // Also keep jobProviderLocation in metadata for reference
+          jobProviderLocation: jobProviderLocation
+        }
+      };
+
+      console.log('🚀 Submitting job with payload:', createJobRequest);
+
+      // Submit the job using the API
       await createJobMutation.mutateAsync({
         organizationId: activeOrganizationId,
         jobData: createJobRequest,
       });
 
-      // Only close dialog and reset form after successful creation
+      // Close dialog and reset form after successful creation
       onClose();
       resetForm();
+      toast.success(`${selectedJobRole} job posted successfully!`);
     } catch (error) {
       // Error handling is done in the mutation hook
       console.error('Failed to submit job:', error);
+      
+      // Handle specific error if role info loading failed
+      if (error instanceof Error && error.message.includes('not found in configuration')) {
+        toast.error('Invalid job role configuration. Please try again.');
+      }
     }
   };
 
   const resetForm = () => {
-    setJobData({
-      title: '',
-      location: '',
-      jobType: '',
-      salary: '',
-      payFrequency: '',
-      workTimings: '',
-      experience: '',
-      description: '',
-      requirements: [''],
-      benefits: [''],
-      documentsRequired: [],
-      questions: [''],
-      positions: 1,
-      lastDate: '',
-      workDays: '',
-      // Job Provider Information
-      jobProviderName: '',
-      jobProviderRegistration: '',
-      jobProviderLogo: null,
-      overtime: '',
-      overtimePay: '',
-      education: '',
-      tailorSkills: {
-        electricSewingMachine: false,
-        machineControl: false,
-        stitchFastStraightLine: false
-      },
-      factoryEnvironment: {
-        computedTrustScore: false,
-        videoWalkthrough: false,
-        videoTestimonial: false,
-        videoWalkthroughFile: null,
-        videoTestimonialFile: null
-      },
-      industrialTailorDetails: {
-        employmentType: '',
-        salaryDisbursementFrequency: '',
-        salaryCTC: 0,
-        fixedAnnual: 0,
-        overtime: '',
-        overtimeTerms: '',
-        minimumOvertimeCommitted: 0,
-        monthlyInHand: 0,
-        monthlyPfEsicBenefits: 0,
-        monthlyPfEsicExplanation: '',
-        salaryAdvanceFacility: '',
-        salaryAdvanceTerms: '',
-        officePhotos: [],
-        testimonialVideos: [],
-        weeklyHolidays: '',
-        weeklyHolidaysOther: '',
-        workingMode: '',
-        regionalScope: '',
-        genderSpecific: '',
-        ageRangeAllowed: ''
-      },
-      hiringManager: {
-        managerName: '',
-        phoneNo: '',
-        emailId: ''
-      }
-    });
-    setSelectedJobRole('');
-    setSelectedIndustry('');
+    setSelectedJobRole(null);
     setStep(skipAuthSteps ? 'roleSelection' : 'login');
   };
 
@@ -201,7 +111,6 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
         isOpen={isOpen}
         onClose={onClose}
         selectedJobRole={selectedJobRole}
-        selectedIndustry={selectedIndustry}
         onRoleSelection={handleRoleSelection}
         onProceed={proceedToJobForm}
         onBack={() => setStep(skipAuthSteps ? 'roleSelection' : 'orgProfile')}
@@ -213,13 +122,10 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
   // Job Post Step
   if (step === 'jobPost') {
     return (
-      <JobPostStep
+      <RJSFJobPostStep
         isOpen={isOpen}
         onClose={onClose}
         selectedJobRole={selectedJobRole}
-        selectedIndustry={selectedIndustry}
-        jobData={jobData}
-        setJobData={setJobData}
         onSubmit={handleJobSubmit}
         onBack={handleBackToRoleSelection}
         isSubmitting={createJobMutation.isPending}

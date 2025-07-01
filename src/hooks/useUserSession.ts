@@ -5,13 +5,13 @@ export const useUserSession = () => {
   return useQuery({
     queryKey: ['userSession'],
     queryFn: async () => {
-      const listSessions = await authClient.listSessions();
+      const listSessions = await authClient.listSessions({}, { credentials: 'include' });
 
       if (!listSessions.data) {
         throw new Error(listSessions.error?.message || 'No sessions found');
       }
 
-      const session = await authClient.getSession();
+      const session = await authClient.getSession(undefined, { credentials: 'include' });
 
       if (session.error) {
         throw new Error(session.error.message);

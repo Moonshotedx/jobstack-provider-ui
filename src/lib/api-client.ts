@@ -18,7 +18,7 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
-      await authClient.getSession();
+      await authClient.getSession(undefined, { credentials: 'include' });
       // Don't add Authorization header - let cookies handle auth
     } catch (error) {
       // Silently handle session check errors in production

@@ -42,7 +42,7 @@ export const useOrganizationManager = () => {
   // Get organizations with metadata
   const getOrganizationsWithMetadata = useCallback(async (): Promise<OrganizationWithMetadata[]> => {
     try {
-      const orgList = await authClient.organization.list();
+      const orgList = await authClient.organization.list({}, { credentials: 'include' });
       if (orgList.error) {
         throw new Error(orgList.error.message);
       }
@@ -61,13 +61,13 @@ export const useOrganizationManager = () => {
   const setActiveOrganization = useCallback(async (orgId: string) => {
     setIsLoading(true);
     try {
-      const result = await authClient.organization.setActive({ organizationId: orgId });
+      const result = await authClient.organization.setActive({ organizationId: orgId }, { credentials: 'include' });
       if (result.error) {
         throw new Error(result.error.message);
       }
 
       // Get organization data from the list instead of non-existent getFullOrganization
-      const orgListResponse = await authClient.organization.list();
+      const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
       if (orgListResponse.error) {
         throw new Error(orgListResponse.error.message);
       }

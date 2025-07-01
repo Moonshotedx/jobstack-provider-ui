@@ -65,7 +65,7 @@ export const useCreateJob = () => {
 export const useCurrentOrganizationJobs = () => {
   const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
     queryKey: ['session'],
-    queryFn: () => authClient.getSession(),
+    queryFn: () => authClient.getSession(undefined, { credentials: 'include' }),
     staleTime: 0, // Always fetch fresh session data
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -87,7 +87,7 @@ export const useCurrentOrganizationJobs = () => {
 export const useActiveOrganizationId = () => {
   const { data: session, isLoading } = useQuery({
     queryKey: ['session'],
-    queryFn: () => authClient.getSession(),
+    queryFn: () => authClient.getSession(undefined, { credentials: 'include' }),
     staleTime: 0, // Always fetch fresh session data
     refetchOnWindowFocus: true,
     refetchOnMount: true,

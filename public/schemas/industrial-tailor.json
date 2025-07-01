@@ -1,0 +1,224 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "Industrial Tailor Job Posting",
+  "description": "Complete job posting form for Industrial Tailor positions",
+  "properties": {
+    "basicInfo": {
+      "type": "object",
+      "title": "Basic Information",
+      "x-section": "basic-info",
+      "properties": {
+        "jobProviderName": {
+          "type": "string",
+          "title": "Job Provider Name",
+          "description": "Enter job provider/company name",
+          "minLength": 1
+        },
+        "jobProviderRegistration": {
+          "type": "string",
+          "title": "Job Provider Registration Details",
+          "description": "GST, CIN, TAN, PAN or other registration number",
+          "minLength": 1
+        },
+        "jobProviderLocation": {
+          "type": "string",
+          "title": "Job Provider Location",
+          "description": "Enter job provider location",
+          "minLength": 1
+        },
+        "jobProviderLogo": {
+          "type": "string",
+          "title": "Job Provider Logo",
+          "description": "Upload company logo (PNG, JPG, max 5MB)",
+          "format": "data-url"
+        },
+        "contactPersonName": {
+          "type": "string",
+          "title": "Contact Person Name",
+          "description": "Enter manager/contact person name",
+          "minLength": 1
+        },
+        "contactEmail": {
+          "type": "string",
+          "title": "Contact Email",
+          "description": "manager@company.com",
+          "format": "email",
+          "minLength": 1
+        },
+        "contactPhone": {
+          "type": "string",
+          "title": "Contact Phone Number",
+          "description": "+91 98765 43210",
+          "minLength": 1
+        }
+      },
+      "required": ["jobProviderName", "jobProviderLocation"]
+    },
+    "jobDetails": {
+      "type": "object",
+      "title": "Job Details",
+      "x-section": "job-details",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Job Title",
+          "description": "Job title (editable)",
+          "minLength": 1
+        },
+        "positions": {
+          "type": "integer",
+          "title": "Number of Openings",
+          "description": "How many positions are available?",
+          "minimum": 1,
+          "default": 1
+        },
+        "jobDetailsVideo": {
+          "type": "string",
+          "title": "Job Details Video",
+          "format": "data-url",
+          "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        },
+        "jobLocationPhotos": {
+          "type": "array",
+          "title": "Job Location Photos",
+          "items": {
+            "type": "string",
+            "format": "data-url"
+          },
+          "description": "Upload photos of the job location (PNG, JPEG, JPG, max 5MB each)"
+        },
+        "workingHoursPerDay": {
+          "type": "number",
+          "title": "Working Hours Per Day",
+          "description": "Enter working hours per day",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "salaryCTC": {
+          "type": "number",
+          "title": "Salary CTC (Annual in INR)",
+          "description": "Enter annual CTC amount",
+          "minimum": 0
+        },
+        "monthlyInHand": {
+          "type": "number",
+          "title": "Monthly In-hand Salary (INR)",
+          "description": "Enter monthly in-hand salary amount",
+          "minimum": 0
+        },
+        "monthlyPfEsicBenefits": {
+          "type": "number",
+          "title": "Monthly PF & ESIC Benefits (INR)",
+          "description": "Enter monthly PF & ESIC benefits amount",
+          "minimum": 0
+        },
+        "monthlyPfEsicExplanation": {
+          "type": "string",
+          "title": "Monthly PF & ESIC Explanation",
+          "description": "Explain the PF & ESIC benefits details"
+        },
+        "monthlyAverageOT": {
+          "type": "string",
+          "title": "Monthly Average OT (Overtime) (INR)",
+          "description": "Enter monthly average overtime amount"
+        },
+        "stayProvided": {
+          "type": "string",
+          "title": "Stay Provided",
+          "enum": ["yes-free", "yes-paid", "no"],
+          "enumNames": ["Yes - Free", "Yes - Paid", "No"],
+          "description": "Select stay option"
+        },
+        "costPerSharingBed": {
+          "type": "string",
+          "title": "Cost per Sharing Bed",
+          "description": "Enter cost per sharing bed (if stay is paid)"
+        }
+      },
+      "required": ["title", "positions"],
+      "dependencies": {
+        "stayProvided": {
+          "oneOf": [
+            {
+              "properties": {
+                "stayProvided": { "enum": ["yes-paid"] },
+                "costPerSharingBed": { "minLength": 1 }
+              },
+              "required": []
+            },
+            {
+              "properties": {
+                "stayProvided": { "enum": ["yes-free", "no"] }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "jobNeeds": {
+      "type": "object",
+      "title": "Job Needs",
+      "x-section": "job-needs",
+      "properties": {
+        "ageAllowedLowerLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Lower Limit",
+          "description": "Enter minimum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "ageAllowedUpperLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Upper Limit",
+          "description": "Enter maximum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "sampleTaskVideo": {
+          "type": "string",
+          "title": "Sample Task Video",
+          "format": "data-url",
+          "description": "Upload video showing sample task (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        },
+        "sampleTaskImage": {
+          "type": "string",
+          "title": "Sample Task Image",
+          "format": "data-url",
+          "description": "Upload image showing sample task (PNG, JPEG, JPG, max 5MB)"
+        },
+        "speedBenchmarkMins": {
+          "type": "integer",
+          "title": "Speed Benchmark (mins taken for sample task)",
+          "description": "Enter time in minutes",
+          "minimum": 1
+        },
+        "proofsAcceptableForIntentToJoin": {
+          "type": "string",
+          "title": "Proofs Acceptable for Intent to Join",
+          "description": "Enter acceptable proofs"
+        }
+      }
+    },
+    "jobDescription": {
+      "type": "object",
+      "title": "Job Description",
+      "x-section": "job-description",
+      "properties": {
+        "description": {
+          "type": "string",
+          "title": "Job Requirement/Responsibilities",
+          "description": "Describe the job role, responsibilities, and what you're looking for...",
+          "minLength": 1
+        },
+        "workTimings": {
+          "type": "string",
+          "title": "Work Timings",
+          "description": "e.g., 9 AM - 6 PM"
+        }
+      },
+      "required": ["description"]
+    }
+  },
+  "required": ["basicInfo", "jobDetails", "jobNeeds", "jobDescription"]
+} 

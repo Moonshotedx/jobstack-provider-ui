@@ -43,7 +43,7 @@ export const useAuth = (): UseAuthReturn => {
   const loadOrganizationProfile = useCallback(async (sessionData: any, betterAuthUser: any) => {
     try {
       // First, get the user's organizations
-      const orgListResponse = await authClient.organization.list();
+      const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
       
       if (orgListResponse.error) {
         return undefined;
@@ -65,7 +65,7 @@ export const useAuth = (): UseAuthReturn => {
         try {
           const setActiveResult = await authClient.organization.setActive({ 
             organizationId: firstOrg.id 
-          });
+          }, { credentials: 'include' });
           
           if (setActiveResult.error) {
             console.error('Failed to set active organization:', setActiveResult.error);
@@ -128,7 +128,7 @@ export const useAuth = (): UseAuthReturn => {
   const checkSession = useCallback(async () => {
     try {
       setUserLoading(true);
-      const session = await authClient.getSession();
+      const session = await authClient.getSession(undefined, { credentials: 'include' });
       if (session.data?.user) {
         const betterAuthUser = session.data.user;
         const profile = await loadOrganizationProfile(session.data, betterAuthUser);
@@ -158,7 +158,7 @@ export const useAuth = (): UseAuthReturn => {
       const loginRequest = await authClient.signIn.email({ 
         email: data.email, 
         password: data.password 
-      });
+      }, { credentials: 'include' });
       
       if (loginRequest.data?.user) {
         const betterAuthUser = loginRequest.data.user;
@@ -194,7 +194,7 @@ export const useAuth = (): UseAuthReturn => {
         email: data.email,
         password: data.password,
         callbackURL: `${window.location.origin}/dashboard`
-      });
+      }, { credentials: 'include' });
       
       if (signUpRequest.data?.user) {
         const betterAuthUser = signUpRequest.data.user;
@@ -221,7 +221,7 @@ export const useAuth = (): UseAuthReturn => {
 
   const logout = useCallback(async () => {
     try {
-      await authClient.signOut();
+      await authClient.signOut({}, { credentials: 'include' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
@@ -232,7 +232,7 @@ export const useAuth = (): UseAuthReturn => {
 
   const checkEmailVerification = useCallback(async () => {
     try {
-      const session = await authClient.getSession();
+      const session = await authClient.getSession(undefined, { credentials: 'include' });
       if (session.data?.user) {
         const isVerified = session.data.user.emailVerified || false;
         const currentUser = useUserStore.getState().user;
@@ -260,9 +260,16 @@ export const useAuth = (): UseAuthReturn => {
     }
     
     try {
-      // For better-auth, you may need to implement a resend endpoint
-      // This is a placeholder - you'll need to check better-auth documentation
-      // TODO: Implement actual resend functionality with better-auth
+      // Use the better-auth sendVerificationEmail method
+      const result = await authClient.sendVerificationEmail({ 
+        email: pendingVerificationEmail,
+        callbackURL: `${window.location.origin}/dashboard`
+      }, { credentials: 'include' });
+      
+      if (result.error) {
+        throw new Error(result.error.message);
+      }
+      
       toast.success('Verification email resent successfully!');
     } catch (error) {
       console.error('Failed to resend verification email:', error);

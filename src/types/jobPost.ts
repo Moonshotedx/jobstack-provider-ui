@@ -72,6 +72,20 @@ export interface JobData {
     regionalScope?: string;
     genderSpecific?: string;
     ageRangeAllowed?: string;
+    // New fields for revised Industrial Tailor form
+    jobDetailsVideo?: File;
+    jobLocationPhotos?: File[];
+    workingHoursPerDay?: number;
+    monthlyAverageOT?: string;
+    stayProvided?: string;
+    costPerSharingBed?: string;
+    // Job Needs section
+    ageAllowedLowerLimit?: number;
+    ageAllowedUpperLimit?: number;
+    sampleTaskVideo?: File;
+    sampleTaskImage?: File;
+    speedBenchmarkMins?: number;
+    proofsAcceptableForIntentToJoin?: string;
   };
   // Hiring Manager Details
   hiringManager: {

@@ -1,0 +1,219 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Field Sales Executive Job Posting",
+  "type": "object",
+  "properties": {
+    "basicInfo": {
+      "type": "object",
+      "title": "Basic Information",
+      "x-section": "basic-info",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Job Title",
+          "default": "Field Sales Executive"
+        },
+        "location": {
+          "type": "string",
+          "title": "Location",
+          "description": "Provide the specific location or territory"
+        },
+        "jobType": {
+          "type": "string",
+          "title": "Job Type",
+          "enum": ["full-time", "part-time", "contract", "internship", "trainee"],
+          "enumNames": ["Full-time", "Part-time", "Contract", "Internship", "Trainee"]
+        },
+        "salary": {
+          "type": "string",
+          "title": "Salary Range",
+          "description": "e.g., ₹25,000 - ₹40,000"
+        },
+        "payFrequency": {
+          "type": "string",
+          "title": "Pay Frequency",
+          "enum": ["daily", "weekly", "monthly"],
+          "enumNames": ["Daily", "Weekly", "Monthly"]
+        },
+        "experience": {
+          "type": "string",
+          "title": "Experience Required",
+          "description": "e.g., 3-7 years"
+        },
+        "positions": {
+          "type": "number",
+          "title": "Number of Positions",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "required": ["title", "location", "jobType", "salary", "payFrequency"]
+    },
+    "salesSpecific": {
+      "type": "object",
+      "title": "Sales Specific Requirements",
+      "x-section": "sales-specific",
+      "properties": {
+        "salesExperience": {
+          "type": "string",
+          "title": "Sales Experience",
+          "enum": ["field-sales", "inside-sales", "b2b-sales", "b2c-sales", "retail-sales"],
+          "enumNames": ["Field Sales", "Inside Sales", "B2B Sales", "B2C Sales", "Retail Sales"]
+        },
+        "industryExperience": {
+          "type": "array",
+          "title": "Industry Experience",
+          "items": {
+            "type": "string",
+            "enum": ["healthcare", "fmcg", "pharma", "education", "automotive", "real-estate", "insurance"],
+            "enumNames": ["Healthcare", "FMCG", "Pharmaceutical", "Education", "Automotive", "Real Estate", "Insurance"]
+          },
+          "uniqueItems": true
+        },
+        "languagesRequired": {
+          "type": "array",
+          "title": "Languages Required",
+          "items": {
+            "type": "string",
+            "enum": ["english", "hindi", "bengali", "tamil", "telugu", "kannada", "marathi", "gujarati"],
+            "enumNames": ["English", "Hindi", "Bengali", "Tamil", "Telugu", "Kannada", "Marathi", "Gujarati"]
+          },
+          "uniqueItems": true
+        },
+        "vehicleRequired": {
+          "type": "boolean",
+          "title": "Vehicle Required",
+          "default": false
+        }
+      }
+    },
+    "territoryDetails": {
+      "type": "object",
+      "title": "Territory & Target Details",
+      "x-section": "territory-details",
+      "properties": {
+        "territoryArea": {
+          "type": "string",
+          "title": "Territory Area",
+          "description": "Describe the specific territory or area to be covered"
+        },
+        "monthlyTarget": {
+          "type": "string",
+          "title": "Monthly Sales Target",
+          "description": "e.g., ₹5,00,000 or 50 units"
+        },
+        "incentiveStructure": {
+          "type": "string",
+          "title": "Incentive Structure",
+          "description": "Describe commission/incentive structure"
+        }
+      }
+    },
+    "jobDescription": {
+      "type": "object",
+      "title": "Job Description",
+      "x-section": "job-description",
+      "properties": {
+        "description": {
+          "type": "string",
+          "title": "Job Description",
+          "description": "Describe the job role, responsibilities, and what you're looking for..."
+        },
+        "workTimings": {
+          "type": "string",
+          "title": "Work Timings",
+          "description": "e.g., 9 AM - 6 PM"
+        },
+        "workDays": {
+          "type": "string",
+          "title": "Work Days",
+          "description": "e.g., Monday to Saturday"
+        }
+      },
+      "required": ["description"]
+    },
+    "requirements": {
+      "type": "object",
+      "title": "Requirements & Benefits",
+      "x-section": "requirements-benefits",
+      "properties": {
+        "requirements": {
+          "type": "array",
+          "title": "Job Requirements",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [""]
+        },
+        "benefits": {
+          "type": "array",
+          "title": "Benefits & Perks",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "default": [""]
+        }
+      }
+    },
+    "applicationDetails": {
+      "type": "object",
+      "title": "Application Details",
+      "x-section": "application-details",
+      "properties": {
+        "lastDate": {
+          "type": "string",
+          "title": "Last Date to Apply",
+          "format": "date"
+        },
+        "questions": {
+          "type": "array",
+          "title": "Custom Questions for Applicants",
+          "items": {
+            "type": "string"
+          },
+          "default": [""]
+        }
+      }
+    },
+    "jobProviderInfo": {
+      "type": "object",
+      "title": "Job Provider Information",
+      "x-section": "job-provider-info",
+      "properties": {
+        "jobProviderName": {
+          "type": "string",
+          "title": "Job Provider Name"
+        },
+        "jobProviderRegistration": {
+          "type": "string",
+          "title": "Job Provider Registration Details",
+          "description": "GST, CIN, TAN, PAN or other registration number"
+        }
+      },
+      "required": ["jobProviderName", "jobProviderRegistration"]
+    },
+    "hiringManager": {
+      "type": "object",
+      "title": "Hiring Manager Details",
+      "x-section": "hiring-manager",
+      "properties": {
+        "managerName": {
+          "type": "string",
+          "title": "Provider Contact Name"
+        },
+        "phoneNo": {
+          "type": "string",
+          "title": "Provider Contact Phone No"
+        },
+        "emailId": {
+          "type": "string",
+          "title": "Provider Contact Email ID",
+          "format": "email"
+        }
+      },
+      "required": ["managerName", "phoneNo", "emailId"]
+    }
+  }
+} 
