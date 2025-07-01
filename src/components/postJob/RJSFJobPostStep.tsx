@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, ArrowLeft, Plus, X } from 'lucide-react';
+import { Loader2, Plus, X } from 'lucide-react';
 import { FileUploadField } from './FileUploadField';
 import { toast } from 'sonner';
 import type { RJSFSchema } from '@rjsf/utils';
@@ -15,7 +15,6 @@ import {
   loadRoleSchema, 
   getRoleInitialData, 
   getRoleDisplayInfo,
-  validateRoleData,
   type JobRoleName,
   type JobRoleConfig
 } from '@/lib/role-schema-loader';
@@ -536,7 +535,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         key.toLowerCase().includes('proof')
       )
     );
-    const regularFields = fields.filter(([key, schema]: [string, any]) => 
+    const regularFields = fields.filter(([key, _]: [string, any]) => 
       !fileFields.some(([fk]) => fk === key) && 
       !textareaFields.some(([tk]) => tk === key)
     );

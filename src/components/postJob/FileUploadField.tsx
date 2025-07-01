@@ -28,20 +28,16 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   maxFiles = 5
 }) => {
   const [previews, setPreviews] = useState<string[]>([]);
-  const [fileNames, setFileNames] = useState<string[]>([]);
 
   // Handle current value
   const currentFiles = multiple && Array.isArray(value) ? value : (value ? [value] : []);
   
   useEffect(() => {
     if (currentFiles.length > 0) {
-      const names: string[] = [];
       const previewUrls: string[] = [];
       
       currentFiles.forEach((file) => {
         if (file instanceof File) {
-          names.push(file.name);
-          
           // Create preview for images
           if (fileType === 'image' && file.type.startsWith('image/')) {
             const reader = new FileReader();
@@ -56,12 +52,10 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         }
       });
       
-      setFileNames(names);
       if (fileType !== 'image') {
         setPreviews([]);
       }
     } else {
-      setFileNames([]);
       setPreviews([]);
     }
   }, [value, fileType]);
