@@ -274,16 +274,19 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="jobTitle">Job Title *</Label>
-                  <Input
-                    id="jobTitle"
-                    value={jobData.title}
-                    onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Electrician, Welder, Security Guard"
-                  />
-                </div>
-                <div>
+                {/* Hide job title for Industrial Tailor as it will be in Job Details section */}
+                {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
+                  <div>
+                    <Label htmlFor="jobTitle">Job Title *</Label>
+                    <Input
+                      id="jobTitle"
+                      value={jobData.title}
+                      onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., Electrician, Welder, Security Guard"
+                    />
+                  </div>
+                )}
+                <div className={!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') ? '' : 'md:col-span-2'}>
                   <Label htmlFor="location">Location *</Label>
                   <Input
                     id="location"
@@ -340,38 +343,39 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                 </div>
               )}
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="experience">Experience Required</Label>
-                  <Input
-                    id="experience"
-                    value={jobData.experience}
-                    onChange={(e) => setJobData(prev => ({ ...prev, experience: e.target.value }))}
-                    placeholder="e.g., 2-5 years"
-                  />
+              {/* Hide experience and positions for Industrial Tailor as they will be in Job Details section */}
+              {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label htmlFor="experience">Experience Required</Label>
+                    <Input
+                      id="experience"
+                      value={jobData.experience}
+                      onChange={(e) => setJobData(prev => ({ ...prev, experience: e.target.value }))}
+                      placeholder="e.g., 2-5 years"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="positions">Number of Positions</Label>
+                    <Input
+                      id="positions"
+                      type="number"
+                      value={jobData.positions}
+                      onChange={(e) => setJobData(prev => ({ ...prev, positions: parseInt(e.target.value) || 1 }))}
+                      min="1"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="lastDate">Last Date to Apply</Label>
+                    <Input
+                      id="lastDate"
+                      type="date"
+                      value={jobData.lastDate}
+                      onChange={(e) => setJobData(prev => ({ ...prev, lastDate: e.target.value }))}
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label htmlFor="positions">Number of Positions</Label>
-                  <Input
-                    id="positions"
-                    type="number"
-                    value={jobData.positions}
-                    onChange={(e) => setJobData(prev => ({ ...prev, positions: parseInt(e.target.value) || 1 }))}
-                    min="1"
-                  />
-                </div>
-                {!(selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor') && (
-                <div>
-                  <Label htmlFor="lastDate">Last Date to Apply</Label>
-                  <Input
-                    id="lastDate"
-                    type="date"
-                    value={jobData.lastDate}
-                    onChange={(e) => setJobData(prev => ({ ...prev, lastDate: e.target.value }))}
-                  />
-                </div>
-                )}
-              </div>
+              )}
 
               {/* Overtime fields for Textile -> Tailor role */}
               {selectedIndustry === 'Textile' && selectedJobRole === 'Tailor' && (
@@ -497,154 +501,171 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                 <CardTitle className="text-lg">Job Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Employment Type and Salary Details */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="employmentType">Employment Type</Label>
-                    <Select 
-                      value={jobData.industrialTailorDetails?.employmentType || ''} 
-                      onValueChange={(value) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          employmentType: value 
-                        } 
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select employment type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="full-time">Full-time</SelectItem>
-                        <SelectItem value="part-time">Part-time</SelectItem>
-                        <SelectItem value="contractual">Contractual</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="salaryDisbursementFrequency">Salary Disbursement Frequency</Label>
-                    <Select 
-                      value={jobData.industrialTailorDetails?.salaryDisbursementFrequency || ''} 
-                      onValueChange={(value) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          salaryDisbursementFrequency: value 
-                        } 
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select frequency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="daily">Daily</SelectItem>
-                        <SelectItem value="weekly">Weekly</SelectItem>
-                        <SelectItem value="monthly">Monthly</SelectItem>
-                        <SelectItem value="milestone-based">Milestone based</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="salaryCTC">Salary CTC</Label>
-                    <Input
-                      id="salaryCTC"
-                      type="number"
-                      value={jobData.industrialTailorDetails?.salaryCTC || ''}
-                      onChange={(e) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          salaryCTC: parseInt(e.target.value) || 0 
-                        } 
-                      }))}
-                      placeholder="Enter CTC amount"
-                    />
-                  </div>
-                </div>
-
-                {/* Fixed Annual and Overtime */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label htmlFor="fixedAnnual">Fixed (Annual)</Label>
-                    <Input
-                      id="fixedAnnual"
-                      type="number"
-                      value={jobData.industrialTailorDetails?.fixedAnnual || ''}
-                      onChange={(e) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          fixedAnnual: parseInt(e.target.value) || 0 
-                        } 
-                      }))}
-                      placeholder="Enter fixed annual amount"
-                    />
-                  </div>
-
-                  <div>
-                    <Label htmlFor="industrialOvertime">Overtime</Label>
-                    <Select 
-                      value={jobData.industrialTailorDetails?.overtime || ''} 
-                      onValueChange={(value) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          overtime: value 
-                        } 
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select overtime option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="yes">Yes</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="minimumOvertimeCommitted">Minimum Overtime Committed per month (in hours)</Label>
-                    <Input
-                      id="minimumOvertimeCommitted"
-                      type="number"
-                      value={jobData.industrialTailorDetails?.minimumOvertimeCommitted || ''}
-                      onChange={(e) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          minimumOvertimeCommitted: parseInt(e.target.value) || 0 
-                        } 
-                      }))}
-                      placeholder="Enter hours"
-                    />
-                  </div>
-                </div>
-
-                {/* Overtime Terms */}
-                <div>
-                  <Label htmlFor="overtimeTerms">Overtime Terms</Label>
-                  <Textarea
-                    id="overtimeTerms"
-                    value={jobData.industrialTailorDetails?.overtimeTerms || ''}
-                    onChange={(e) => setJobData(prev => ({ 
-                      ...prev, 
-                      industrialTailorDetails: { 
-                        ...prev.industrialTailorDetails, 
-                        overtimeTerms: e.target.value 
-                      } 
-                    }))}
-                    placeholder="Describe overtime terms and conditions"
-                    rows={2}
-                  />
-                </div>
-
-                {/* Monthly Benefits */}
+                {/* Job Title and Number of Openings */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="monthlyInHand">Monthly In-hand</Label>
+                    <Label htmlFor="jobTitle">Job Title *</Label>
+                    <Input
+                      id="jobTitle"
+                      value={jobData.title}
+                      onChange={(e) => setJobData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., Industrial Tailor"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="positions">Number of Openings *</Label>
+                    <Input
+                      id="positions"
+                      type="number"
+                      value={jobData.positions}
+                      onChange={(e) => setJobData(prev => ({ ...prev, positions: parseInt(e.target.value) || 1 }))}
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                {/* Job Details Video Upload */}
+                <div>
+                  <Label htmlFor="jobDetailsVideo">Job Details Video</Label>
+                  <div className="mt-2">
+                    <input
+                      id="jobDetailsVideo"
+                      type="file"
+                      accept="video/mov,video/avi,video/mp4,video/mkv,video/wmv"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setJobData(prev => ({
+                            ...prev,
+                            industrialTailorDetails: {
+                              ...prev.industrialTailorDetails,
+                              jobDetailsVideo: file
+                            }
+                          }));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('jobDetailsVideo')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Video
+                      </Button>
+                      {jobData.industrialTailorDetails?.jobDetailsVideo && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <FileImage className="h-4 w-4" />
+                          {jobData.industrialTailorDetails.jobDetailsVideo.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                jobDetailsVideo: undefined
+                              }
+                            }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload job details video (MOV, AVI, MP4, MKV, WMV, max 50MB)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Job Location Photos Upload */}
+                <div>
+                  <Label htmlFor="jobLocationPhotos">Job Location Photos</Label>
+                  <div className="mt-2">
+                    <input
+                      id="jobLocationPhotos"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      multiple
+                      onChange={(e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (files.length > 0) {
+                          setJobData(prev => ({
+                            ...prev,
+                            industrialTailorDetails: {
+                              ...prev.industrialTailorDetails,
+                              jobLocationPhotos: files
+                            }
+                          }));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('jobLocationPhotos')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Photos
+                      </Button>
+                      {jobData.industrialTailorDetails?.jobLocationPhotos && jobData.industrialTailorDetails.jobLocationPhotos.length > 0 && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <FileImage className="h-4 w-4" />
+                          {jobData.industrialTailorDetails.jobLocationPhotos.length} photo(s) selected
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                jobLocationPhotos: []
+                              }
+                            }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload job location photos (PNG, JPEG, JPG, max 5MB each)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Working Hours and Salary Details */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="workingHoursPerDay">Working Hours/Day</Label>
+                    <Input
+                      id="workingHoursPerDay"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.workingHoursPerDay || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          workingHoursPerDay: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter working hours per day"
+                      min="1"
+                      max="24"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="monthlyInHand">Monthly In-hand (INR)</Label>
                     <Input
                       id="monthlyInHand"
                       type="number"
@@ -659,11 +680,13 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                       placeholder="Enter monthly in-hand amount"
                     />
                   </div>
+                </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="monthlyPfEsicBenefits">Monthly PF + ESIC Benefits</Label>
+                    <Label htmlFor="monthlyPfEsic">Monthly PF & ESIC (INR)</Label>
                     <Input
-                      id="monthlyPfEsicBenefits"
+                      id="monthlyPfEsic"
                       type="number"
                       value={jobData.industrialTailorDetails?.monthlyPfEsicBenefits || ''}
                       onChange={(e) => setJobData(prev => ({ 
@@ -673,73 +696,277 @@ const JobPostStep: React.FC<JobPostStepProps> = ({
                           monthlyPfEsicBenefits: parseInt(e.target.value) || 0 
                         } 
                       }))}
-                      placeholder="Enter PF + ESIC amount"
+                      placeholder="Enter monthly PF & ESIC amount"
                     />
                   </div>
-                </div>
 
-                {/* PF + ESIC Explanation */}
-                <div>
-                  <Label htmlFor="monthlyPfEsicExplanation">Monthly PF + ESIC Benefits Explanation</Label>
-                  <Textarea
-                    id="monthlyPfEsicExplanation"
-                    value={jobData.industrialTailorDetails?.monthlyPfEsicExplanation || ''}
-                    onChange={(e) => setJobData(prev => ({ 
-                      ...prev, 
-                      industrialTailorDetails: { 
-                        ...prev.industrialTailorDetails, 
-                        monthlyPfEsicExplanation: e.target.value 
-                      } 
-                    }))}
-                    placeholder="Explain PF and ESIC benefits details"
-                    rows={2}
-                  />
-                </div>
-
-                {/* Salary Advance */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="salaryAdvanceFacility">Salary Advance Facility</Label>
-                    <Select 
-                      value={jobData.industrialTailorDetails?.salaryAdvanceFacility || ''} 
-                      onValueChange={(value) => setJobData(prev => ({ 
-                        ...prev, 
-                        industrialTailorDetails: { 
-                          ...prev.industrialTailorDetails, 
-                          salaryAdvanceFacility: value 
-                        } 
-                      }))}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select option" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="yes">Yes</SelectItem>
-                        <SelectItem value="no">No</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Salary Advance Terms */}
-                {jobData.industrialTailorDetails?.salaryAdvanceFacility === 'yes' && (
-                  <div>
-                    <Label htmlFor="salaryAdvanceTerms">Salary Advance Terms</Label>
-                    <Textarea
-                      id="salaryAdvanceTerms"
-                      value={jobData.industrialTailorDetails?.salaryAdvanceTerms || ''}
+                    <Label htmlFor="monthlyAverageOT">Monthly Average OT (Overtime) (INR)</Label>
+                    <Input
+                      id="monthlyAverageOT"
+                      value={jobData.industrialTailorDetails?.monthlyAverageOT || ''}
                       onChange={(e) => setJobData(prev => ({ 
                         ...prev, 
                         industrialTailorDetails: { 
                           ...prev.industrialTailorDetails, 
-                          salaryAdvanceTerms: e.target.value 
+                          monthlyAverageOT: e.target.value 
                         } 
                       }))}
-                      placeholder="Describe salary advance terms and conditions"
-                      rows={2}
+                      placeholder="Enter monthly average overtime amount"
                     />
                   </div>
-                )}
+                </div>
+
+                {/* Stay Provided and Cost */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="stayProvided">Stay Provided</Label>
+                    <Select 
+                      value={jobData.industrialTailorDetails?.stayProvided || ''} 
+                      onValueChange={(value) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          stayProvided: value,
+                          costPerSharingBed: value === 'no' ? '' : prev.industrialTailorDetails?.costPerSharingBed || ''
+                        } 
+                      }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select stay option" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="yes-free">Yes - Free</SelectItem>
+                        <SelectItem value="yes-paid">Yes - Paid</SelectItem>
+                        <SelectItem value="no">No</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {jobData.industrialTailorDetails?.stayProvided === 'yes-paid' && (
+                    <div>
+                      <Label htmlFor="costPerSharingBed">Cost per Sharing Bed</Label>
+                      <Input
+                        id="costPerSharingBed"
+                        value={jobData.industrialTailorDetails?.costPerSharingBed || ''}
+                        onChange={(e) => setJobData(prev => ({ 
+                          ...prev, 
+                          industrialTailorDetails: { 
+                            ...prev.industrialTailorDetails, 
+                            costPerSharingBed: e.target.value 
+                          } 
+                        }))}
+                        placeholder="Enter cost per sharing bed"
+                      />
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Job Needs section for Industrial Tailor */}
+          {selectedIndustry === 'Industrial Tailor' && selectedJobRole === 'Industrial Tailor' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Job Needs</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Age Limits */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="ageAllowedLowerLimit">Age Allowed - Lower Limit</Label>
+                    <Input
+                      id="ageAllowedLowerLimit"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.ageAllowedLowerLimit || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          ageAllowedLowerLimit: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter minimum age"
+                      min="18"
+                      max="100"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="ageAllowedUpperLimit">Age Allowed - Upper Limit</Label>
+                    <Input
+                      id="ageAllowedUpperLimit"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.ageAllowedUpperLimit || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          ageAllowedUpperLimit: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter maximum age"
+                      min="18"
+                      max="100"
+                    />
+                  </div>
+                </div>
+
+                {/* Sample Task Video */}
+                <div>
+                  <Label htmlFor="sampleTaskVideo">Sample Task Video</Label>
+                  <div className="mt-2">
+                    <input
+                      id="sampleTaskVideo"
+                      type="file"
+                      accept="video/mov,video/avi,video/mp4,video/mkv,video/wmv"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setJobData(prev => ({
+                            ...prev,
+                            industrialTailorDetails: {
+                              ...prev.industrialTailorDetails,
+                              sampleTaskVideo: file
+                            }
+                          }));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('sampleTaskVideo')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Sample Task Video
+                      </Button>
+                      {jobData.industrialTailorDetails?.sampleTaskVideo && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <FileImage className="h-4 w-4" />
+                          {jobData.industrialTailorDetails.sampleTaskVideo.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                sampleTaskVideo: undefined
+                              }
+                            }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload video showing sample task (MOV, AVI, MP4, MKV, WMV, max 50MB)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Sample Task Image */}
+                <div>
+                  <Label htmlFor="sampleTaskImage">Sample Task Image</Label>
+                  <div className="mt-2">
+                    <input
+                      id="sampleTaskImage"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setJobData(prev => ({
+                            ...prev,
+                            industrialTailorDetails: {
+                              ...prev.industrialTailorDetails,
+                              sampleTaskImage: file
+                            }
+                          }));
+                        }
+                      }}
+                      className="hidden"
+                    />
+                    <div className="flex items-center gap-4">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => document.getElementById('sampleTaskImage')?.click()}
+                        className="flex items-center gap-2"
+                      >
+                        <Upload className="h-4 w-4" />
+                        Upload Sample Task Image
+                      </Button>
+                      {jobData.industrialTailorDetails?.sampleTaskImage && (
+                        <div className="flex items-center gap-2 text-sm text-green-600">
+                          <FileImage className="h-4 w-4" />
+                          {jobData.industrialTailorDetails.sampleTaskImage.name}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setJobData(prev => ({
+                              ...prev,
+                              industrialTailorDetails: {
+                                ...prev.industrialTailorDetails,
+                                sampleTaskImage: undefined
+                              }
+                            }))}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload image showing sample task (PNG, JPEG, JPG, max 5MB)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Speed Benchmark and Proofs */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="speedBenchmarkMins">Speed Benchmark (mins taken for sample task)</Label>
+                    <Input
+                      id="speedBenchmarkMins"
+                      type="number"
+                      value={jobData.industrialTailorDetails?.speedBenchmarkMins || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          speedBenchmarkMins: parseInt(e.target.value) || 0 
+                        } 
+                      }))}
+                      placeholder="Enter time in minutes"
+                      min="1"
+                    />
+                  </div>
+
+                  <div>
+                    <Label htmlFor="proofsAcceptableForIntentToJoin">Proofs Acceptable for Intent to Join</Label>
+                    <Input
+                      id="proofsAcceptableForIntentToJoin"
+                      value={jobData.industrialTailorDetails?.proofsAcceptableForIntentToJoin || ''}
+                      onChange={(e) => setJobData(prev => ({ 
+                        ...prev, 
+                        industrialTailorDetails: { 
+                          ...prev.industrialTailorDetails, 
+                          proofsAcceptableForIntentToJoin: e.target.value 
+                        } 
+                      }))}
+                      placeholder="Enter acceptable proofs"
+                    />
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
