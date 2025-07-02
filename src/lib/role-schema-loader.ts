@@ -3,7 +3,7 @@ import type { RJSFSchema, UiSchema } from '@rjsf/utils';
 // Job role configuration interface
 export interface JobRoleConfig {
   schemaFile: string;
-  category: string;
+  industry: string;
   icon: string;
   description: string;
 }

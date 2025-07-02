@@ -68,7 +68,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
         metadata: {
           ...formData,
           role: selectedJobRole,
-          category: roleInfo.category,
+          industry: roleInfo.industry,
           status: 'active',
           applicationsCount: 0,
           // Also keep jobProviderLocation in metadata for reference

@@ -2,27 +2,27 @@
   "jobRoles": {
     "Industrial Tailor": {
       "schemaFile": "industrial-tailor.json",
-      "category": "Manufacturing",
+      "industry": "Manufacturing",
       "description": "Manufacturing and garment industry positions"
     },
     "Warehouse Loader and Picker": {
       "schemaFile": "warehouse-loader-picker.json",
-      "category": "Logistics", 
+      "industry": "Logistics", 
       "description": "Logistics and warehouse operations"
     },
     "Field Sales Executive": {
       "schemaFile": "field-sales-executive.json",
-      "category": "Sales",
+      "industry": "Sales",
       "description": "Sales and business development roles"
     },
     "In Store Promoter": {
       "schemaFile": "in-store-promoter.json",
-      "category": "Retail",
+      "industry": "Retail",
       "description": "Retail and promotional activities"
     },
     "Recruitment Associate": {
       "schemaFile": "recruitment-associate.json",
-      "category": "Human Resources",
+      "industry": "Human Resources",
       "description": "HR and talent acquisition positions"
     }
   }

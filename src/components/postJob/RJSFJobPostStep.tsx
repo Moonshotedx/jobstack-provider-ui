@@ -592,7 +592,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           <DialogTitle>Post a New Job</DialogTitle>
           {selectedJobRole && roleDisplayInfo && (
             <div className="flex items-center gap-2 mt-2">
-              <Badge variant="secondary">{roleDisplayInfo.category}</Badge>
+              <Badge variant="secondary">{roleDisplayInfo.industry}</Badge>
               <span className="text-sm text-muted-foreground">→</span>
               <Badge>{selectedJobRole}</Badge>
             </div>
