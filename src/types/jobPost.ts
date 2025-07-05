@@ -118,6 +118,7 @@ export interface LocationData {
   city: string;
   state: string;
   country: string;
+  tag: string; // Required by backend for location categorization
   gps: {
     lat: number;
     lng: number;
