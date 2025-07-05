@@ -18,12 +18,7 @@
           "title": "Location",
           "description": "Provide the specific location or territory"
         },
-        "jobType": {
-          "type": "string",
-          "title": "Job Type",
-          "enum": ["full-time", "part-time", "contract", "internship", "trainee"],
-          "enumNames": ["Full-time", "Part-time", "Contract", "Internship", "Trainee"]
-        },
+      
         "salary": {
           "type": "string",
           "title": "Salary Range",
@@ -189,7 +184,9 @@
         "jobProviderRegistration": {
           "type": "string",
           "title": "Job Provider Registration Details",
-          "description": "GST, CIN, TAN, PAN or other registration number"
+          "description": "GST, CIN, TAN, PAN or other registration number",
+          "minLength": 1,
+          "pattern": "^.+$"
         }
       },
       "required": ["jobProviderName", "jobProviderRegistration"]

@@ -9,6 +9,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Plus, X } from 'lucide-react';
 import { FileUploadField } from './FileUploadField';
+import { RegistrationField } from './RegistrationField';
+import { LocationField, type LocationData } from './LocationField';
 import { toast } from 'sonner';
 import type { RJSFSchema } from '@rjsf/utils';
 import { 
@@ -18,6 +20,7 @@ import {
   type JobRoleName,
   type JobRoleConfig
 } from '@/lib/role-schema-loader';
+import { validateRegistrationNumber } from '@/lib/registration-validator';
 
 interface RJSFJobPostStepProps {
   isOpen: boolean;
@@ -124,6 +127,19 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                 const fieldTitle = fieldSchema?.title || requiredField;
                 const sectionTitle = sectionSchema.title || sectionKey;
                 errors.push(`${sectionTitle}: ${fieldTitle} is required`);
+              } else {
+                // Custom validation for registration fields
+                if (requiredField.toLowerCase().includes('registration') || 
+                    requiredField.toLowerCase() === 'gstNumber' ||
+                    requiredField.toLowerCase() === 'jobProviderRegistration') {
+                  const validation = validateRegistrationNumber(fieldValue);
+                  if (!validation.isValid && fieldValue.trim() !== '') {
+                    const fieldSchema = sectionSchema.properties[requiredField];
+                    const fieldTitle = fieldSchema?.title || requiredField;
+                    const sectionTitle = sectionSchema.title || sectionKey;
+                    errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+                  }
+                }
               }
             });
           }
@@ -208,12 +224,22 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     return sectionSchema?.required?.includes(fieldKey) || false;
   };
 
+  // Helper function to check if a field is a location field
+  const isLocationField = (fieldKey: string, fieldSchema: any): boolean => {
+    return (fieldKey.toLowerCase().includes('location') || 
+            fieldKey.toLowerCase().includes('address') ||
+            fieldKey.toLowerCase() === 'jobProviderLocation' ||
+            (fieldSchema.description && 
+             fieldSchema.description.toLowerCase().includes('location'))) &&
+           fieldSchema.type !== 'array'; // Exclude arrays like jobLocationPhotos
+  };
+
   const renderField = (sectionKey: string, fieldKey: string, fieldSchema: any, value: any) => {
     const fieldId = `${sectionKey}-${fieldKey}`;
     const isRequired = isFieldRequired(sectionKey, fieldKey);
     const fieldLabel = fieldSchema.title + (isRequired ? ' *' : '');
     
-    // Handle file uploads with format: "data-url"
+    // Handle file uploads with format: "data-url" FIRST (before location check)
     if (fieldSchema.format === 'data-url') {
       const fileType = fieldKey.toLowerCase().includes('video') ? 'video' : 
                       fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('photo') ? 'image' : 
@@ -237,6 +263,40 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           maxFiles={isMultipleImageField ? 5 : undefined}
           value={value}
           onChange={(file) => updateFormData(sectionKey, fieldKey, file)}
+        />
+      );
+    }
+    
+    // Handle location fields with geolocation functionality and structured data
+    if (isLocationField(fieldKey, fieldSchema)) {
+      return (
+        <LocationField
+          key={fieldKey}
+          label={fieldSchema.title} // Pass base title without asterisk
+          value={value || ''}
+          onChange={(val) => updateFormData(sectionKey, fieldKey, val)}
+          placeholder={fieldSchema.description}
+          required={isRequired}
+          returnStructuredData={true} // Use structured data for job posting forms
+        />
+      );
+    }
+    
+    // Handle registration number fields with custom validation
+    if (fieldKey.toLowerCase().includes('registration') || 
+        fieldKey.toLowerCase() === 'gstNumber' ||
+        fieldKey.toLowerCase() === 'jobProviderRegistration' ||
+        (fieldSchema.description && 
+         fieldSchema.description.toLowerCase().includes('gst') && 
+         fieldSchema.description.toLowerCase().includes('registration'))) {
+      return (
+        <RegistrationField
+          key={fieldKey}
+          label={fieldLabel}
+          value={value || ''}
+          onChange={(val) => updateFormData(sectionKey, fieldKey, val)}
+          placeholder={fieldSchema.description}
+          required={isRequired}
         />
       );
     }

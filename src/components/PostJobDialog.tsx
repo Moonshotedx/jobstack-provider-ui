@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import RoleSelectionStep from './postJob/RoleSelectionStep';
 import RJSFJobPostStep from './postJob/RJSFJobPostStep';
 import type { PostJobDialogProps, JobPostStep as StepType } from '@/types/jobPost';
+import type { LocationData } from './postJob/LocationField';
 import { toast } from 'sonner';
 import { useCreateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import type { JobRoleName } from '@/lib/role-schema-loader';
@@ -31,6 +32,49 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     setStep('roleSelection');
   };
 
+  // Helper function to extract and structure location data
+  const extractLocationData = (formData: any): { address: string; city: string; state: string; country: string; tag: string; gps: { lat: number; lng: number } } => {
+    const jobProviderLocation = formData.basicInfo?.jobProviderLocation;
+    
+    // If jobProviderLocation is a structured LocationData object
+    if (jobProviderLocation && typeof jobProviderLocation === 'object' && 'address' in jobProviderLocation) {
+      const locationData = jobProviderLocation as LocationData;
+      return {
+        address: locationData.address || '',
+        city: locationData.city || '',
+        state: locationData.state || '',
+        country: locationData.country || 'India',
+        tag: locationData.city || locationData.address || 'job-location', // Use city as tag, fallback to address or default
+        gps: {
+          lat: locationData.gps?.lat || 0,
+          lng: locationData.gps?.lng || 0
+        }
+      };
+    }
+    
+    // If jobProviderLocation is a string (fallback)
+    if (jobProviderLocation && typeof jobProviderLocation === 'string') {
+      return {
+        address: jobProviderLocation,
+        city: '',
+        state: '',
+        country: 'India',
+        tag: 'job-location', // Default tag for string addresses
+        gps: { lat: 0, lng: 0 }
+      };
+    }
+    
+    // Default fallback
+    return {
+      address: '',
+      city: '',
+      state: '',
+      country: 'India',
+      tag: 'job-location', // Default tag
+      gps: { lat: 0, lng: 0 }
+    };
+  };
+
   const handleJobSubmit = async (formData: any) => {
     if (!activeOrganizationId) {
       toast.error('No active organization found. Please select an organization first.');
@@ -46,33 +90,29 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       // Get role category for metadata (now async)
       const roleInfo = await getRoleDisplayInfo(selectedJobRole);
       
-      // Extract address from jobProviderLocation in basicInfo
-      const jobProviderLocation = formData.basicInfo?.jobProviderLocation || '';
+      // Extract and structure location data
+      const locationData = extractLocationData(formData);
       
-      if (!jobProviderLocation) {
+      if (!locationData.address) {
         toast.error('Job Provider Location is required.');
         return;
       }
+      
+      console.log('🗺️ Extracted location data:', locationData);
       
       // Transform RJSF form data to match backend API
       const createJobRequest = {
         title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
         description: formData.jobDescription?.description || '',
-        location: {
-          address: jobProviderLocation, // Use jobProviderLocation as main address
-          city: '',
-          state: '',
-          country: 'India',
-          gps: { lat: 0, lng: 0 }
-        },
+        location: locationData, // Use the properly structured location data
         metadata: {
           ...formData,
           role: selectedJobRole,
           industry: roleInfo.industry,
           status: 'active',
           applicationsCount: 0,
-          // Also keep jobProviderLocation in metadata for reference
-          jobProviderLocation: jobProviderLocation
+          // Keep original jobProviderLocation in metadata for reference
+          jobProviderLocation: formData.basicInfo?.jobProviderLocation
         }
       };
 
