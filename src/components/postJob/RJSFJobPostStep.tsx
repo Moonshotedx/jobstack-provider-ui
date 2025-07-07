@@ -18,7 +18,7 @@ import {
 import { Loader2, Plus, X, ChevronDown } from 'lucide-react';
 import { FileUploadField } from './FileUploadField';
 import { RegistrationField } from './RegistrationField';
-import { LocationField, type LocationData } from './LocationField';
+import { LocationField } from './LocationField';
 import { toast } from 'sonner';
 import type { RJSFSchema } from '@rjsf/utils';
 import { 
@@ -771,7 +771,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     // Separate regular fields from subsections
     const fields = Object.entries(sectionSchema.properties || {});
     const subsections = fields.filter(([_, schema]: [string, any]) => schema.type === 'object' && schema['x-subsection']);
-    const regularFields = fields.filter(([key, schema]: [string, any]) => 
+    const regularFields = fields.filter(([_, schema]: [string, any]) => 
       schema.type !== 'object' || !schema['x-subsection']
     );
     
