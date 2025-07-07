@@ -176,28 +176,161 @@
           "minimum": 18,
           "maximum": 100
         },
-        "sampleTaskVideo": {
-          "type": "string",
-          "title": "Sample Task Video",
-          "format": "data-url",
-          "description": "Upload video showing sample task (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        "jukiSpeedSubsection": {
+          "type": "object",
+          "title": "Speed of Juki Machine Operation",
+          "x-subsection": "juki-speed-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "minAcceptableSpeed": {
+              "type": "number",
+              "title": "Min Acceptable (Unit TBD)",
+              "description": "Enter minimum acceptable speed",
+              "minimum": 0
+            },
+            "acceptableSpeedProofs": {
+              "type": "array",
+              "title": "Acceptable proofs for min speed",
+              "description": "Select acceptable proof types for minimum speed",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "speed-rating-previous-employer",
+                  "speed-rating-peer",
+                  "speed-rating-skilller",
+                  "demo-stitching-video",
+                  "other"
+                ],
+                "enumNames": [
+                  "Speed rating by previous employer",
+                  "Speed rating by peer",
+                  "Speed rating by skilller",
+                  "Demo stitching video",
+                  "Other (specify)"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "speedProofOther": {
+              "type": "string",
+              "title": "Other proof type",
+              "description": "Specify other proof type for speed verification"
+            },
+            "uploadSpeedProof": {
+              "type": "array",
+              "title": "Upload actual proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSpeedSampleMedia": {
+              "type": "array",
+              "title": "Upload Sample media for each acceptable proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          }
         },
-        "sampleTaskImage": {
-          "type": "string",
-          "title": "Sample Task Image",
-          "format": "data-url",
-          "description": "Upload image showing sample task (PNG, JPEG, JPG, max 5MB)"
+        "jukiErrorSubsection": {
+          "type": "object",
+          "title": "Error rate of Juki Machine Operation (Unit TBD)",
+          "x-subsection": "juki-error-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "maxAcceptableError": {
+              "type": "number",
+              "title": "Max Acceptable (Unit TBD)",
+              "description": "Enter maximum acceptable error rate",
+              "minimum": 0
+            },
+            "acceptableErrorProofs": {
+              "type": "array",
+              "title": "Acceptable proofs for max error",
+              "description": "Select acceptable proof types for maximum error rate",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "error-free-qa-previous-employer",
+                  "error-free-qa-peer",
+                  "error-free-qa-skilller",
+                  "demo-stitched-piece-image",
+                  "other"
+                ],
+                "enumNames": [
+                  "Error free / QA score from previous employer",
+                  "Error free / QA score from peer",
+                  "Error free / QA score from skilller",
+                  "Demo stitched piece image",
+                  "Other (specify)"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "errorProofOther": {
+              "type": "string",
+              "title": "Other proof type",
+              "description": "Specify other proof type for error rate verification"
+            },
+            "uploadErrorProof": {
+              "type": "array",
+              "title": "Upload actual proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadErrorSampleMedia": {
+              "type": "array",
+              "title": "Upload Sample media for each acceptable proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          }
         },
-        "speedBenchmarkMins": {
-          "type": "integer",
-          "title": "Speed Benchmark (mins taken for sample task)",
-          "description": "Enter time in minutes",
-          "minimum": 1
-        },
-        "proofsAcceptableForIntentToJoin": {
-          "type": "string",
-          "title": "Proofs Acceptable for Intent to Join",
-          "description": "Enter acceptable proofs"
+        "relocationProofsSubsection": {
+          "type": "object",
+          "title": "Acceptable proofs of willingness to relocate",
+          "x-subsection": "relocation-proofs-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "acceptableRelocationProofs": {
+              "type": "array",
+              "title": "Acceptable proofs of willingness to relocate",
+              "description": "Select acceptable proof types for willingness to relocate",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "aadhaar-verified",
+                  "travel-ticket",
+                  "other"
+                ],
+                "enumNames": [
+                  "Aadhaar verified",
+                  "Travel ticket",
+                  "Other (specify)"
+                ]
+              },
+              "uniqueItems": true
+            },
+            "relocationProofOther": {
+              "type": "string",
+              "title": "Other proof type",
+              "description": "Specify other proof type for relocation willingness"
+            }
+          }
         }
       }
     },
