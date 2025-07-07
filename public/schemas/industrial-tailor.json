@@ -333,26 +333,7 @@
           }
         }
       }
-    },
-    "jobDescription": {
-      "type": "object",
-      "title": "Job Description",
-      "x-section": "job-description",
-      "properties": {
-        "description": {
-          "type": "string",
-          "title": "Job Requirement/Responsibilities",
-          "description": "Describe the job role, responsibilities, and what you're looking for...",
-          "minLength": 1
-        },
-        "workTimings": {
-          "type": "string",
-          "title": "Work Timings",
-          "description": "e.g., 9 AM - 6 PM"
-        }
-      },
-      "required": ["description"]
     }
   },
-  "required": ["basicInfo", "jobDetails", "jobNeeds", "jobDescription"]
+  "required": ["basicInfo", "jobDetails", "jobNeeds"]
 } 
