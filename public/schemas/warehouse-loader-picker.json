@@ -119,11 +119,6 @@
           "enum": ["yes-free", "yes-paid", "no"],
           "enumNames": ["Yes - Free", "Yes - Paid", "No"],
           "description": "Select stay option"
-        },
-        "costPerSharingBed": {
-          "type": "string",
-          "title": "Cost per Sharing Bed",
-          "description": "Enter cost per sharing bed (if stay is paid)"
         }
       },
       "required": ["title", "positions"],

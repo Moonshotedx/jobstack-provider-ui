@@ -7,7 +7,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, Plus, X } from 'lucide-react';
+import { 
+  DropdownMenu, 
+  DropdownMenuTrigger, 
+  DropdownMenuContent, 
+  DropdownMenuCheckboxItem, 
+  DropdownMenuLabel, 
+  DropdownMenuSeparator 
+} from '@/components/ui/dropdown-menu';
+import { Loader2, Plus, X, ChevronDown } from 'lucide-react';
 import { FileUploadField } from './FileUploadField';
 import { RegistrationField } from './RegistrationField';
 import { LocationField, type LocationData } from './LocationField';
@@ -173,13 +181,32 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   };
 
   const updateFormData = (sectionKey: string, fieldKey: string, value: any) => {
-    setFormData((prev: any) => ({
-      ...prev,
-      [sectionKey]: {
-        ...prev[sectionKey],
-        [fieldKey]: value
-      }
-    }));
+    // Handle nested field paths (e.g., "subsection.field")
+    const fieldPath = fieldKey.split('.');
+    
+    if (fieldPath.length === 1) {
+      // Regular field
+      setFormData((prev: any) => ({
+        ...prev,
+        [sectionKey]: {
+          ...prev[sectionKey],
+          [fieldKey]: value
+        }
+      }));
+    } else if (fieldPath.length === 2) {
+      // Subsection field
+      const [subsectionKey, actualFieldKey] = fieldPath;
+      setFormData((prev: any) => ({
+        ...prev,
+        [sectionKey]: {
+          ...prev[sectionKey],
+          [subsectionKey]: {
+            ...prev[sectionKey]?.[subsectionKey],
+            [actualFieldKey]: value
+          }
+        }
+      }));
+    }
   };
 
   const addArrayItem = (sectionKey: string, fieldKey: string) => {
@@ -446,7 +473,85 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         );
       }
       
-      // Regular array of strings
+      // Special handling for multiselect dropdown arrays (proof types)
+      if (fieldSchema.items?.type === 'string' && fieldSchema.items?.enum) {
+        const selectedItems = items || [];
+        const hasOther = selectedItems.includes('other');
+        
+        const handleOptionToggle = (option: string) => {
+          let newItems: string[];
+          if (selectedItems.includes(option)) {
+            newItems = selectedItems.filter((item: string) => item !== option);
+            // If removing "other", also clear the "other" text field
+            if (option === 'other') {
+              const otherFieldKey = fieldKey.replace('Proofs', 'ProofOther');
+              updateFormData(sectionKey, otherFieldKey, '');
+            }
+          } else {
+            newItems = [...selectedItems, option];
+          }
+          updateFormData(sectionKey, fieldKey, newItems);
+        };
+
+        return (
+          <div key={fieldKey} className="space-y-3">
+            <Label>{fieldLabel}</Label>
+            {fieldSchema.description && (
+              <p className="text-sm text-muted-foreground">{fieldSchema.description}</p>
+            )}
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="w-full justify-between">
+                  <span>
+                    {selectedItems.length > 0
+                      ? `${selectedItems.length} selected`
+                      : `Select ${fieldSchema.title.toLowerCase()}`}
+                  </span>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                <DropdownMenuLabel>{fieldSchema.title}</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {fieldSchema.items.enum.map((option: string, index: number) => (
+                  <DropdownMenuCheckboxItem
+                    key={option}
+                    checked={selectedItems.includes(option)}
+                    onSelect={(e) => {
+                      e.preventDefault();
+                      handleOptionToggle(option);
+                    }}
+                  >
+                    {fieldSchema.items.enumNames?.[index] || option}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            {/* "Other" text input field */}
+            {hasOther && (
+              <div className="mt-3">
+                <Label htmlFor={`${fieldId}-other`} className="text-sm font-medium">
+                  Specify other proof type:
+                </Label>
+                <Input
+                  id={`${fieldId}-other`}
+                  value={formData[sectionKey]?.[fieldKey.replace('Proofs', 'ProofOther')] || ''}
+                  onChange={(e) => {
+                    const otherFieldKey = fieldKey.replace('Proofs', 'ProofOther');
+                    updateFormData(sectionKey, otherFieldKey, e.target.value);
+                  }}
+                  placeholder="Enter other proof type"
+                  className="mt-1"
+                />
+              </div>
+            )}
+          </div>
+        );
+      }
+      
+      // Regular array of strings (fallback)
       return (
         <div key={fieldKey} className="space-y-2">
           <div className="flex items-center justify-between">
@@ -472,7 +577,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                 No items added yet. Click "Add" to start.
               </p>
             )}
-            {items.map((item: any, index: number) => (
+            {items.map((item: string, index: number) => (
               <div key={index} className="flex gap-2">
                 <Input
                   value={item}
@@ -577,15 +682,12 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     );
   };
 
-  const renderSection = (sectionKey: string, sectionSchema: any) => {
-    const sectionData = formData[sectionKey] || {};
-    
-    // Check if this section is required
-    const isSectionRequired = schema?.required?.includes(sectionKey);
-    const sectionTitle = sectionSchema.title + (isSectionRequired ? ' *' : '');
+  const renderSubsection = (sectionKey: string, subsectionKey: string, subsectionSchema: any, subsectionData: any) => {
+    const subsectionTitle = subsectionSchema.title;
+    const hasBorder = subsectionSchema['x-ui-subsection'] === 'border';
     
     // Group fields by type for better layout
-    const fields = Object.entries(sectionSchema.properties || {});
+    const fields = Object.entries(subsectionSchema.properties || {});
     const fileFields = fields.filter(([_, schema]: [string, any]) => schema.format === 'data-url' || (schema.type === 'array' && schema.items?.properties?.file));
     const textareaFields = fields.filter(([key, schema]: [string, any]) => 
       schema.type === 'string' && (
@@ -595,7 +697,95 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         key.toLowerCase().includes('proof')
       )
     );
+    
+    // Filter out "Other" fields as they will be handled conditionally within the multiselect fields
+    const otherFields = fields.filter(([key, _]: [string, any]) => 
+      key.toLowerCase().includes('other') && key.toLowerCase().includes('proof')
+    );
+    
     const regularFields = fields.filter(([key, _]: [string, any]) => 
+      !fileFields.some(([fk]) => fk === key) && 
+      !textareaFields.some(([tk]) => tk === key) &&
+      !otherFields.some(([ok]) => ok === key)
+    );
+
+    const subsectionContent = (
+      <div className="space-y-6">
+        {/* Regular fields in grid */}
+        {regularFields.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            {regularFields.map(([fieldKey, fieldSchema]: [string, any]) => (
+              <div key={fieldKey} className={
+                fieldSchema.type === 'array' ? 'md:col-span-2' : ''
+              }>
+                {renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])}
+              </div>
+            ))}
+          </div>
+        )}
+        
+        {/* Textarea fields full width */}
+        {textareaFields.length > 0 && (
+          <div className="space-y-6 mb-6">
+            {textareaFields.map(([fieldKey, fieldSchema]: [string, any]) => (
+              renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])
+            ))}
+          </div>
+        )}
+        
+        {/* File upload fields full width */}
+        {fileFields.length > 0 && (
+          <div className="space-y-6">
+            {fileFields.map(([fieldKey, fieldSchema]: [string, any]) => (
+              renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])
+            ))}
+          </div>
+        )}
+      </div>
+    );
+
+    if (hasBorder) {
+      return (
+        <div key={subsectionKey} className="border border-gray-200 rounded-lg p-4 bg-gray-50/30">
+          <h4 className="text-md font-semibold mb-4 text-gray-800">{subsectionTitle}</h4>
+          {subsectionContent}
+        </div>
+      );
+    }
+
+    return (
+      <div key={subsectionKey} className="space-y-4">
+        <h4 className="text-md font-semibold text-gray-800">{subsectionTitle}</h4>
+        {subsectionContent}
+      </div>
+    );
+  };
+
+  const renderSection = (sectionKey: string, sectionSchema: any) => {
+    const sectionData = formData[sectionKey] || {};
+    
+    // Check if this section is required
+    const isSectionRequired = schema?.required?.includes(sectionKey);
+    const sectionTitle = sectionSchema.title + (isSectionRequired ? ' *' : '');
+    
+    // Separate regular fields from subsections
+    const fields = Object.entries(sectionSchema.properties || {});
+    const subsections = fields.filter(([_, schema]: [string, any]) => schema.type === 'object' && schema['x-subsection']);
+    const regularFields = fields.filter(([key, schema]: [string, any]) => 
+      schema.type !== 'object' || !schema['x-subsection']
+    );
+    
+    // Group regular fields by type for better layout
+    const fileFields = regularFields.filter(([_, schema]: [string, any]) => schema.format === 'data-url' || (schema.type === 'array' && schema.items?.properties?.file));
+    const textareaFields = regularFields.filter(([key, schema]: [string, any]) => 
+      schema.type === 'string' && (
+        key.toLowerCase().includes('description') || 
+        key.toLowerCase().includes('explanation') ||
+        key.toLowerCase().includes('terms') ||
+        key.toLowerCase().includes('proof')
+      )
+    );
+    const otherRegularFields = regularFields.filter(([key, _]: [string, any]) => 
       !fileFields.some(([fk]) => fk === key) && 
       !textareaFields.some(([tk]) => tk === key)
     );
@@ -607,9 +797,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         </CardHeader>
         <CardContent className="pt-6">
           {/* Regular fields in grid */}
-          {regularFields.length > 0 && (
+          {otherRegularFields.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {regularFields.map(([fieldKey, fieldSchema]: [string, any]) => (
+              {otherRegularFields.map(([fieldKey, fieldSchema]: [string, any]) => (
                 <div key={fieldKey} className={
                   fieldSchema.type === 'array' ? 'md:col-span-2' : ''
                 }>
@@ -630,9 +820,18 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           
           {/* File upload fields full width */}
           {fileFields.length > 0 && (
-            <div className="space-y-6">
+            <div className="space-y-6 mb-6">
               {fileFields.map(([fieldKey, fieldSchema]: [string, any]) => (
                 renderField(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey])
+              ))}
+            </div>
+          )}
+
+          {/* Subsections */}
+          {subsections.length > 0 && (
+            <div className="space-y-6 mt-6">
+              {subsections.map(([subsectionKey, subsectionSchema]: [string, any]) => (
+                renderSubsection(sectionKey, subsectionKey, subsectionSchema, sectionData[subsectionKey] || {})
               ))}
             </div>
           )}
