@@ -30,6 +30,8 @@ import {
 } from '@/lib/role-schema-loader';
 import { validateRegistrationNumber } from '@/lib/registration-validator';
 
+import type { JobPosting } from '@/lib/api-client';
+
 interface RJSFJobPostStepProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,6 +39,7 @@ interface RJSFJobPostStepProps {
   onSubmit: (formData: any) => void;
   onBack: () => void;
   isSubmitting?: boolean;
+  editJobData?: JobPosting | null;
 }
 
 const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
@@ -45,7 +48,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   selectedJobRole,
   onSubmit,
   onBack,
-  isSubmitting = false
+  isSubmitting = false,
+  editJobData
 }) => {
   const [schema, setSchema] = useState<RJSFSchema | null>(null);
   const [formData, setFormData] = useState<any>({});
@@ -72,7 +76,15 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           getRoleDisplayInfo(selectedJobRole)
         ]);
         
-        const initialData = getRoleInitialData(roleSchema, selectedJobRole);
+        let initialData = getRoleInitialData(roleSchema, selectedJobRole);
+        
+        // If editing, merge with existing job data
+        if (editJobData && editJobData.metadata) {
+          initialData = {
+            ...initialData,
+            ...editJobData.metadata
+          };
+        }
         
         // Debug logging
         console.log('📋 Loading schema for:', selectedJobRole);
@@ -80,6 +92,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         console.log('📝 Schema sections:', Object.keys(roleSchema.properties || {}));
         console.log('🎯 Initial data:', initialData);
         console.log('🎨 Display info:', displayInfo);
+        console.log('✏️ Edit job data:', editJobData);
         
         setSchema(roleSchema);
         setFormData(initialData);
@@ -96,7 +109,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     if (isOpen && selectedJobRole) {
       loadSchemaAndInfo();
     }
-  }, [selectedJobRole, isOpen]);
+  }, [selectedJobRole, isOpen, editJobData]);
 
   // Enhanced validation function to handle both section-level and root-level requirements
   const validateFormData = (schema: RJSFSchema, formData: any): { isValid: boolean; errors: string[] } => {

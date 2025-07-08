@@ -1,3 +1,5 @@
+import type { JobPosting } from '@/lib/api-client';
+
 export type JobPostStep = 'login' | 'orgProfile' | 'roleSelection' | 'jobPost';
 
 export interface JobData {
@@ -110,6 +112,7 @@ export interface PostJobDialogProps {
   isOpen: boolean;
   onClose: () => void;
   skipAuthSteps?: boolean;
+  editJobData?: JobPosting | null;
 }
 
 // Location data structure to match backend schema
@@ -182,8 +185,60 @@ export const transformJobDataToCreateJobRequest = (
   // Return the request object matching backend schema
   return {
     title: jobData.title,
-    description: jobData.description,
     location: locationData,
     metadata,
   };
-}; 
+};
+
+// New types for job applicants functionality
+export interface JobApplicant {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  location: string;
+  age: number;
+  appliedFor: string;
+  applicationDate: string;
+  status: 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  trustScore: number;
+  matchScore: number;
+  experience: string;
+  skills: string[];
+  avatar?: string;
+  resume?: string;
+  coverLetter?: string;
+  expectedSalary?: string;
+  noticePeriod?: string;
+  currentCompany?: string;
+  currentRole?: string;
+  education?: string;
+  languages?: string[];
+  certifications?: string[];
+  portfolio?: string;
+  socialLinks?: {
+    linkedin?: string;
+    github?: string;
+    portfolio?: string;
+  };
+  applicationNotes?: string;
+  interviewScheduled?: string;
+  interviewNotes?: string;
+  feedback?: string;
+  lastContacted?: string;
+  tags?: string[];
+}
+
+export interface JobApplicantsListProps {
+  isOpen: boolean;
+  onClose: () => void;
+  jobId: string;
+  jobTitle: string;
+}
+
+export interface CandidateDetailsProps {
+  isOpen: boolean;
+  onClose: () => void;
+  candidate: JobApplicant;
+  jobTitle: string;
+} 
