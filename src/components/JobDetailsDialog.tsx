@@ -16,13 +16,10 @@ import {
   Award,
   Phone,
   Mail,
-  Globe,
   Video,
-  Image as ImageIcon,
-  ExternalLink
+  Image as ImageIcon
 } from 'lucide-react';
 import type { JobPosting } from '@/lib/api-client';
-import { useTranslation } from 'react-i18next';
 
 interface JobDetailsDialogProps {
   isOpen: boolean;
@@ -37,8 +34,6 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
   job, 
   onEdit 
 }) => {
-  const { t } = useTranslation('jobs');
-
   if (!job) return null;
 
   const formatDate = (dateString: string) => {
@@ -84,29 +79,6 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                 {value}
               </Badge>
             ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  const renderObjectField = (label: string, obj: any, icon?: React.ReactNode) => {
-    if (!obj || typeof obj !== 'object') return null;
-    
-    return (
-      <div className="flex items-start gap-3 py-2">
-        {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className="mt-1 space-y-1">
-            {Object.entries(obj).map(([key, value]) => {
-              if (value === null || value === undefined || value === '') return null;
-              return (
-                <div key={key} className="text-sm">
-                  <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}:</span> {String(value)}
-                </div>
-              );
-            })}
           </div>
         </div>
       </div>

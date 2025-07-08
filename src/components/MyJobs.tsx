@@ -44,31 +44,29 @@ const MyJobs = () => {
 
   // Helper functions to extract data from job metadata
   const getJobLocation = (job: JobPosting) => {
-    // Try to get location from metadata first, fallback to basic description
-    return job.location?.city + ', ' + job.location?.state || 'Location not specified';
+    return job.location?.city && job.location?.state 
+      ? `${job.location.city}, ${job.location.state}`
+      : 'Location not specified';
   };
 
   const getJobSalary = (job: JobPosting) => {
-    // For Industrial Tailor, check CTC first, then regular salary
-    // if (job.metadata?.industrialTailorDetails?.salaryCTC) {
-    //   return `₹${job.metadata.industrialTailorDetails.salaryCTC.toLocaleString()} CTC`;
-    // }
-    // if (job.metadata?.industrialTailorDetails?.monthlyInHand) {
-    //   return `₹${job.metadata.industrialTailorDetails.monthlyInHand.toLocaleString()}/month`;
-    // }
-    return job.metadata?.jobDetails?.salaryCTC || 'Salary not specified';
-  };
+    if (!job.metadata?.jobDetails) return 'Salary not specified';
 
-  const getJobType = (job: JobPosting) => {
-    // For Industrial Tailor, use employment type if available
-    if (job.metadata?.industrialTailorDetails?.employmentType) {
-      return job.metadata.industrialTailorDetails.employmentType;
+    const details = job.metadata.jobDetails;
+    const parts = [];
+
+    if (details.monthlyInHand) {
+      parts.push(`₹${details.monthlyInHand.toLocaleString()} in-hand`);
     }
-    return job.metadata?.jobType || 'Full-time';
+    if (details.monthlyPfEsicBenefits) {
+      parts.push(`₹${details.monthlyPfEsicBenefits.toLocaleString()} benefits`);
+    }
+
+    return parts.length > 0 ? parts.join(' + ') : 'Salary not specified';
   };
 
   const getJobStatus = (job: JobPosting) => {
-    return job.metadata?.status || 'active';
+    return job.metadata?.status || 'Active';
   };
 
   const getApplicationsCount = (job: JobPosting) => {
@@ -76,24 +74,15 @@ const MyJobs = () => {
   };
 
   const getPayFrequency = (job: JobPosting) => {
-    // For Industrial Tailor, check salary disbursement frequency
-    if (job.metadata?.industrialTailorDetails?.salaryDisbursementFrequency) {
-      return job.metadata.industrialTailorDetails.salaryDisbursementFrequency;
+    if (job.metadata?.jobDetails?.payFrequency) {
+      return job.metadata.jobDetails.payFrequency.charAt(0).toUpperCase() + 
+           job.metadata.jobDetails.payFrequency.slice(1);
     }
-    return job.metadata?.payFrequency || '';
-  };
-
-  const getIndustryAndRole = (job: JobPosting) => {
-    const industry = job.metadata?.industry;
-    const role = job.metadata?.role;
-    if (industry && role && industry !== role) {
-      return `${industry} - ${role}`;
-    }
-    return industry || role || '';
+    return 'Monthly';
   };
 
   const getPositions = (job: JobPosting) => {
-    return job.metadata?.jobDetails?.positions || job.metadata?.positions || 1;
+    return job.metadata?.jobDetails?.positions || 1;
   };
 
   // Handler functions for dialogs
@@ -221,7 +210,6 @@ const MyJobs = () => {
         {jobs?.map((job) => {
           const jobStatus = getJobStatus(job);
           const payFrequency = getPayFrequency(job);
-          const industryRole = getIndustryAndRole(job);
           const positions = getPositions(job);
           
           return (
