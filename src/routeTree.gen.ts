@@ -13,6 +13,7 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as IndexImport } from './routes/index'
+import { Route as JobApplicantsJobIdImport } from './routes/job-applicants.$jobId'
 import { Route as AuthResetPasswordImport } from './routes/auth.reset-password'
 import { Route as AuthActionImport } from './routes/auth.$action'
 
@@ -27,6 +28,12 @@ const DashboardRoute = DashboardImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const JobApplicantsJobIdRoute = JobApplicantsJobIdImport.update({
+  id: '/job-applicants/$jobId',
+  path: '/job-applicants/$jobId',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -74,6 +81,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthResetPasswordImport
       parentRoute: typeof rootRoute
     }
+    '/job-applicants/$jobId': {
+      id: '/job-applicants/$jobId'
+      path: '/job-applicants/$jobId'
+      fullPath: '/job-applicants/$jobId'
+      preLoaderRoute: typeof JobApplicantsJobIdImport
+      parentRoute: typeof rootRoute
+    }
   }
 }
 
@@ -84,6 +98,7 @@ export interface FileRoutesByFullPath {
   '/dashboard': typeof DashboardRoute
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
 }
 
 export interface FileRoutesByTo {
@@ -91,6 +106,7 @@ export interface FileRoutesByTo {
   '/dashboard': typeof DashboardRoute
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
 }
 
 export interface FileRoutesById {
@@ -99,14 +115,31 @@ export interface FileRoutesById {
   '/dashboard': typeof DashboardRoute
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
+  '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
 }
 
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/dashboard' | '/auth/$action' | '/auth/reset-password'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/auth/$action'
+    | '/auth/reset-password'
+    | '/job-applicants/$jobId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/auth/$action' | '/auth/reset-password'
-  id: '__root__' | '/' | '/dashboard' | '/auth/$action' | '/auth/reset-password'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/auth/$action'
+    | '/auth/reset-password'
+    | '/job-applicants/$jobId'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/auth/$action'
+    | '/auth/reset-password'
+    | '/job-applicants/$jobId'
   fileRoutesById: FileRoutesById
 }
 
@@ -115,6 +148,7 @@ export interface RootRouteChildren {
   DashboardRoute: typeof DashboardRoute
   AuthActionRoute: typeof AuthActionRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
+  JobApplicantsJobIdRoute: typeof JobApplicantsJobIdRoute
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -122,6 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardRoute: DashboardRoute,
   AuthActionRoute: AuthActionRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
+  JobApplicantsJobIdRoute: JobApplicantsJobIdRoute,
 }
 
 export const routeTree = rootRoute
@@ -137,7 +172,8 @@ export const routeTree = rootRoute
         "/",
         "/dashboard",
         "/auth/$action",
-        "/auth/reset-password"
+        "/auth/reset-password",
+        "/job-applicants/$jobId"
       ]
     },
     "/": {
@@ -151,6 +187,9 @@ export const routeTree = rootRoute
     },
     "/auth/reset-password": {
       "filePath": "auth.reset-password.tsx"
+    },
+    "/job-applicants/$jobId": {
+      "filePath": "job-applicants.$jobId.tsx"
     }
   }
 }

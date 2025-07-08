@@ -1,4 +1,6 @@
 {
+  "title": "Job Applicants",
+  "subtitle": "Review and manage job applications",
   "management": {
     "title": "Candidate Management",
     "subtitle": "Review and manage job applications",
@@ -42,5 +44,29 @@
     "interview": "Interview",
     "hired": "Hired",
     "rejected": "Rejected"
+  },
+  "search": {
+    "placeholder": "Search candidates by name, email, or skills...",
+    "noResults": "No candidates found",
+    "candidatesFound": "{{count}} candidates found"
+  },
+  "actions": {
+    "viewProfile": "View Profile",
+    "shortlist": "Shortlist",
+    "reject": "Reject",
+    "hire": "Hire",
+    "schedule": "Schedule Interview",
+    "sendMessage": "Send Message",
+    "downloadCV": "Download CV",
+    "addNote": "Add Note",
+    "viewApplication": "View Application",
+    "contactCandidate": "Contact Candidate"
+  },
+  "messages": {
+    "shortlistSuccess": "Candidate shortlisted successfully",
+    "rejectSuccess": "Candidate rejected successfully",
+    "hireSuccess": "Candidate hired successfully",
+    "messageSuccess": "Message sent successfully",
+    "noteAdded": "Note added successfully"
   }
 } 

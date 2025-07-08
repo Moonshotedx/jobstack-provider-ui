@@ -58,7 +58,7 @@ export interface LocationData {
 
 export interface CreateJobRequest {
   title: string;
-  description: string;
+  description?: string;
   location?: LocationData;
   metadata?: Record<string, any>;
 }
