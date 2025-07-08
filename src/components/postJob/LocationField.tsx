@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { MapPin, Loader2, CheckCircle, AlertCircle, ChevronDown, X } from 'lucide-react';
 import { toast } from 'sonner';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Structured location data interface
 export interface LocationData {
@@ -15,6 +16,26 @@ export interface LocationData {
   gps: {
     lat: number;
     lng: number;
+  };
+}
+
+interface LocationSuggestion {
+  display_name: string;
+  lat: string;
+  lon: string;
+  address: {
+    city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    state?: string;
+    province?: string;
+    country?: string;
+    house_number?: string;
+    road?: string;
+    postcode?: string;
   };
 }
 
@@ -41,6 +62,29 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 }) => {
   const [status, setStatus] = useState<LocationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize input value from props
+  useEffect(() => {
+    setInputValue(getDisplayValue());
+  }, [value]);
+
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Helper function to parse address components from Nominatim response
   const parseAddressComponents = (nominatimData: any): Partial<LocationData> => {
@@ -122,6 +166,109 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     }
   };
 
+  // Search for address suggestions
+  const searchAddressSuggestions = async (query: string) => {
+    if (!query.trim() || query.length < 3) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=in`,
+        {
+          headers: {
+            'User-Agent': 'JobPortal/1.0'
+          }
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch suggestions');
+      }
+
+      const data = await response.json();
+      setSuggestions(data || []);
+      setShowSuggestions(data && data.length > 0);
+    } catch (error) {
+      console.error('Search suggestions error:', error);
+      setSuggestions([]);
+      setShowSuggestions(false);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Debounced search function
+  const debouncedSearch = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const handleInputChange = (newValue: string) => {
+    setInputValue(newValue);
+    
+    // Clear previous timeout
+    if (debouncedSearch.current) {
+      clearTimeout(debouncedSearch.current);
+    }
+
+    // Set new timeout for search
+    debouncedSearch.current = setTimeout(() => {
+      searchAddressSuggestions(newValue);
+    }, 300);
+  };
+
+  // Handle suggestion selection
+  const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
+    if (returnStructuredData) {
+      const addressComponents = parseAddressComponents(suggestion);
+      const locationData: LocationData = {
+        address: addressComponents.address || suggestion.display_name,
+        city: addressComponents.city || '',
+        state: addressComponents.state || '',
+        country: addressComponents.country || 'India',
+        tag: addressComponents.city || 'job-location',
+        gps: {
+          lat: parseFloat(suggestion.lat),
+          lng: parseFloat(suggestion.lon)
+        }
+      };
+      onChange(locationData);
+    } else {
+      onChange(suggestion.display_name);
+    }
+    
+    setInputValue(suggestion.display_name);
+    setShowSuggestions(false);
+    setSuggestions([]);
+    setStatus('success');
+    
+    // Reset status after 3 seconds
+    setTimeout(() => setStatus('idle'), 3000);
+  };
+
+  // Handle manual entry (when user types and no suggestions are selected)
+  const handleManualEntry = () => {
+    if (returnStructuredData) {
+      // Try to geocode the manual entry
+      geocodeAddress(inputValue).then(coordinates => {
+        const locationData: LocationData = {
+          address: inputValue,
+          city: '',
+          state: '',
+          country: 'India',
+          tag: 'job-location',
+          gps: coordinates || { lat: 0, lng: 0 }
+        };
+        onChange(locationData);
+      });
+    } else {
+      onChange(inputValue);
+    }
+    
+    setShowSuggestions(false);
+    setSuggestions([]);
+  };
+
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by this browser');
@@ -177,11 +324,13 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           };
           
           onChange(locationData);
+          setInputValue(locationData.address);
           setStatus('success');
           toast.success('Location detected successfully!');
         } else {
           // Return just the address string (legacy behavior)
           onChange(data.display_name);
+          setInputValue(data.display_name);
           setStatus('success');
           toast.success('Location detected successfully!');
         }
@@ -217,40 +366,6 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     }
   };
 
-  // Handle manual address input with geocoding
-  const handleAddressChange = async (inputValue: string) => {
-    if (returnStructuredData && inputValue.trim()) {
-      // Debounce geocoding for manual input
-      setTimeout(async () => {
-        const coordinates = await geocodeAddress(inputValue);
-        if (coordinates) {
-          const locationData: LocationData = {
-            address: inputValue,
-            city: '', // User will need to fill these manually or we could try to parse
-            state: '',
-            country: 'India',
-            tag: 'job-location', // Default tag for manual input
-            gps: coordinates
-          };
-          onChange(locationData);
-        } else {
-          // Fallback to basic structure
-          const locationData: LocationData = {
-            address: inputValue,
-            city: '',
-            state: '',
-            country: 'India',
-            tag: 'job-location', // Default tag for fallback
-            gps: { lat: 0, lng: 0 }
-          };
-          onChange(locationData);
-        }
-      }, 1000);
-    } else {
-      onChange(inputValue);
-    }
-  };
-
   const getStatusIcon = () => {
     switch (status) {
       case 'loading':
@@ -261,10 +376,17 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
         return (
-          <MapPin 
-            className="h-4 w-4 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
-            onClick={getCurrentLocation}
-          />
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <MapPin 
+                className="h-4 w-4 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
+                onClick={getCurrentLocation}
+              />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Get current location</p>
+            </TooltipContent>
+          </Tooltip>
         );
     }
   };
@@ -307,17 +429,68 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       <div className="space-y-2">
         <div className="relative">
           <Input
+            ref={inputRef}
             id="location-field"
-            value={getDisplayValue()}
-            onChange={(e) => handleAddressChange(e.target.value)}
-            placeholder={placeholder || "Enter location or click map pin for current location"}
+            value={inputValue}
+            onChange={(e) => handleInputChange(e.target.value)}
+            onFocus={() => {
+              if (suggestions.length > 0) {
+                setShowSuggestions(true);
+              }
+            }}
+            onBlur={() => {
+              // Delay hiding suggestions to allow clicking on them
+              setTimeout(() => {
+                if (!suggestionsRef.current?.contains(document.activeElement)) {
+                  setShowSuggestions(false);
+                }
+              }, 200);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                handleManualEntry();
+              }
+            }}
+            placeholder={placeholder || "Type to search for locations or click map pin for current location"}
             className={`pr-10 ${getInputBorderClass()}`}
           />
           
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+            {isSearching && (
+              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+            )}
             {getStatusIcon()}
           </div>
         </div>
+
+        {/* Suggestions Dropdown */}
+        {showSuggestions && suggestions.length > 0 && (
+          <div 
+            ref={suggestionsRef}
+            className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
+          >
+            {suggestions.map((suggestion, index) => (
+              <div
+                key={index}
+                className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                onClick={() => handleSuggestionSelect(suggestion)}
+              >
+                <div className="text-sm font-medium">{suggestion.display_name}</div>
+                {suggestion.address && (
+                  <div className="text-xs text-gray-500 mt-1">
+                    {suggestion.address.city && `${suggestion.address.city}, `}
+                    {suggestion.address.state && `${suggestion.address.state}, `}
+                    {suggestion.address.country}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-200">
+              Press Enter to use your typed address if no suggestion matches
+            </div>
+          </div>
+        )}
 
         {/* Status feedback */}
         {status === 'success' && (
@@ -346,12 +519,12 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
         {status === 'idle' && !value && (
           <p className="text-xs text-muted-foreground">
-            Click the map pin icon to automatically detect your current location
+            Start typing to search for locations or click the map pin icon to automatically detect your current location
           </p>
         )}
 
         {/* Show parsed location components for structured data */}
-        {returnStructuredData && value && typeof value === 'object' && 'gps' in value && (
+        {returnStructuredData && value && typeof value === 'object' && 'gps' in value && inputValue.trim() !== '' && (
           <div className="mt-2 p-2 bg-gray-50 rounded-md text-xs">
             <div className="grid grid-cols-2 gap-1">
               <span><strong>City:</strong> {value.city || 'Not detected'}</span>
