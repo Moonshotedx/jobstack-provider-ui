@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import React from 'react';
 import Header from '@/components/Header';
-import { useGetJobApplications, useActiveOrganizationId, useGetJob } from '@/hooks/useJobsApi';
+import { useGetJobApplications, useActiveOrganizationId, useGetJobs } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
@@ -35,25 +35,18 @@ function JobApplicantsPage() {
   const { t } = useTranslation('candidates');
   const activeOrganizationId = useActiveOrganizationId();
   
-  // Fetch job details to get the job title
-  const { 
-    data: jobDetails, 
-    isLoading: jobLoading, 
-    error: jobError 
-  } = useGetJob(activeOrganizationId || '', jobId);
-  
   // Fetch job applications using the API with the job ID from route params
   const { 
     data: applications, 
-    isLoading: applicationsLoading, 
-    error: applicationsError, 
+    isLoading, 
+    error, 
     refetch 
   } = useGetJobApplications(activeOrganizationId || '', jobId);
   
-  // Combine loading states
-  const isLoading = jobLoading || applicationsLoading;
-  const error = jobError || applicationsError;
-
+  // Get job details from the existing jobs list (we'll need to fetch this)
+  const { data: jobs } = useGetJobs(activeOrganizationId || '');
+  const jobDetails = jobs?.find(job => job.id === jobId);
+  
   // Transform API data to match the existing JobApplicant interface
   const applicants: JobApplicant[] = React.useMemo(() => {
     if (!applications) return [];

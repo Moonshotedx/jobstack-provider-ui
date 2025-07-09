@@ -168,14 +168,6 @@ export const jobsApi = {
     return response.data.data.jobs;
   },
 
-  // Get a specific job by ID
-  getJob: async (organizationId: string, jobId: string): Promise<JobPosting> => {
-    const response = await apiClient.get<ApiResponse<{ job: JobPosting }>>(
-      `/jobs/${organizationId}/${jobId}`
-    );
-    return response.data.data.job;
-  },
-
   // Get applications for a specific job
   getJobApplications: async (organizationId: string, jobId: string): Promise<JobApplication[]> => {
     console.log('🚀 Making API call to get job applications:', {
