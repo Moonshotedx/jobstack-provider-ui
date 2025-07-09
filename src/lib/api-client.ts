@@ -96,6 +96,59 @@ export interface GetJobsResponse {
   };
 }
 
+// Job Applications types
+export interface JobApplication {
+  id: string;
+  jobId: string;
+  candidateId: string;
+  status: 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  appliedAt: string;
+  updatedAt: string;
+  candidate: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string;
+    location: string;
+    age: number;
+    experience: string;
+    skills: string[];
+    avatar?: string;
+    resume?: string;
+    coverLetter?: string;
+    expectedSalary?: string;
+    noticePeriod?: string;
+    currentCompany?: string;
+    currentRole?: string;
+    education?: string;
+    languages?: string[];
+    certifications?: string[];
+    portfolio?: string;
+    socialLinks?: {
+      linkedin?: string;
+      github?: string;
+      portfolio?: string;
+    };
+    applicationNotes?: string;
+    interviewScheduled?: string;
+    interviewNotes?: string;
+    feedback?: string;
+    lastContacted?: string;
+    tags?: string[];
+    trustScore?: number;
+    matchScore?: number;
+  };
+}
+
+export interface GetJobApplicationsResponse {
+  applications: JobApplication[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+  };
+}
+
 // Job API methods
 export const jobsApi = {
   // Create a new job posting
@@ -113,6 +166,44 @@ export const jobsApi = {
       `/jobs/${organizationId}`
     );
     return response.data.data.jobs;
+  },
+
+  // Get a specific job by ID
+  getJob: async (organizationId: string, jobId: string): Promise<JobPosting> => {
+    const response = await apiClient.get<ApiResponse<{ job: JobPosting }>>(
+      `/jobs/${organizationId}/${jobId}`
+    );
+    return response.data.data.job;
+  },
+
+  // Get applications for a specific job
+  getJobApplications: async (organizationId: string, jobId: string): Promise<JobApplication[]> => {
+    console.log('🚀 Making API call to get job applications:', {
+      organizationId,
+      jobId,
+      url: `/jobs/${organizationId}/applications?jobId=${jobId}`,
+      fullUrl: `${API_BASE_URL}/jobs/${organizationId}/applications?jobId=${jobId}`
+    });
+    
+    try {
+      const response = await apiClient.get<ApiResponse<GetJobApplicationsResponse>>(
+        `/jobs/${organizationId}/applications?jobId=${jobId}`
+      );
+      
+      console.log('📡 Job applications API response:', response.data);
+      
+      // Add null check for response data
+      if (!response.data?.data?.applications) {
+        console.warn('⚠️ No applications data in response:', response.data);
+        return [];
+      }
+      
+      console.log('✅ Successfully fetched applications:', response.data.data.applications.length);
+      return response.data.data.applications;
+    } catch (error) {
+      console.error('❌ Error fetching job applications:', error);
+      throw error;
+    }
   },
 };
 
