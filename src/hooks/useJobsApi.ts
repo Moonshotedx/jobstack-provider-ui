@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication } from '@/lib/api-client';
 import { authClient } from '@/lib/auth-client';
 
 // Query keys for cache management
 export const jobsQueryKeys = {
   all: ['jobs'] as const,
   byOrg: (orgId: string) => ['jobs', orgId] as const,
+  byId: (orgId: string, jobId: string) => ['jobs', orgId, jobId] as const,
+  applications: (orgId: string, jobId: string) => ['jobs', orgId, 'applications', jobId] as const,
 };
 
 // Hook to get jobs for a specific organization
@@ -15,6 +17,22 @@ export const useGetJobs = (organizationId: string) => {
     queryKey: jobsQueryKeys.byOrg(organizationId),
     queryFn: () => jobsApi.getJobs(organizationId),
     enabled: !!organizationId && organizationId.length > 0,
+    staleTime: 30 * 1000, // 30 seconds
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
+};
+
+// Hook to get a specific job by ID
+export const useGetJob = (organizationId: string, jobId: string) => {
+  return useQuery({
+    queryKey: jobsQueryKeys.byId(organizationId, jobId),
+    queryFn: () => jobsApi.getJob(organizationId, jobId),
+    enabled: !!organizationId && !!jobId && organizationId.length > 0 && jobId.length > 0,
     staleTime: 30 * 1000, // 30 seconds
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
@@ -57,6 +75,22 @@ export const useCreateJob = () => {
       toast.error('Failed to post job', {
         description: errorMessage,
       });
+    },
+  });
+};
+
+// Hook to get job applications for a specific job
+export const useGetJobApplications = (organizationId: string, jobId: string) => {
+  return useQuery({
+    queryKey: jobsQueryKeys.applications(organizationId, jobId),
+    queryFn: () => jobsApi.getJobApplications(organizationId, jobId),
+    enabled: !!organizationId && !!jobId && organizationId.length > 0 && jobId.length > 0,
+    staleTime: 30 * 1000, // 30 seconds
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        return false;
+      }
+      return failureCount < 2;
     },
   });
 };
@@ -107,4 +141,4 @@ export const useActiveOrganizationId = () => {
 };
 
 // Export types for use in components
-export type { CreateJobRequest, JobPosting }; 
+export type { CreateJobRequest, JobPosting, JobApplication }; 
