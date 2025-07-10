@@ -146,7 +146,7 @@
                 "stayProvided": { "enum": ["yes-paid"] },
                 "costPerSharingBed": { "minLength": 1 }
               },
-              "required": []
+              "required": ["costPerSharingBed"]
             },
             {
               "properties": {

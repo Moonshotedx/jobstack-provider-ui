@@ -119,6 +119,11 @@
           "enum": ["yes-free", "yes-paid", "no"],
           "enumNames": ["Yes - Free", "Yes - Paid", "No"],
           "description": "Select stay option"
+        },
+        "costPerSharingBed": {
+          "type": "string",
+          "title": "Cost per Sharing Bed",
+          "description": "Enter cost per sharing bed (if stay is paid)"
         }
       },
       "required": ["title", "positions"],
@@ -130,7 +135,7 @@
                 "stayProvided": { "enum": ["yes-paid"] },
                 "costPerSharingBed": { "minLength": 1 }
               },
-              "required": []
+              "required": ["costPerSharingBed"]
             },
             {
               "properties": {
@@ -160,44 +165,135 @@
           "minimum": 18,
           "maximum": 100
         },
-        "sampleTaskVideo": {
-          "type": "string",
-          "title": "Sample Task Video",
-          "format": "data-url",
-          "description": "Upload video showing sample task (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        "physicalFitnessSubsection": {
+          "type": "object",
+          "title": "Physical Fitness - Stamina or Previous Experience",
+          "x-subsection": "physical-fitness-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "physicallyFitForRole": {
+              "type": "string",
+              "title": "Physically Fit for Role",
+              "enum": ["yes", "no"],
+              "enumNames": ["Yes", "No"],
+              "description": "Select if physically fit for the role"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "work-ex-certificate-previous-employer",
+                  "referral-peer-similar-role",
+                  "rating-on-ground-agent",
+                  "other"
+                ],
+                "enumNames": [
+                  "Work ex certificate by previous employer",
+                  "Referral by a peer in a similar role",
+                  "Rating by on-ground agent",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload or Scan Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["physicallyFitForRole", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
-        "sampleTaskImage": {
-          "type": "string",
-          "title": "Sample Task Image",
-          "format": "data-url",
-          "description": "Upload image showing sample task (PNG, JPEG, JPG, max 5MB)"
-        },
-        "proofsAcceptableForIntentToJoin": {
-          "type": "string",
-          "title": "Proofs Acceptable for Intent to Join",
-          "description": "Enter acceptable proofs"
-        }
-      }
-    },
-    "jobDescription": {
-      "type": "object",
-      "title": "Job Description",
-      "x-section": "job-description",
-      "properties": {
-        "description": {
-          "type": "string",
-          "title": "Job Requirement/Responsibilities",
-          "description": "Describe the job role, responsibilities, and what you're looking for...",
-          "minLength": 1
-        },
-        "workTimings": {
-          "type": "string",
-          "title": "Work Timings",
-          "description": "e.g., 9 AM - 6 PM"
+        "englishReadingSkillsSubsection": {
+          "type": "object",
+          "title": "English Reading Skills",
+          "x-subsection": "english-reading-skills-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "ableToReadComprehendBasicEnglish": {
+              "type": "string",
+              "title": "Able to read and comprehend basic english words commonly occurring on labels?",
+              "enum": ["yes", "no"],
+              "enumNames": ["Yes", "No"],
+              "description": "Select if able to read and comprehend basic English"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "work-ex-certificate-previous-employer",
+                  "referral-peer-similar-role",
+                  "rating-on-ground-agent",
+                  "other"
+                ],
+                "enumNames": [
+                  "Work ex certificate by previous employer",
+                  "Referral by a peer in a similar role",
+                  "Rating by on-ground agent",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["ableToReadComprehendBasicEnglish", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         }
       },
-      "required": ["description"]
+      "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "physicalFitnessSubsection", "englishReadingSkillsSubsection"]
     }
   },
-  "required": ["basicInfo", "jobDetails", "jobNeeds", "jobDescription"]
+  "required": ["basicInfo", "jobDetails", "jobNeeds"]
 } 

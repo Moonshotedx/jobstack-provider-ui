@@ -8,167 +8,11 @@
       "title": "Basic Information",
       "x-section": "basic-info",
       "properties": {
-        "title": {
-          "type": "string",
-          "title": "Job Title",
-          "default": "Recruitment Associate"
-        },
-        "location": {
-          "type": "string",
-          "title": "Location",
-          "description": "Provide the specific location where candidates will work"
-        },
-        "jobType": {
-          "type": "string",
-          "title": "Job Type",
-          "enum": ["full-time", "part-time", "contract"],
-          "enumNames": ["Full-time", "Part-time", "Contract"]
-        },
-        "salary": {
-          "type": "string",
-          "title": "Salary Range",
-          "description": "e.g., ₹15,000 - ₹25,000"
-        },
-        "payFrequency": {
-          "type": "string",
-          "title": "Pay Frequency",
-          "enum": ["monthly"],
-          "enumNames": ["Monthly"]
-        },
-        "experience": {
-          "type": "string",
-          "title": "Experience Required",
-          "description": "e.g., 2-5 years"
-        },
-        "positions": {
-          "type": "number",
-          "title": "Number of Positions",
-          "minimum": 1,
-          "default": 1
-        }
-      },
-      "required": ["title", "location", "jobType", "salary", "payFrequency"]
-    },
-    "recruitmentSpecific": {
-      "type": "object",
-      "title": "Recruitment Specific Requirements",
-      "x-section": "recruitment-specific",
-      "properties": {
-        "recruitmentType": {
-          "type": "string",
-          "title": "Recruitment Type",
-          "enum": ["blue-collar", "white-collar", "mixed", "specialized"],
-          "enumNames": ["Blue Collar", "White Collar", "Mixed", "Specialized"]
-        },
-        "sourcingChannels": {
-          "type": "array",
-          "title": "Sourcing Channels",
-          "items": {
-            "type": "string",
-            "enum": ["job-portals", "social-media", "referrals", "walk-ins", "campus"],
-            "enumNames": ["Job Portals", "Social Media", "Referrals", "Walk-ins", "Campus"]
-          },
-          "uniqueItems": true
-        },
-        "monthlyTargets": {
-          "type": "number",
-          "title": "Monthly Hiring Targets",
-          "minimum": 1
-        },
-        "interviewProcess": {
-          "type": "string",
-          "title": "Interview Process",
-          "enum": ["telephonic", "face-to-face", "video", "all"],
-          "enumNames": ["Telephonic", "Face-to-face", "Video", "All Methods"]
-        },
-        "hrSoftwareKnowledge": {
-          "type": "array",
-          "title": "HR Software Knowledge",
-          "items": {
-            "type": "string",
-            "enum": ["ats-systems", "excel", "crm", "naukri", "linkedin"],
-            "enumNames": ["ATS Systems", "Excel", "CRM", "Naukri.com", "LinkedIn"]
-          },
-          "uniqueItems": true
-        }
-      }
-    },
-    "jobDescription": {
-      "type": "object",
-      "title": "Job Description",
-      "x-section": "job-description",
-      "properties": {
-        "description": {
-          "type": "string",
-          "title": "Job Description",
-          "description": "Describe the job role, responsibilities, and what you're looking for..."
-        },
-        "workTimings": {
-          "type": "string",
-          "title": "Work Timings",
-          "description": "e.g., 9 AM - 6 PM"
-        },
-        "workDays": {
-          "type": "string",
-          "title": "Work Days",
-          "description": "e.g., Monday to Friday"
-        }
-      },
-      "required": ["description"]
-    },
-    "requirements": {
-      "type": "object",
-      "title": "Requirements & Benefits",
-      "x-section": "requirements-benefits",
-      "properties": {
-        "requirements": {
-          "type": "array",
-          "title": "Job Requirements",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "default": [""]
-        },
-        "benefits": {
-          "type": "array",
-          "title": "Benefits & Perks",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "default": [""]
-        }
-      }
-    },
-    "applicationDetails": {
-      "type": "object",
-      "title": "Application Details",
-      "x-section": "application-details",
-      "properties": {
-        "lastDate": {
-          "type": "string",
-          "title": "Last Date to Apply",
-          "format": "date"
-        },
-        "questions": {
-          "type": "array",
-          "title": "Custom Questions for Applicants",
-          "items": {
-            "type": "string"
-          },
-          "default": [""]
-        }
-      }
-    },
-    "jobProviderInfo": {
-      "type": "object",
-      "title": "Job Provider Information",
-      "x-section": "job-provider-info",
-      "properties": {
         "jobProviderName": {
           "type": "string",
-          "title": "Job Provider Name"
+          "title": "Job Provider Name",
+          "description": "Enter job provider/company name",
+          "minLength": 1
         },
         "jobProviderRegistration": {
           "type": "string",
@@ -176,30 +20,502 @@
           "description": "GST, CIN, TAN, PAN or other registration number",
           "minLength": 1,
           "pattern": "^.+$"
+        },
+        "jobProviderLocation": {
+          "type": "string",
+          "title": "Job Provider Location",
+          "description": "Enter job provider location",
+          "minLength": 1
+        },
+        "jobProviderLogo": {
+          "type": "string",
+          "title": "Job Provider Logo",
+          "description": "Upload company logo (PNG, JPG, max 5MB)",
+          "format": "data-url"
+        },
+        "contactPersonName": {
+          "type": "string",
+          "title": "Contact Person Name",
+          "description": "Enter manager/contact person name",
+          "minLength": 1
+        },
+        "contactEmail": {
+          "type": "string",
+          "title": "Contact Email",
+          "description": "manager@company.com",
+          "format": "email",
+          "minLength": 1
+        },
+        "contactPhone": {
+          "type": "string",
+          "title": "Contact Phone Number",
+          "description": "+91 98765 43210",
+          "minLength": 1
         }
       },
-      "required": ["jobProviderName", "jobProviderRegistration"]
+      "required": ["jobProviderName", "jobProviderLocation"]
     },
-    "hiringManager": {
+    "jobDetails": {
       "type": "object",
-      "title": "Hiring Manager Details",
-      "x-section": "hiring-manager",
+      "title": "Job Details",
+      "x-section": "job-details",
       "properties": {
-        "managerName": {
+        "title": {
           "type": "string",
-          "title": "Provider Contact Name"
+          "title": "Job Name",
+          "description": "Enter the job title/name",
+          "minLength": 1
         },
-        "phoneNo": {
-          "type": "string",
-          "title": "Provider Contact Phone No"
+        "positions": {
+          "type": "integer",
+          "title": "Number of Openings",
+          "description": "How many positions are available?",
+          "minimum": 1,
+          "default": 1
         },
-        "emailId": {
+        "jobDetailsVideo": {
+          "type": "array",
+          "title": "Job Details Video",
+          "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB each)",
+          "items": {
+            "type": "string",
+            "format": "data-url"
+          },
+          "maxItems": 2
+        },
+        "jobDetailsParagraph": {
           "type": "string",
-          "title": "Provider Contact Email ID",
-          "format": "email"
+          "title": "Job Details Paragraph",
+          "description": "Provide detailed description of the job role and responsibilities",
+          "minLength": 1
+        },
+        "jobLocationPhotos": {
+          "type": "array",
+          "title": "Job Location Photos",
+          "description": "Upload photos of the job location (PNG, JPEG, JPG, max 5MB each)",
+          "items": {
+            "type": "string",
+            "format": "data-url"
+          },
+          "maxItems": 5
+        },
+        "startTime": {
+          "type": "string",
+          "title": "Start Time",
+          "description": "Enter the start time for work",
+          "format": "time",
+          "minLength": 1
+        },
+        "endTime": {
+          "type": "string",
+          "title": "End Time",
+          "description": "Enter the end time for work",
+          "format": "time",
+          "minLength": 1
+        },
+        "modeOfWork": {
+          "type": "string",
+          "title": "Mode of Work",
+          "enum": ["on-site-no-shift", "on-site-shifts", "remote", "hybrid", "travelling"],
+          "enumNames": ["On-site - No Shift", "On-site - Shifts", "Remote", "Hybrid", "Travelling"],
+          "description": "Select the mode of work"
+        },
+        "monthlyInHand": {
+          "type": "number",
+          "title": "Monthly In-hand (INR)",
+          "description": "Enter monthly in-hand salary amount",
+          "minimum": 0
+        },
+        "monthlyMaxPerformanceBasedVariable": {
+          "type": "number",
+          "title": "Monthly MAX Performance Based Variable Accrued (INR)",
+          "description": "Enter maximum performance based variable amount",
+          "minimum": 0
+        },
+        "monthlyPfHealthInsurance": {
+          "type": "number",
+          "title": "Monthly PF & Health Insurance (INR)",
+          "description": "Enter monthly PF & health insurance amount",
+          "minimum": 0
+        },
+        "devicesProvided": {
+          "type": "string",
+          "title": "Devices Provided",
+          "enum": ["no", "yes-pc", "yes-laptop", "yes-other"],
+          "enumNames": ["No", "Yes - PC", "Yes - Laptop", "Yes - Other"],
+          "description": "Select if devices are provided"
+        },
+        "devicesProvidedOther": {
+          "type": "string",
+          "title": "Other Device Details",
+          "description": "Specify other device details"
         }
       },
-      "required": ["managerName", "phoneNo", "emailId"]
+      "required": ["title", "positions", "jobDetailsParagraph", "startTime", "endTime", "modeOfWork", "monthlyInHand", "monthlyMaxPerformanceBasedVariable", "devicesProvided"],
+      "dependencies": {
+        "devicesProvided": {
+          "oneOf": [
+            {
+              "properties": {
+                "devicesProvided": { "enum": ["yes-other"] },
+                "devicesProvidedOther": { "minLength": 1 }
+              },
+              "required": ["devicesProvidedOther"]
+            },
+            {
+              "properties": {
+                "devicesProvided": { "enum": ["no", "yes-pc", "yes-laptop"] }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "jobNeeds": {
+      "type": "object",
+      "title": "Job Needs",
+      "x-section": "job-needs",
+      "properties": {
+        "ageAllowedLowerLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Lower Limit",
+          "description": "Enter minimum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "ageAllowedUpperLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Upper Limit",
+          "description": "Enter maximum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "locationPreference": {
+          "type": "string",
+          "title": "Location Preference",
+          "enum": ["no-preference", "yes-50-kms", "yes-100-kms", "yes-1000-kms", "yes-1000-plus-kms"],
+          "enumNames": ["No preference", "Yes - <=50 Kms", "Yes - <=100 Kms", "Yes - <=1000 Kms", "Yes - >1000 Kms"],
+          "description": "Select location preference"
+        },
+        "educationalQualificationSubsection": {
+          "type": "object",
+          "title": "Educational Qualification",
+          "x-subsection": "educational-qualification-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "highestQualification": {
+              "type": "array",
+              "title": "Highest Qualification",
+              "description": "Select highest qualification(s)",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "12th-pass",
+                  "graduate-btech-be",
+                  "graduate-mba-hr",
+                  "graduate-other"
+                ],
+                "enumNames": [
+                  "12th Pass",
+                  "Graduate - B.Tech/B.E.",
+                  "Graduate - MBA HR",
+                  "Graduate - Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "highestQualificationOther": {
+              "type": "string",
+              "title": "Other Qualification Details",
+              "description": "Specify other qualification details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "degree-certificate-aicte",
+                  "provisional-degree-certificate-aicte",
+                  "digilocker",
+                  "other"
+                ],
+                "enumNames": [
+                  "Degree certificate from any AICTE approved college",
+                  "Provisional degree certificate from any AICTE approved college",
+                  "Digilocker",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload or Scan Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["highestQualification", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+        },
+        "hrKnowledgeSubsection": {
+          "type": "object",
+          "title": "HR Knowledge",
+          "x-subsection": "hr-knowledge-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "hrKnowledgePreferences": {
+              "type": "array",
+              "title": "HR Knowledge Preferences",
+              "description": "Select HR knowledge preferences",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no-preference",
+                  "hr-statutory-compliances",
+                  "pf-calculation-certification",
+                  "eq-iq-theory-certification",
+                  "latest-hr-trends-certification",
+                  "ms-office",
+                  "hrms-tools",
+                  "other"
+                ],
+                "enumNames": [
+                  "No preference",
+                  "HR Statutory Compliances",
+                  "PF Calculation certification",
+                  "EQ/IQ theory certification",
+                  "Latest HR trends certification",
+                  "MS Office",
+                  "HRMS Tools",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "hrKnowledgePreferencesOther": {
+              "type": "string",
+              "title": "Other HR Knowledge Details",
+              "description": "Specify other HR knowledge details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "college-transcript",
+                  "skill-certification",
+                  "other"
+                ],
+                "enumNames": [
+                  "College transcript",
+                  "Skill certification",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["hrKnowledgePreferences", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+        },
+        "hrWorkExperienceSubsection": {
+          "type": "object",
+          "title": "HR Work Experience",
+          "x-subsection": "hr-work-experience-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "hrWorkExperience": {
+              "type": "array",
+              "title": "HR Work Experience",
+              "description": "Select HR work experience requirements",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no-preference",
+                  "yes-internship",
+                  "yes-job",
+                  "yes-other"
+                ],
+                "enumNames": [
+                  "No preference",
+                  "Yes - Internship",
+                  "Yes - Job",
+                  "Yes - Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "hrWorkExperienceOther": {
+              "type": "string",
+              "title": "Other Work Experience Details",
+              "description": "Specify other work experience details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "internship-completion-certificate",
+                  "work-ex-certificate",
+                  "recommendation-letter",
+                  "other"
+                ],
+                "enumNames": [
+                  "Internship completion certificate",
+                  "Work ex certificate",
+                  "Recommendation letter",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["hrWorkExperience", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+        },
+        "communicationSubsection": {
+          "type": "object",
+          "title": "Communication",
+          "x-subsection": "communication-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "minimumCommunicationSkillBenchmark": {
+              "type": "string",
+              "title": "Minimum Communication Skill Benchmark",
+              "enum": ["high", "med", "low", "none"],
+              "enumNames": ["High", "Med", "Low", "None"],
+              "description": "Select minimum communication skill benchmark"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "skill-certification",
+                  "video-proof",
+                  "other"
+                ],
+                "enumNames": [
+                  "Skill certification",
+                  "Video proof",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
+            "uploadActualProof": {
+              "type": "array",
+              "title": "Upload Actual Proof",
+              "description": "Upload actual proof documents (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            },
+            "uploadSampleMedia": {
+              "type": "array",
+              "title": "Sample Media for Each Acceptable Proof",
+              "description": "Upload sample media for each acceptable proof (up to 5 files)",
+              "items": {
+                "type": "string",
+                "format": "data-url"
+              },
+              "maxItems": 5
+            }
+          },
+          "required": ["minimumCommunicationSkillBenchmark", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+        }
+      },
+      "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "locationPreference", "educationalQualificationSubsection", "hrKnowledgeSubsection", "hrWorkExperienceSubsection", "communicationSubsection"]
     }
-  }
+  },
+  "required": ["basicInfo", "jobDetails", "jobNeeds"]
 } 
