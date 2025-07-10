@@ -130,7 +130,7 @@ export const useTakeApplicationAction = () => {
   return useMutation({
     mutationFn: ({ organizationId, actionData }: { organizationId: string; actionData: ApplicationActionRequest }) =>
       jobsApi.takeApplicationAction(organizationId, actionData),
-    onSuccess: async (response, { organizationId, actionData }) => {
+    onSuccess: async (_, { organizationId, actionData }) => {
       // Invalidate and refetch applications queries to update the UI
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: jobsQueryKeys.applications(organizationId, actionData.applicationId) }),
