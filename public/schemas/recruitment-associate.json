@@ -278,41 +278,7 @@
               "maxItems": 5
             }
           },
-          "required": ["highestQualification", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"],
-          "dependencies": {
-            "highestQualification": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "highestQualification": { "contains": { "enum": ["graduate-other"] } },
-                    "highestQualificationOther": { "minLength": 1 }
-                  },
-                  "required": ["highestQualificationOther"]
-                },
-                {
-                  "properties": {
-                    "highestQualification": { "not": { "contains": { "enum": ["graduate-other"] } } }
-                  }
-                }
-              ]
-            },
-            "acceptableProofs": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "acceptableProofs": { "contains": { "enum": ["other"] } },
-                    "acceptableProofsOther": { "minLength": 1 }
-                  },
-                  "required": ["acceptableProofsOther"]
-                },
-                {
-                  "properties": {
-                    "acceptableProofs": { "not": { "contains": { "enum": ["other"] } } }
-                  }
-                }
-              ]
-            }
-          }
+          "required": ["highestQualification", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "hrKnowledgeSubsection": {
           "type": "object",
@@ -401,41 +367,7 @@
               "maxItems": 5
             }
           },
-          "required": ["hrKnowledgePreferences", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"],
-          "dependencies": {
-            "hrKnowledgePreferences": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "hrKnowledgePreferences": { "contains": { "enum": ["other"] } },
-                    "hrKnowledgePreferencesOther": { "minLength": 1 }
-                  },
-                  "required": ["hrKnowledgePreferencesOther"]
-                },
-                {
-                  "properties": {
-                    "hrKnowledgePreferences": { "not": { "contains": { "enum": ["other"] } } }
-                  }
-                }
-              ]
-            },
-            "acceptableProofs": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "acceptableProofs": { "contains": { "enum": ["other"] } },
-                    "acceptableProofsOther": { "minLength": 1 }
-                  },
-                  "required": ["acceptableProofsOther"]
-                },
-                {
-                  "properties": {
-                    "acceptableProofs": { "not": { "contains": { "enum": ["other"] } } }
-                  }
-                }
-              ]
-            }
-          }
+          "required": ["hrKnowledgePreferences", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "hrWorkExperienceSubsection": {
           "type": "object",
@@ -518,41 +450,7 @@
               "maxItems": 5
             }
           },
-          "required": ["hrWorkExperience", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"],
-          "dependencies": {
-            "hrWorkExperience": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "hrWorkExperience": { "contains": { "enum": ["yes-other"] } },
-                    "hrWorkExperienceOther": { "minLength": 1 }
-                  },
-                  "required": ["hrWorkExperienceOther"]
-                },
-                {
-                  "properties": {
-                    "hrWorkExperience": { "not": { "contains": { "enum": ["yes-other"] } } }
-                  }
-                }
-              ]
-            },
-            "acceptableProofs": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "acceptableProofs": { "contains": { "enum": ["other"] } },
-                    "acceptableProofsOther": { "minLength": 1 }
-                  },
-                  "required": ["acceptableProofsOther"]
-                },
-                {
-                  "properties": {
-                    "acceptableProofs": { "not": { "contains": { "enum": ["other"] } } }
-                  }
-                }
-              ]
-            }
-          }
+          "required": ["hrWorkExperience", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "communicationSubsection": {
           "type": "object",
@@ -613,25 +511,7 @@
               "maxItems": 5
             }
           },
-          "required": ["minimumCommunicationSkillBenchmark", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"],
-          "dependencies": {
-            "acceptableProofs": {
-              "oneOf": [
-                {
-                  "properties": {
-                    "acceptableProofs": { "contains": { "enum": ["other"] } },
-                    "acceptableProofsOther": { "minLength": 1 }
-                  },
-                  "required": ["acceptableProofsOther"]
-                },
-                {
-                  "properties": {
-                    "acceptableProofs": { "not": { "contains": { "enum": ["other"] } } }
-                  }
-                }
-              ]
-            }
-          }
+          "required": ["minimumCommunicationSkillBenchmark", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         }
       },
       "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "locationPreference", "educationalQualificationSubsection", "hrKnowledgeSubsection", "hrWorkExperienceSubsection", "communicationSubsection"]
