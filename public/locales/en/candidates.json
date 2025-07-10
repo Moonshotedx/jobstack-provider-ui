@@ -27,7 +27,17 @@
     "schedule": "Schedule",
     "hire": "Hire",
     "download": "Download",
-    "contact": "Contact"
+    "contact": "Contact",
+    "accept": "Accept",
+    "accepting": "Accepting...",
+    "rejecting": "Rejecting...",
+    "viewProfile": "View Profile",
+    "scheduleInterview": "Schedule Interview",
+    "sendMessage": "Send Message",
+    "downloadCV": "Download CV",
+    "addNote": "Add Note",
+    "viewApplication": "View Application",
+    "contactCandidate": "Contact Candidate"
   },
   "details": {
     "appliedFor": "Applied for: {{position}}",
@@ -49,18 +59,6 @@
     "placeholder": "Search candidates by name, email, or skills...",
     "noResults": "No candidates found",
     "candidatesFound": "{{count}} candidates found"
-  },
-  "actions": {
-    "viewProfile": "View Profile",
-    "shortlist": "Shortlist",
-    "reject": "Reject",
-    "hire": "Hire",
-    "schedule": "Schedule Interview",
-    "sendMessage": "Send Message",
-    "downloadCV": "Download CV",
-    "addNote": "Add Note",
-    "viewApplication": "View Application",
-    "contactCandidate": "Contact Candidate"
   },
   "messages": {
     "shortlistSuccess": "Candidate shortlisted successfully",

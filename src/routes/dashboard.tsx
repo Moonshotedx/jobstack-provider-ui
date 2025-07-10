@@ -18,6 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle, Briefcase, Users, Plus, Building2, AlertCircle, Mail, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
+import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi';
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardComponent,
@@ -45,9 +46,22 @@ function DashboardContent() {
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
   
-  const { user } = useUserStore()
-  const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth()
-  const queryClient = useQueryClient()
+  const user = useUserStore((state) => state.user);
+  const queryClient = useQueryClient();
+  const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth();
+  
+  // Get real-time jobs data
+  const { data: jobs } = useCurrentOrganizationJobs();
+
+  // Calculate real-time dashboard stats
+  const dashboardStats = {
+    activeJobs: jobs?.filter(job => job.metadata?.status === 'active').length || 0,
+    totalApplications: jobs?.reduce((total, job) => {
+      const applicationsCount = job.applicationsCount ? parseInt(job.applicationsCount) : 0;
+      return total + applicationsCount;
+    }, 0) || 0,
+    candidatesHired: 5 // TODO: Implement real-time hired candidates count
+  };
 
   // Safety check: If no user, they shouldn't be here
   if (!user) {
@@ -295,7 +309,7 @@ function DashboardContent() {
           <CardContent className="flex items-center p-6">
             <Briefcase className="h-8 w-8 text-primary mr-4" />
             <div>
-              <p className="text-2xl font-bold">12</p>
+              <p className="text-2xl font-bold">{dashboardStats.activeJobs}</p>
               <p className="text-muted-foreground">{t('stats.activeJobs')}</p>
             </div>
           </CardContent>
@@ -304,7 +318,7 @@ function DashboardContent() {
           <CardContent className="flex items-center p-6">
             <Users className="h-8 w-8 text-blue-500 mr-4" />
             <div>
-              <p className="text-2xl font-bold">48</p>
+              <p className="text-2xl font-bold">{dashboardStats.totalApplications}</p>
               <p className="text-muted-foreground">{t('stats.totalApplications')}</p>
             </div>
           </CardContent>
@@ -313,7 +327,7 @@ function DashboardContent() {
           <CardContent className="flex items-center p-6">
             <CheckCircle className="h-8 w-8 text-green-500 mr-4" />
             <div>
-              <p className="text-2xl font-bold">5</p>
+              <p className="text-2xl font-bold">{dashboardStats.candidatesHired}</p>
               <p className="text-muted-foreground">{t('stats.candidatesHired')}</p>
             </div>
           </CardContent>
