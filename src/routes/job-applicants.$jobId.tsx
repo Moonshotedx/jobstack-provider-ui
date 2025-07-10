@@ -15,7 +15,9 @@ import {
   ChevronRight,
   ArrowUp,
   ArrowDown,
-  Loader2
+  Loader2,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 import type { JobApplicant } from '@/types/jobPost';
 import CandidateDetails from '@/components/CandidateDetails';
@@ -23,8 +25,9 @@ import { useTranslation } from 'react-i18next';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import React from 'react';
 import Header from '@/components/Header';
-import { useGetJobApplications, useActiveOrganizationId, useGetJobs } from '@/hooks/useJobsApi';
+import { useGetJobApplications, useActiveOrganizationId, useGetJobs, useTakeApplicationAction } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
+import { toast } from 'sonner';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
@@ -47,51 +50,76 @@ function JobApplicantsPage() {
   const { data: jobs } = useGetJobs(activeOrganizationId || '');
   const jobDetails = jobs?.find(job => job.id === jobId);
   
+  // Application action mutation
+  const takeActionMutation = useTakeApplicationAction();
+  
+  // Track loading states for individual candidates
+  const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
+  
+  // Track status updates that should persist across refetches
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, 'hired' | 'rejected'>>({});
+  
   // Transform API data to match the existing JobApplicant interface
   const applicants: JobApplicant[] = React.useMemo(() => {
     if (!applications) return [];
     
+    console.log('🔄 Transforming applications:', applications.map(app => ({
+      appId: app.id,
+      metadataId: app.metadata?.id,
+      name: app.metadata?.name || app.userName
+    })));
+    
     return applications
-      .filter((app: JobApplication) => app && app.candidate) // Filter out any undefined applications
+      .filter((app: JobApplication) => app && app.metadata) // Filter out any undefined applications
       .map((app: JobApplication) => {
-        // Add null checks for candidate data
-        if (!app.candidate) {
-          console.warn('⚠️ Application missing candidate data:', app);
+        // Add null checks for metadata
+        if (!app.metadata) {
+          console.warn('⚠️ Application missing metadata:', app);
           return null;
         }
         
+        // Extract nested metadata if available
+        const nestedMetadata = app.metadata.metadata;
+        
         return {
-          id: app.candidate.id || `candidate-${app.id}`,
-          name: app.candidate.name || 'Unknown Candidate',
-          email: app.candidate.email || '',
-          phone: app.candidate.phone || '',
-          location: app.candidate.location || '',
-          age: app.candidate.age || 0,
+          id: app.id, // Use the unique application ID as the primary identifier
+          name: app.metadata.name || app.userName || 'Unknown Candidate',
+          email: app.contact?.email || '',
+          phone: app.contact?.phone || '',
+          location: app.location?.city?.name && app.location?.state?.name 
+            ? `${app.location.city.name}, ${app.location.state.name}`
+            : app.location?.address || '',
+          age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
-          status: app.status || 'applied',
-          trustScore: app.candidate.trustScore || 0,
-          matchScore: app.candidate.matchScore || 0,
-          experience: app.candidate.experience || '',
-          skills: app.candidate.skills || [],
-          avatar: app.candidate.avatar,
-          resume: app.candidate.resume,
-          coverLetter: app.candidate.coverLetter,
-          expectedSalary: app.candidate.expectedSalary,
-          noticePeriod: app.candidate.noticePeriod,
-          currentCompany: app.candidate.currentCompany,
-          currentRole: app.candidate.currentRole,
-          education: app.candidate.education,
-          languages: app.candidate.languages || [],
-          certifications: app.candidate.certifications || [],
-          portfolio: app.candidate.portfolio,
-          socialLinks: app.candidate.socialLinks,
-          applicationNotes: app.candidate.applicationNotes,
-          interviewScheduled: app.candidate.interviewScheduled,
-          interviewNotes: app.candidate.interviewNotes,
-          feedback: app.candidate.feedback,
-          lastContacted: app.candidate.lastContacted,
-          tags: app.candidate.tags || []
+          status: statusUpdates[app.id] || app.status || 'applied', // Use persisted status if available
+          trustScore: 85, // Default trust score - you can calculate this based on your logic
+          matchScore: 78, // Default match score - you can calculate this based on your logic
+          experience: nestedMetadata?.whoIAm?.location || '',
+          skills: app.metadata.skills || [],
+          avatar: undefined, // No avatar in new API
+          resume: undefined, // No resume in new API
+          coverLetter: undefined, // No cover letter in new API
+          expectedSalary: nestedMetadata?.whatIWant?.monthlyInHandPreferred?.toString() || '',
+          noticePeriod: undefined, // No notice period in new API
+          currentCompany: undefined, // No current company in new API
+          currentRole: undefined, // No current role in new API
+          education: undefined, // No education in new API
+          languages: app.metadata.languages?.map(lang => lang.name) || [],
+          certifications: nestedMetadata?.certificates || [],
+          portfolio: undefined, // No portfolio in new API
+          socialLinks: undefined, // No social links in new API
+          applicationNotes: undefined, // No application notes in new API
+          interviewScheduled: undefined, // No interview scheduled in new API
+          interviewNotes: undefined, // No interview notes in new API
+          feedback: undefined, // No feedback in new API
+          lastContacted: undefined, // No last contacted in new API
+          tags: app.metadata.tags?.map(tag => tag.descriptor.name) || [],
+          // Add the new fields for table display
+          whatIHave: nestedMetadata?.whatIHave,
+          whatIWant: nestedMetadata?.whatIWant,
+          // Store the original application ID for API calls
+          applicationId: app.id
         };
       })
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
@@ -113,7 +141,7 @@ function JobApplicantsPage() {
   const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCandidate, setSelectedCandidate] = useState<JobApplicant | null>(null);
+  const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
   // Sorting state
   const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
@@ -143,7 +171,10 @@ function JobApplicantsPage() {
       filtered = filtered.filter(applicant =>
         applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()))
+        applicant.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        applicant.whatIHave?.jukiMachineExperience?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        applicant.whatIWant?.stayPreferences?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        applicant.whatIWant?.readyToMigrate?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -166,8 +197,14 @@ function JobApplicantsPage() {
   }, [applicants, searchQuery, statusFilter, sortBy, sortOrder]);
 
   const handleViewCandidate = (candidate: JobApplicant) => {
-    setSelectedCandidate(candidate);
-    setShowCandidateDetails(true);
+    // Find the original JobApplication data using the application ID
+    const originalApplication = applications?.find(app => 
+      app.id === candidate.id
+    );
+    if (originalApplication) {
+      setSelectedCandidate(originalApplication);
+      setShowCandidateDetails(true);
+    }
   };
 
   const handleCloseCandidateDetails = () => {
@@ -175,8 +212,153 @@ function JobApplicantsPage() {
     setSelectedCandidate(null);
   };
 
+  // Handle application actions (accept/reject)
+  const handleTakeAction = async (applicant: JobApplicant, action: 'accept' | 'reject') => {
+    if (!activeOrganizationId || !applicant.applicationId) {
+      console.error('Missing organization ID or application ID');
+      return;
+    }
+
+    console.log('🎯 Taking action on candidate:', {
+      candidateId: applicant.id,
+      candidateName: applicant.name,
+      action,
+      applicationId: applicant.applicationId
+    });
+
+    // Set loading state for this specific candidate
+    setLoadingStates(prev => ({ ...prev, [applicant.id]: action }));
+
+    const actionData = {
+      applicationId: applicant.applicationId,
+      applicationStatus: action === 'accept' ? 'Hired' : 'Rejected',
+      action: action
+    };
+
+    try {
+      await takeActionMutation.mutateAsync({
+        organizationId: activeOrganizationId,
+        actionData
+      });
+      
+      // Update the status in our persistent state
+      const newStatus = action === 'accept' ? 'hired' : 'rejected';
+      setStatusUpdates(prev => ({
+        ...prev,
+        [applicant.id]: newStatus
+      }));
+      
+      console.log('✅ Updated status for candidate:', {
+        candidateId: applicant.id,
+        candidateName: applicant.name,
+        newStatus,
+        allStatusUpdates: { ...statusUpdates, [applicant.id]: newStatus }
+      });
+      
+      // Don't refetch immediately - let the local state handle the UI
+      // The API call has already succeeded, so we can trust our local state
+      // Refetch will happen automatically when the user navigates or refreshes
+    } catch (error) {
+      console.error('Failed to take action on application:', error);
+      // Show error toast
+      toast.error('Failed to take action', {
+        description: 'Please try again later.',
+      });
+    } finally {
+      // Clear loading state for this candidate
+      setLoadingStates(prev => ({ ...prev, [applicant.id]: null }));
+    }
+  };
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  };
+
+  // Helper function to get action button state for a specific candidate
+  const getActionButtonState = (applicantId: string) => {
+    return loadingStates[applicantId] || null;
+  };
+  
+  // Helper function to get the current status considering updates
+  const getCurrentStatus = (applicantId: string, originalStatus: string) => {
+    return statusUpdates[applicantId] || originalStatus;
+  };
+
+  // Helper function to render action buttons based on candidate status
+  const renderActionButtons = (applicant: JobApplicant) => {
+    const loadingState = getActionButtonState(applicant.id);
+    const isAcceptLoading = loadingState === 'accept';
+    const isRejectLoading = loadingState === 'reject';
+    const currentStatus = getCurrentStatus(applicant.id, applicant.status);
+
+    // If candidate is already hired or rejected, show status instead of buttons
+    if (currentStatus === 'hired') {
+      return (
+        <div className="flex items-center gap-2">
+          <CheckCircle className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium text-green-600">Hired</span>
+        </div>
+      );
+    }
+
+    if (currentStatus === 'rejected') {
+      return (
+        <div className="flex items-center gap-2">
+          <XCircle className="h-4 w-4 text-red-600" />
+          <span className="text-sm font-medium text-red-600">Rejected</span>
+        </div>
+      );
+    }
+
+    // Show action buttons for other statuses
+    return (
+      <div className="flex gap-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-green-600 hover:text-green-700" 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTakeAction(applicant, 'accept');
+          }} 
+          disabled={isAcceptLoading || isRejectLoading}
+        >
+          {isAcceptLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              {t('actions.accepting')}
+            </>
+          ) : (
+            <>
+              <CheckCircle className="h-4 w-4 mr-1" />
+              {t('actions.accept')}
+            </>
+          )}
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="text-red-600 hover:text-red-700" 
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTakeAction(applicant, 'reject');
+          }} 
+          disabled={isAcceptLoading || isRejectLoading}
+        >
+          {isRejectLoading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              {t('actions.rejecting')}
+            </>
+          ) : (
+            <>
+              <XCircle className="h-4 w-4 mr-1" />
+              {t('actions.reject')}
+            </>
+          )}
+        </Button>
+      </div>
+    );
   };
 
   // Loading state
@@ -363,6 +545,8 @@ function JobApplicantsPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="closed">Closed</SelectItem>
                   <SelectItem value="applied">Applied</SelectItem>
                   <SelectItem value="reviewed">Reviewed</SelectItem>
                   <SelectItem value="shortlisted">Shortlisted</SelectItem>
@@ -388,10 +572,11 @@ function JobApplicantsPage() {
                     <th className="text-left p-4 font-medium">Name</th>
                     <th className="text-left p-4 font-medium">Location</th>
                     <th className="text-left p-4 font-medium">Age</th>
-                    <th className="text-left p-4 font-medium">What I Have</th>
-                    <th className="text-left p-4 font-medium">What I Have</th>
-                    <th className="text-left p-4 font-medium">What I Have</th>
-                    <th className="text-left p-4 font-medium">What I Have</th>
+                    <th className="text-left p-4 font-medium">Quality Score</th>
+                    <th className="text-left p-4 font-medium">Stitching Speed</th>
+                    <th className="text-left p-4 font-medium">Juki Experience</th>
+                    <th className="text-left p-4 font-medium">Monthly In-Hand</th>
+                    <th className="text-left p-4 font-medium">Work Hours/Day</th>
                     <th className="text-left p-4 font-medium">
                       <div className="flex items-center gap-1">
                         Trust Score
@@ -449,16 +634,19 @@ function JobApplicantsPage() {
                           <span className="text-sm font-medium">{applicant.age} years</span>
                         </td>
                         <td className="p-4">
-                          <span className="text-sm text-muted-foreground">-</span>
+                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.qualityScore || 'N/A'}</span>
                         </td>
                         <td className="p-4">
-                          <span className="text-sm text-muted-foreground">-</span>
+                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.stitchingSpeed || 'N/A'}</span>
                         </td>
                         <td className="p-4">
-                          <span className="text-sm text-muted-foreground">-</span>
+                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.jukiMachineExperience || 'N/A'}</span>
                         </td>
                         <td className="p-4">
-                          <span className="text-sm text-muted-foreground">-</span>
+                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.monthlyInHandPreferred || 'N/A'}</span>
+                        </td>
+                        <td className="p-4">
+                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.workHoursPerDay || 'N/A'}</span>
                         </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
@@ -473,20 +661,13 @@ function JobApplicantsPage() {
                           </div>
                         </td>
                         <td className="p-4">
-                          <div className="flex gap-2">
-                            <Button variant="outline" size="sm" className="text-green-600 hover:text-green-700">
-                              Approve
-                            </Button>
-                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
-                              Reject
-                            </Button>
-                          </div>
+                          {renderActionButtons(applicant)}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="p-8 text-center">
+                      <td colSpan={11} className="p-8 text-center">
                         <h3 className="text-lg font-medium mb-2">{t('search.noResults')}</h3>
                         <p className="text-muted-foreground">
                           No applicants found matching your criteria.

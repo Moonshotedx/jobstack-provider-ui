@@ -70,7 +70,8 @@ const MyJobs = () => {
   };
 
   const getApplicationsCount = (job: JobPosting) => {
-    return job.metadata?.applicationsCount || 0;
+    // Use real-time applicationsCount from API response, fallback to metadata if not available
+    return job.applicationsCount ? parseInt(job.applicationsCount) : (job.metadata?.applicationsCount || 0);
   };
 
   const getPayFrequency = (job: JobPosting) => {

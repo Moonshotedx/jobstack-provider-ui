@@ -76,6 +76,7 @@ export interface JobPosting {
   createdBy: string;
   createdAt: string;
   updatedAt: string;
+  applicationsCount: string; // Real-time applications count from API
 }
 
 export interface ApiResponse<T> {
@@ -100,43 +101,97 @@ export interface GetJobsResponse {
 export interface JobApplication {
   id: string;
   jobId: string;
-  candidateId: string;
-  status: 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
   appliedAt: string;
-  updatedAt: string;
-  candidate: {
+  userName: string;
+  metadata: {
     id: string;
+    age: string;
     name: string;
+    tags: Array<{
+      list: Array<{
+        value: string;
+        descriptor: {
+          code: string;
+          name: string;
+        };
+      }>;
+      descriptor: {
+        code: string;
+        name: string;
+      };
+    }>;
+    skills: string[];
+    languages: Array<{
+      code: string;
+      name: string;
+    }>;
+    metadata?: {
+      name: string;
+      phone: string;
+      skills: string[];
+      whoIAm: {
+        age: number;
+        name: string;
+        phone: string;
+        location: string;
+        isAgeVerified: boolean;
+        isNameVerified: boolean;
+        currentLocation: string;
+        desiredLocation: string;
+      };
+      education: any[];
+      whatIHave: {
+        age: number;
+        qualityScore: number;
+        stitchingSpeed: number;
+        machinesOperated: string[];
+        jukiMachineExperience: string;
+        qualityScoreExplanation: string;
+      };
+      whatIWant: {
+        monthlyPFESIC: string;
+        readyToMigrate: string;
+        stayPreferences: string;
+        workHoursPerDay: number;
+        maxCostPerSharingBed: number;
+        monthlyOTExpectation: number;
+        monthlyInHandPreferred: number;
+      };
+      experience: any[];
+      certificates: any[];
+      isAgeVerified: boolean;
+      interestedRole: string;
+      isNameVerified: boolean;
+      workExperience: any[];
+      currentLocation: string;
+      desiredLocation: string;
+      interestedIndustry: string;
+      skillCertifications: any[];
+    };
+  };
+  contact: {
     email: string;
     phone: string;
-    location: string;
-    age: number;
-    experience: string;
-    skills: string[];
-    avatar?: string;
-    resume?: string;
-    coverLetter?: string;
-    expectedSalary?: string;
-    noticePeriod?: string;
-    currentCompany?: string;
-    currentRole?: string;
-    education?: string;
-    languages?: string[];
-    certifications?: string[];
-    portfolio?: string;
-    socialLinks?: {
-      linkedin?: string;
-      github?: string;
-      portfolio?: string;
+  };
+  location: {
+    gps: {
+      lat: number;
+      lng: number;
     };
-    applicationNotes?: string;
-    interviewScheduled?: string;
-    interviewNotes?: string;
-    feedback?: string;
-    lastContacted?: string;
-    tags?: string[];
-    trustScore?: number;
-    matchScore?: number;
+    city: {
+      code: string;
+      name: string;
+    };
+    state: {
+      code: string;
+      name: string;
+    };
+    address: string;
+    country: {
+      code: string;
+      name: string;
+    };
   };
 }
 
@@ -147,6 +202,18 @@ export interface GetJobApplicationsResponse {
     limit: number;
     total: number;
   };
+}
+
+// Application Action types
+export interface ApplicationActionRequest {
+  applicationId: string;
+  applicationStatus: string;
+  action: string;
+}
+
+export interface ApplicationActionResponse {
+  success: boolean;
+  message: string;
 }
 
 // Job API methods
@@ -195,6 +262,33 @@ export const jobsApi = {
     } catch (error) {
       console.error('❌ Error fetching job applications:', error);
       throw error;
+    }
+  },
+
+  // Take action on a job application (accept/reject)
+  takeApplicationAction: async (organizationId: string, actionData: ApplicationActionRequest): Promise<ApplicationActionResponse> => {
+    console.log('🚀 Making API call to take application action:', {
+      organizationId,
+      actionData,
+      url: `/jobs/${organizationId}/applications`,
+      fullUrl: `${API_BASE_URL}/jobs/${organizationId}/applications`
+    });
+    
+    try {
+      const response = await apiClient.post<ApiResponse<ApplicationActionResponse>>(
+        `/jobs/${organizationId}/applications`,
+        actionData
+      );
+      
+      console.log('📡 Application action API response:', response.data);
+      
+      return {
+        success: true,
+        message: response.data.message || 'Action completed successfully'
+      };
+    } catch (error: any) {
+      console.error('❌ Error taking application action:', error);
+      throw new Error(error.response?.data?.message || 'Failed to take action on application');
     }
   },
 };

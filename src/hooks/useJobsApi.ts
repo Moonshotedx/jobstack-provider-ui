@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest } from '@/lib/api-client';
 import { authClient } from '@/lib/auth-client';
 
 // Query keys for cache management
@@ -123,5 +123,39 @@ export const useActiveOrganizationId = () => {
   return session?.data?.session?.activeOrganizationId;
 };
 
+// Hook to take action on a job application (accept/reject)
+export const useTakeApplicationAction = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ organizationId, actionData }: { organizationId: string; actionData: ApplicationActionRequest }) =>
+      jobsApi.takeApplicationAction(organizationId, actionData),
+    onSuccess: async (response, { organizationId, actionData }) => {
+      // Invalidate and refetch applications queries to update the UI
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.applications(organizationId, actionData.applicationId) }),
+        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) }),
+      ]);
+
+      // Show success toast based on action
+      const actionType = actionData.action === 'accept' ? 'accepted' : 'rejected';
+      const statusType = actionData.applicationStatus === 'Hired' ? 'hired' : 'rejected';
+      
+      toast.success(`Candidate ${actionType} successfully!`, {
+        description: `Application status updated to ${statusType}.`,
+      });
+    },
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || 
+                          error?.message || 
+                          'Failed to take action on application';
+      
+      toast.error('Failed to take action', {
+        description: errorMessage,
+      });
+    },
+  });
+};
+
 // Export types for use in components
-export type { CreateJobRequest, JobPosting, JobApplication }; 
+export type { CreateJobRequest, JobPosting, JobApplication, ApplicationActionRequest }; 

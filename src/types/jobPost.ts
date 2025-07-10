@@ -166,7 +166,6 @@ export const transformJobDataToCreateJobRequest = (
     
     // Status for tracking
     status: 'active',
-    applicationsCount: 0,
   };
 
   // Add role-specific metadata
@@ -200,7 +199,7 @@ export interface JobApplicant {
   age: number;
   appliedFor: string;
   applicationDate: string;
-  status: 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
   trustScore: number;
   matchScore: number;
   experience: string;
@@ -227,6 +226,26 @@ export interface JobApplicant {
   feedback?: string;
   lastContacted?: string;
   tags?: string[];
+  // New fields for the updated API response
+  whatIHave?: {
+    age: number;
+    qualityScore: number;
+    stitchingSpeed: number;
+    machinesOperated: string[];
+    jukiMachineExperience: string;
+    qualityScoreExplanation: string;
+  };
+  whatIWant?: {
+    monthlyPFESIC: string;
+    readyToMigrate: string;
+    stayPreferences: string;
+    workHoursPerDay: number;
+    maxCostPerSharingBed: number;
+    monthlyOTExpectation: number;
+    monthlyInHandPreferred: number;
+  };
+  // Store the original application ID for API calls
+  applicationId?: string;
 }
 
 export interface JobApplicantsListProps {
@@ -236,9 +255,4 @@ export interface JobApplicantsListProps {
   jobTitle: string;
 }
 
-export interface CandidateDetailsProps {
-  isOpen: boolean;
-  onClose: () => void;
-  candidate: JobApplicant;
-  jobTitle: string;
-} 
+ 
