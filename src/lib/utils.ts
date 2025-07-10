@@ -8,12 +8,22 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export async function logout() {
-  await authClient
-    .signOut()
-    .then(() => {
-      window.location.href = '/auth/login';
-    })
-    .catch((_) => {
-      toast.error('signOut failed');
-    });
+  try {
+    await authClient.signOut();
+    // Don't redirect automatically - let the calling component handle navigation
+    return true;
+  } catch (error) {
+    console.error('Logout failed:', error);
+    return false;
+  }
+}
+
+// Separate function for logout with redirect (for manual logout)
+export async function logoutAndRedirect() {
+  const success = await logout();
+  if (success) {
+    window.location.href = '/';
+  } else {
+    toast.error('Sign out failed');
+  }
 }

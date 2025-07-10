@@ -7,14 +7,14 @@ import { useAuth } from '@/hooks/useAuth'
 import { CreateOrg } from '@/components/organisation/CreateOrg'
 import PostJobDialog from '@/components/PostJobDialog'
 import MyJobs from '@/components/MyJobs'
-import CandidateManagement from '@/components/CandidateManagement'
+// import CandidateManagement from '@/components/CandidateManagement'
 import EmployerManagement from '@/components/employer/EmployerManagement'
 import EmployerManagementModal from '@/components/employer/EmployerManagementModal'
 import EmployerProfileDialog from '@/components/employer/EmployerProfileDialog'
 import EmployerSelector from '@/components/employer/EmployerSelector'
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { CheckCircle, Briefcase, Users, Plus, Building2, AlertCircle, Mail, RefreshCw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
@@ -37,7 +37,6 @@ export const Route = createFileRoute('/dashboard')({
 
 function DashboardContent() {
   const { t } = useTranslation('dashboard');
-  const [activeTab, setActiveTab] = useState('my-jobs')
   const [showOrgProfile, setShowOrgProfile] = useState(false)
   const [showEmployerDialog, setShowEmployerDialog] = useState(false)
   const [showPostJob, setShowPostJob] = useState(false)
@@ -45,6 +44,7 @@ function DashboardContent() {
   const [isCheckingVerification, setIsCheckingVerification] = useState(false)
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
+  // const [activeTab, setActiveTab] = useState('myJobs') // Commented out for future use
   
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
@@ -151,7 +151,7 @@ function DashboardContent() {
 
   // Show verification required screen
   // IMPORTANT: All users must verify their email before accessing dashboard features
-  if (user && !user.isVerified && !isCheckingVerification) {
+  if (user && !user.isVerified && !isCheckingVerification)
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto text-center space-y-6">
@@ -212,7 +212,6 @@ function DashboardContent() {
         </div>
       </div>
     )
-  }
 
   // If user doesn't have organization profile, show profile creation
   if (user && !user.profile) {
@@ -334,25 +333,31 @@ function DashboardContent() {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
+      {/* Job Postings Content - Direct display without tabs */}
+      <MyJobs />
+
+      {/* Commented out tabs system for future use */}
+      {/* 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="my-jobs">{t('tabs.myJobs')}</TabsTrigger>
-          <TabsTrigger value="candidates" className="text-red-500 data-[state=active]:text-red-500">{t('tabs.candidateManagement')}</TabsTrigger>
-          <TabsTrigger value="employers" className="text-red-500 data-[state=active]:text-red-500">{t('tabs.employerManagement')}</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="myJobs">{t('tabs.myJobs')}</TabsTrigger>
+          <TabsTrigger value="candidateManagement">{t('tabs.candidateManagement')}</TabsTrigger>
+          <TabsTrigger value="employerManagement">{t('tabs.employerManagement')}</TabsTrigger>
         </TabsList>
-        <TabsContent value="my-jobs" className="mt-0">
+        
+        <TabsContent value="myJobs">
           <MyJobs />
         </TabsContent>
         
-        <TabsContent value="candidates" className="mt-0">
+        <TabsContent value="candidateManagement">
           <CandidateManagement />
         </TabsContent>
         
-        <TabsContent value="employers" className="mt-0">
+        <TabsContent value="employerManagement">
           <EmployerManagement />
         </TabsContent>
       </Tabs>
+      */}
 
       {/* Dialogs */}
       <PostJobDialog 
