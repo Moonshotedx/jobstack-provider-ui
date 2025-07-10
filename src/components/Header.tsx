@@ -11,6 +11,7 @@ import { CreateOrg } from './organisation/CreateOrg';
 import LanguageSwitcher from './ui/language-switcher';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { logoutAndRedirect } from '@/lib/utils';
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
@@ -18,8 +19,8 @@ const Header = () => {
   const { t } = useTranslation('navigation');
   
   const navigate = useNavigate();
-  const { user } = useUserStore();
-  const { logout, checkSession } = useAuth();
+  const user = useUserStore((state) => state.user);
+  const { checkSession } = useAuth();
   const queryClient = useQueryClient();
 
   const handlePostJobs = () => {
@@ -51,14 +52,11 @@ const Header = () => {
   };
 
   const handleLogout = async () => {
-    try {
-      await logout();
-      navigate({ to: '/' }); // Navigate to home page after logout
-    } catch (error) {
-      // Handle logout error silently or show user-friendly message
-      toast.error('Logout failed. Please try again.');
-    }
+    await logoutAndRedirect();
   };
+
+  // Explicitly check if user exists and has valid data
+  const isUserLoggedIn = user && (user.email || user.phone || user.id);
 
   return (
     <>
@@ -101,7 +99,7 @@ const Header = () => {
               </Button>
 
               {/* User Menu */}
-              {user ? (
+              {isUserLoggedIn ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="sm" className="gap-2">

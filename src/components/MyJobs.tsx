@@ -197,6 +197,8 @@ const MyJobs = () => {
 
   return (
     <div className="space-y-6">
+
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">{t('management.title')}</h2>
@@ -206,6 +208,7 @@ const MyJobs = () => {
           {t('management.totalJobs', { count: jobs?.length || 0 })}
         </Badge>
       </div>
+     
 
       <div className="grid gap-4">
         {jobs?.map((job) => {

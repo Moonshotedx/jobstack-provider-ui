@@ -33,25 +33,6 @@
           "title": "Job Provider Logo",
           "description": "Upload company logo (PNG, JPG, max 5MB)",
           "format": "data-url"
-        },
-        "contactPersonName": {
-          "type": "string",
-          "title": "Contact Person Name",
-          "description": "Enter manager/contact person name",
-          "minLength": 1
-        },
-        "contactEmail": {
-          "type": "string",
-          "title": "Contact Email",
-          "description": "manager@company.com",
-          "format": "email",
-          "minLength": 1
-        },
-        "contactPhone": {
-          "type": "string",
-          "title": "Contact Phone Number",
-          "description": "+91 98765 43210",
-          "minLength": 1
         }
       },
       "required": ["jobProviderName", "jobProviderLocation"]

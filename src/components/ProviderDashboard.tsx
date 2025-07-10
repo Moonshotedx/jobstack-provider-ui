@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 // import { useAuth } from '@/contexts/AuthContext';
 import MyJobs from './MyJobs';
-import CandidateManagement from './CandidateManagement';
 
 import PostJobDialog from './PostJobDialog';
 import { CreateOrg } from './organisation/CreateOrg';
@@ -16,7 +14,6 @@ import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi';
 
 const ProviderDashboard = () => {
   const { t } = useTranslation('dashboard');
-  const [activeTab, setActiveTab] = useState('my-jobs');
   const [showPostJob, setShowPostJob] = useState(false);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   
@@ -194,21 +191,8 @@ const ProviderDashboard = () => {
         </Card>
       </div>
 
-      {/* Main Content Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
-          <TabsTrigger value="my-jobs">{t('tabs.myJobs')}</TabsTrigger>
-          <TabsTrigger value="candidates">{t('tabs.candidateManagement')}</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="my-jobs" className="mt-0">
-          <MyJobs />
-        </TabsContent>
-        
-        <TabsContent value="candidates" className="mt-0">
-          <CandidateManagement />
-        </TabsContent>
-      </Tabs>
+      {/* Job Postings Content */}
+      <MyJobs />
 
       {/* Post Job Dialog */}
       <PostJobDialog 

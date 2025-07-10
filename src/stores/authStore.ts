@@ -98,7 +98,7 @@ export const useUserStore = create<UserState>()(
         },
 
         clearUser: () => {
-          set({ user: null })
+          set({ user: null, currentOrganizationId: null })
         },
 
         setLoading: (loading) => {
