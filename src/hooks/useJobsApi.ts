@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, updateOrganization } from '@/lib/api-client';
 import { authClient } from '@/lib/auth-client';
 
 // Query keys for cache management
@@ -52,6 +52,34 @@ export const useCreateJob = () => {
   });
 };
 
+// Hook to duplicate an existing job
+export const useDuplicateJob = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ organizationId, job }: { organizationId: string; job: JobPosting }) => {
+      console.log('🔄 Duplicating job:', { organizationId, jobId: job.id });
+      return await jobsApi.duplicateJob(organizationId, job);
+    },
+    onSuccess: (data, variables) => {
+      console.log('✅ Job duplicated successfully:', data);
+      
+      // Invalidate and refetch jobs list
+      queryClient.invalidateQueries({
+        queryKey: ['jobs', variables.organizationId]
+      });
+      
+      toast.success('Job duplicated successfully!', {
+        description: 'A new job has been created with the same details.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ Failed to duplicate job:', error);
+      toast.error(error?.response?.data?.message || 'Failed to duplicate job. Please try again.');
+    }
+  });
+};
+
 export const useUpdateJob = () => {
   const queryClient = useQueryClient();
   
@@ -73,6 +101,34 @@ export const useUpdateJob = () => {
     onError: (error: any) => {
       console.error('❌ Failed to update job:', error);
       toast.error(error?.response?.data?.message || 'Failed to update job. Please try again.');
+    }
+  });
+};
+
+// Hook to delete a job
+export const useDeleteJob = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ organizationId, jobId }: { organizationId: string; jobId: string }) => {
+      console.log('🗑️ Deleting job:', { organizationId, jobId });
+      return await jobsApi.deleteJob(organizationId, jobId);
+    },
+    onSuccess: (_, variables) => {
+      console.log('✅ Job deleted successfully');
+      
+      // Invalidate and refetch jobs list
+      queryClient.invalidateQueries({
+        queryKey: ['jobs', variables.organizationId]
+      });
+      
+      toast.success('Job deleted successfully!', {
+        description: 'The job has been permanently removed.',
+      });
+    },
+    onError: (error: any) => {
+      console.error('❌ Failed to delete job:', error);
+      toast.error(error?.response?.data?.message || 'Failed to delete job. Please try again.');
     }
   });
 };
@@ -168,6 +224,34 @@ export const useTakeApplicationAction = () => {
       toast.error('Failed to take action', {
         description: errorMessage,
       });
+    },
+  });
+};
+
+// Organization hooks
+export const useGetOrganizationList = () => {
+  return useQuery({
+    queryKey: ['organizations'],
+    queryFn: () => getOrganizationList(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+export const useUpdateOrganization = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ organizationId, organizationData }: {
+      organizationId: string;
+      organizationData: {
+        name: string;
+        metadata: string;
+        logo?: string;
+      };
+    }) => updateOrganization(organizationId, organizationData),
+    onSuccess: () => {
+      // Invalidate and refetch organization list
+      queryClient.invalidateQueries({ queryKey: ['organizations'] });
     },
   });
 };

@@ -2,28 +2,46 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Edit, MoreHorizontal, MapPin, Calendar, Loader2, Users } from 'lucide-react';
+import { Eye, Edit, MoreHorizontal, MapPin, Calendar, Loader2, Users, Copy, Trash2, AlertTriangle } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { useCurrentOrganizationJobs, useDuplicateJob, useActiveOrganizationId, useDeleteJob } from '@/hooks/useJobsApi';
 import type { JobPosting } from '@/lib/api-client';
 import { useTranslation } from 'react-i18next';
 import { Link } from '@tanstack/react-router';
 import JobDetailsDialog from './JobDetailsDialog';
 import PostJobDialog from './PostJobDialog';
+import { toast } from 'sonner';
 
 const MyJobs = () => {
   const { t } = useTranslation('jobs');
   const { data: jobs, isLoading, error } = useCurrentOrganizationJobs();
+  const activeOrganizationId = useActiveOrganizationId();
   
   // State for dialogs
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobDetails, setShowJobDetails] = useState(false);
   const [showEditJob, setShowEditJob] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<JobPosting | null>(null);
+
+  // Duplicate job mutation
+  const duplicateJobMutation = useDuplicateJob();
+
+  // Delete job mutation
+  const deleteJobMutation = useDeleteJob();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,6 +132,62 @@ const MyJobs = () => {
   const handleCloseEditJob = () => {
     setShowEditJob(false);
     setSelectedJob(null);
+  };
+
+  // Handle duplicate job
+  const handleDuplicateJob = async (job: JobPosting) => {
+    if (!activeOrganizationId) {
+      toast.error('No active organization found. Please select an organization first.');
+      return;
+    }
+
+    try {
+      await duplicateJobMutation.mutateAsync({
+        organizationId: activeOrganizationId,
+        job: job
+      });
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Failed to duplicate job:', error);
+    }
+  };
+
+  // Handle delete job
+  const handleDeleteJob = async (job: JobPosting) => {
+    if (!activeOrganizationId) {
+      toast.error('No active organization found. Please select an organization first.');
+      return;
+    }
+
+    setJobToDelete(job);
+    setShowDeleteConfirm(true);
+  };
+
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    if (!jobToDelete || !activeOrganizationId) {
+      return;
+    }
+
+    try {
+      await deleteJobMutation.mutateAsync({
+        organizationId: activeOrganizationId,
+        jobId: jobToDelete.id
+      });
+      
+      // Close the dialog after successful deletion
+      setShowDeleteConfirm(false);
+      setJobToDelete(null);
+    } catch (error) {
+      // Error handling is done in the mutation hook
+      console.error('Failed to delete job:', error);
+    }
+  };
+
+  // Handle cancel delete
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setJobToDelete(null);
   };
 
   // Function to render job details dynamically
@@ -324,11 +398,13 @@ const MyJobs = () => {
                             {t('management.viewApplications')}
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
+                          <Copy className="h-4 w-4 mr-2" />
                           {t('management.duplicateJob')}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-red-600">
-                          {t('management.closeJob')}
+                        <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          {t('management.deleteJob')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -370,6 +446,58 @@ const MyJobs = () => {
         skipAuthSteps={true}
         editJobData={selectedJob}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <DialogTitle className="text-lg">Delete Job Posting</DialogTitle>
+                <DialogDescription className="text-sm text-muted-foreground">
+                  This action cannot be undone. This will permanently delete the job posting and remove it from your dashboard.
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          {jobToDelete && (
+            <div className="rounded-lg bg-muted p-4">
+              <h4 className="font-medium mb-2">Job to be deleted:</h4>
+              <p className="text-sm text-muted-foreground">{jobToDelete.title}</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                Posted on {formatDate(jobToDelete.createdAt)}
+              </p>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={handleCancelDelete}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleConfirmDelete}
+              disabled={deleteJobMutation.isPending}
+            >
+              {deleteJobMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Job
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );

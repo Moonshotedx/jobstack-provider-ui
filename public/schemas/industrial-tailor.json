@@ -197,16 +197,6 @@
               "title": "Other proof type",
               "description": "Specify other proof type for speed verification"
             },
-            "uploadSpeedProof": {
-              "type": "array",
-              "title": "Upload actual proof",
-              "description": "Upload actual proof documents (up to 5 files)",
-              "items": {
-                "type": "string",
-                "format": "data-url"
-              },
-              "maxItems": 5
-            },
             "uploadSpeedSampleMedia": {
               "type": "array",
               "title": "Upload Sample media for each acceptable proof",
@@ -258,16 +248,6 @@
               "type": "string",
               "title": "Other proof type",
               "description": "Specify other proof type for error rate verification"
-            },
-            "uploadErrorProof": {
-              "type": "array",
-              "title": "Upload actual proof",
-              "description": "Upload actual proof documents (up to 5 files)",
-              "items": {
-                "type": "string",
-                "format": "data-url"
-              },
-              "maxItems": 5
             },
             "uploadErrorSampleMedia": {
               "type": "array",
