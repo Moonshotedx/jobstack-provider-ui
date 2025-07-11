@@ -17,10 +17,11 @@ import { Input } from '@/components/ui/input'
 import { toast } from "sonner"
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Upload, Building, Loader2 } from 'lucide-react';
+import { Upload, Building, Loader2, X } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
+import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
 
 const FormSchema = z.object({
   name: z.string().min(1, 'Organization name is required'),
@@ -45,6 +46,7 @@ interface CreateOrgProps {
 export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps) {
   const { t } = useTranslation('organizations');
   const [isLoading, setIsLoading] = useState(false);
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const { updateProfile } = useUserStore();
 
   const form = useForm<FormData>({
@@ -153,11 +155,84 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     }
   };
 
-  const handleLogoUpload = () => {
-    const mockLogoUrl = 'https://via.placeholder.com/100x100';
-    form.setValue('logo', mockLogoUrl);
-    toast.info("Logo Uploaded", {
-      description: "Organization logo has been uploaded."
+  const handleLogoUpload = async () => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/jpg';
+    input.style.display = 'none';
+    
+    input.onchange = async (event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
+      if (!file) return;
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File too large', {
+          description: 'Please select a file smaller than 5MB.'
+        });
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', {
+          description: 'Please select a valid image file (PNG, JPEG, JPG).'
+        });
+        return;
+      }
+      
+      setIsUploadingLogo(true);
+      
+      try {
+        // Generate unique object key for the logo
+        const objectKey = `provider/id${Date.now()}`;
+        
+        // Get presigned URL
+        const presignedUrlResponse = await getPresignedUrl({
+          bucketName: 'onest-job-storage',
+          contentType: file.type,
+          objectKey: objectKey
+        });
+        
+        // Upload file to presigned URL
+        await uploadFileToPresignedUrl(presignedUrlResponse.uploadUrl, file);
+        
+        // Set the access URL in the form
+        form.setValue('logo', presignedUrlResponse.accessUrl);
+        
+        toast.success('Logo uploaded successfully', {
+          description: 'Your organization logo has been uploaded.'
+        });
+        
+      } catch (error: any) {
+        console.error('Logo upload failed:', error);
+        
+        // If it's a CORS error, provide helpful message
+        if (error.message.includes('CORS restrictions')) {
+          toast.error('Upload failed', {
+            description: 'CORS error: Please contact support to configure storage bucket permissions.'
+          });
+        } else {
+          toast.error('Upload failed', {
+            description: 'Failed to upload logo. Please try again.'
+          });
+        }
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    };
+    
+    // Trigger file selection
+    input.click();
+  };
+
+  const handleRemoveLogo = () => {
+    form.setValue('logo', '');
+    toast.info('Logo removed', {
+      description: 'Organization logo has been removed.'
     });
   };
 
@@ -247,16 +322,55 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 {form.watch('logo') ? (
                   <div className="space-y-2">
                     <img src={form.watch('logo')} alt="Logo" className="h-16 w-16 mx-auto rounded" />
-                    <Button type="button" variant="outline" onClick={handleLogoUpload}>
-                      {t('create.changeLogo')}
-                    </Button>
+                    <div className="flex gap-2 justify-center">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleLogoUpload}
+                        disabled={isUploadingLogo}
+                      >
+                        {isUploadingLogo ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Uploading...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-4 w-4 mr-2" />
+                            {t('create.changeLogo')}
+                          </>
+                        )}
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        onClick={handleRemoveLogo}
+                        disabled={isUploadingLogo}
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        Remove
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-2">
                     <Building className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <Button type="button" onClick={handleLogoUpload}>
-                      <Upload className="h-4 w-4 mr-2" />
-                      {t('create.uploadLogo')}
+                    <Button 
+                      type="button" 
+                      onClick={handleLogoUpload}
+                      disabled={isUploadingLogo}
+                    >
+                      {isUploadingLogo ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {t('create.uploadLogo')}
+                        </>
+                      )}
                     </Button>
                   </div>
                 )}

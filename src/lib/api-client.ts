@@ -294,3 +294,124 @@ export const jobsApi = {
 };
 
 export default apiClient; 
+
+export interface PresignedUrlRequest {
+  bucketName: string;
+  contentType: string;
+  objectKey: string;
+}
+
+export interface PresignedUrlResponse {
+  uploadUrl: string;
+  accessUrl: string;
+  expiresIn: number;
+  objectKey: string;
+}
+
+export const getPresignedUrl = async (request: PresignedUrlRequest): Promise<PresignedUrlResponse> => {
+  console.log('🚀 Getting presigned URL:', request);
+  
+  try {
+    const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/api/v1/storage/presigned-url`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(request),
+    });
+
+    console.log('📡 Presigned URL response status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Failed to get presigned URL:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText
+      });
+      throw new Error(`Failed to get presigned URL: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    const data = await response.json();
+    console.log('✅ Presigned URL response:', data);
+    return data;
+  } catch (error) {
+    console.error('❌ Presigned URL error:', error);
+    throw error;
+  }
+};
+
+export const uploadFileToPresignedUrl = async (uploadUrl: string, file: File): Promise<void> => {
+  console.log('🚀 Uploading file to presigned URL:', {
+    uploadUrl,
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type
+  });
+
+  try {
+    // Try direct upload first
+    const response = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type,
+      },
+      body: file,
+    });
+
+    console.log('📡 Upload response status:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('❌ Upload failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorText
+      });
+      throw new Error(`Failed to upload file: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    console.log('✅ File uploaded successfully');
+  } catch (error) {
+    console.error('❌ Upload error:', error);
+    
+    // If CORS error, try server-side upload as fallback
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.log('🔄 CORS error detected, trying server-side upload...');
+      await uploadFileThroughServer(file);
+      return;
+    }
+    
+    throw error;
+  }
+};
+
+// Fallback method to upload through API server
+const uploadFileThroughServer = async (file: File): Promise<void> => {
+  console.log('🚀 Uploading file through server:', {
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type
+  });
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/api/v1/storage/upload`, {
+      method: 'POST',
+      body: formData,
+      credentials: 'include'
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Server upload failed: ${response.status} ${response.statusText} - ${errorText}`);
+    }
+
+    console.log('✅ File uploaded successfully through server');
+  } catch (error) {
+    console.error('❌ Server upload error:', error);
+    throw new Error('Upload failed due to CORS restrictions. Please contact support to configure CORS for the storage bucket.');
+  }
+}; 
