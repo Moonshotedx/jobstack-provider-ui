@@ -52,7 +52,16 @@ const Header = () => {
   };
 
   const handleLogout = async () => {
-    await logoutAndRedirect();
+    try {
+      // Clear queries first to prevent race conditions
+      queryClient.clear();
+      
+      await logoutAndRedirect();
+    } catch (error) {
+      console.error('Logout error in header:', error);
+      // Even if logout fails, redirect to home page
+      window.location.href = '/';
+    }
   };
 
   // Explicitly check if user exists and has valid data

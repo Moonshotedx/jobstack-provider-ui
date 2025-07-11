@@ -66,5 +66,19 @@
     "hireSuccess": "Candidate hired successfully",
     "messageSuccess": "Message sent successfully",
     "noteAdded": "Note added successfully"
+  },
+  "export": {
+    "title": "Export",
+    "exporting": "Exporting...",
+    "exportSuccess": "Export successful",
+    "exportFailed": "Export failed",
+    "noDataToExport": "No data to export",
+    "noDataDescription": "Please ensure there are candidates to export.",
+    "formats": {
+      "csv": "CSV",
+      "xlsx": "Excel (XLSX)",
+      "json": "JSON"
+    },
+    "exportAs": "Export as {{format}}"
   }
 } 

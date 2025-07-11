@@ -221,14 +221,42 @@ export const useAuth = (): UseAuthReturn => {
 
   const logout = useCallback(async () => {
     try {
-      await authClient.signOut({}, { credentials: 'include' });
+      // Clear user state first to prevent race conditions
+      clearUser();
+      setPendingVerificationEmail(undefined);
+      
+      // Clear any cached queries
+      await queryClient.clear();
+      
+      // Clear local storage
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+        localStorage.removeItem('user-storage');
+      }
+      
+      // Attempt server logout, but handle session errors gracefully
+      try {
+        await authClient.signOut({}, { credentials: 'include' });
+      } catch (signOutError: any) {
+        // If the sign-out fails with a session error, that's actually fine
+        // because it means the session was already invalid/expired
+        if (signOutError?.response?.status === 400 && 
+            signOutError?.response?.data?.code === 'FAILED_TO_GET_SESSION') {
+          console.log('Session was already invalid, continuing with logout');
+        } else {
+          // Re-throw other errors
+          throw signOutError;
+        }
+      }
     } catch (error) {
       console.error('Logout error:', error);
+      // Even if server logout fails, we've already cleared local state
     } finally {
+      // Ensure user is cleared regardless of server response
       clearUser();
       setPendingVerificationEmail(undefined);
     }
-  }, [clearUser]);
+  }, [clearUser, queryClient]);
 
   const checkEmailVerification = useCallback(async () => {
     try {

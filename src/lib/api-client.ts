@@ -18,10 +18,18 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
+      // Skip session check for logout-related requests to avoid conflicts
+      if (config.url?.includes('/auth/signout') || config.url?.includes('/signout') || 
+          config.url?.includes('/auth/sign-out') || config.url?.includes('/sign-out')) {
+        return config;
+      }
+      
       await authClient.getSession(undefined, { credentials: 'include' });
       // Don't add Authorization header - let cookies handle auth
     } catch (error) {
       // Silently handle session check errors in production
+      // This prevents errors during logout when session is being cleared
+      console.debug('Session check failed (this is normal during logout):', error);
     }
     return config;
   },
@@ -475,7 +483,7 @@ const uploadFileThroughServer = async (file: File): Promise<void> => {
     console.error('❌ Server upload error:', error);
     throw new Error('Upload failed due to CORS restrictions. Please contact support to configure CORS for the storage bucket.');
   }
-}; 
+};
 
 // Organization types
 export interface Organization {
@@ -514,4 +522,4 @@ export const updateOrganization = async (organizationId: string, organizationDat
     console.error('Failed to update organization:', error);
     throw error;
   }
-}; 
+};
