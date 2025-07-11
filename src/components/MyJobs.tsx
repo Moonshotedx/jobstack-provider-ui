@@ -27,7 +27,8 @@ const MyJobs = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
+      case 'active':
+      case 'open': return 'bg-green-100 text-green-800';
       case 'closed': return 'bg-red-100 text-red-800';
       case 'draft': return 'bg-gray-100 text-gray-800';
       default: return 'bg-green-100 text-green-800'; // Default to active for now
@@ -66,7 +67,15 @@ const MyJobs = () => {
   };
 
   const getJobStatus = (job: JobPosting) => {
-    return job.metadata?.status || 'Active';
+    // Get status from API response, fallback to metadata
+    const apiStatus = job.metadata?.status;
+    
+    // Map 'open' status to 'active' for display purposes
+    if (apiStatus === 'open') {
+      return 'active';
+    }
+    
+    return apiStatus || 'Active';
   };
 
   const getApplicationsCount = (job: JobPosting) => {
@@ -278,7 +287,7 @@ const MyJobs = () => {
                     )}
 
                     <div className="flex items-center gap-4">
-                      {jobStatus === 'active' && (
+                      {(jobStatus === 'active' || jobStatus === 'open') && (
                         <span className="text-sm text-green-600">{t('management.jobActive')}</span>
                       )}
                     </div>

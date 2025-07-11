@@ -36,7 +36,7 @@ interface RJSFJobPostStepProps {
   isOpen: boolean;
   onClose: () => void;
   selectedJobRole: JobRoleName | null;
-  onSubmit: (formData: any) => void;
+  onSubmit: (formData: any, status: 'open' | 'draft') => void;
   onBack: () => void;
   isSubmitting?: boolean;
   editJobData?: JobPosting | null;
@@ -56,6 +56,30 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roleDisplayInfo, setRoleDisplayInfo] = useState<JobRoleConfig | null>(null);
+
+  // Reset form state when selectedJobRole changes to prevent caching issues
+  useEffect(() => {
+    if (selectedJobRole) {
+      console.log('🔄 Resetting form state for new job role:', selectedJobRole);
+      setSchema(null);
+      setFormData({});
+      setLoading(true);
+      setError(null);
+      setRoleDisplayInfo(null);
+    }
+  }, [selectedJobRole]);
+
+  // Cleanup form state when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      console.log('🧹 Cleaning up form state when dialog closes');
+      setSchema(null);
+      setFormData({});
+      setLoading(true);
+      setError(null);
+      setRoleDisplayInfo(null);
+    }
+  }, [isOpen]);
 
   // Load schema and display info when role changes
   useEffect(() => {
@@ -190,7 +214,26 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       return;
     }
 
-    onSubmit(formData);
+    onSubmit(formData, 'open');
+  };
+
+  const handleSaveDraft = () => {
+    if (!schema || !formData) return;
+
+    // Validate the form data with enhanced validation
+    const validation = validateFormData(schema, formData);
+    
+    if (!validation.isValid) {
+      // Show toast error with summary
+      const errorCount = validation.errors.length;
+      toast.error(`Please fix ${errorCount} required field${errorCount > 1 ? 's' : ''}`, {
+        description: validation.errors.slice(0, 3).join(', ') + (errorCount > 3 ? `... and ${errorCount - 3} more` : ''),
+        duration: 5000,
+      });
+      return;
+    }
+
+    onSubmit(formData, 'draft');
   };
 
   const updateFormData = (sectionKey: string, fieldKey: string, value: any) => {
@@ -867,7 +910,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Post a New Job</DialogTitle>
+          <DialogTitle>{editJobData ? 'Update Job' : 'Post a New Job'}</DialogTitle>
           {selectedJobRole && roleDisplayInfo && (
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">{roleDisplayInfo.industry}</Badge>
@@ -908,13 +951,13 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               className="flex-1" 
               disabled={loading || isSubmitting || !schema}
             >
-              {isSubmitting ? 'Posting Job...' : 'Post Job'}
+              {isSubmitting ? (editJobData ? 'Updating Job...' : 'Posting Job...') : (editJobData ? 'Update Job' : 'Post Job')}
+            </Button>
+            <Button variant="outline" onClick={handleSaveDraft} disabled={isSubmitting}>
+              Save Draft
             </Button>
             <Button variant="outline" onClick={onBack} disabled={isSubmitting}>
-              Back to Role Selection
-            </Button>
-            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Save Draft
+              {editJobData ? 'Cancel' : 'Back to Role Selection'}
             </Button>
           </div>
         </div>

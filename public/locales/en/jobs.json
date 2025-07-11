@@ -170,6 +170,7 @@
   },
   "status": {
     "active": "Active",
+    "open": "Active",
     "closed": "Closed",
     "draft": "Draft",
     "pending": "Pending",

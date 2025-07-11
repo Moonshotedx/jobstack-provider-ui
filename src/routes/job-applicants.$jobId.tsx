@@ -57,7 +57,7 @@ function JobApplicantsPage() {
   const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
   
   // Track status updates that should persist across refetches
-  const [statusUpdates, setStatusUpdates] = useState<Record<string, 'hired' | 'rejected'>>({});
+  const [statusUpdates, setStatusUpdates] = useState<Record<string, 'shortlisted' | 'rejected'>>({});
   
   // Transform API data to match the existing JobApplicant interface
   const applicants: JobApplicant[] = React.useMemo(() => {
@@ -231,7 +231,7 @@ function JobApplicantsPage() {
 
     const actionData = {
       applicationId: applicant.applicationId,
-      applicationStatus: action === 'accept' ? 'Hired' : 'Rejected',
+      applicationStatus: action === 'accept' ? 'Shortlisted' : 'Rejected',
       action: action
     };
 
@@ -242,7 +242,7 @@ function JobApplicantsPage() {
       });
       
       // Update the status in our persistent state
-      const newStatus = action === 'accept' ? 'hired' : 'rejected';
+      const newStatus = action === 'accept' ? 'shortlisted' : 'rejected';
       setStatusUpdates(prev => ({
         ...prev,
         [applicant.id]: newStatus
@@ -291,12 +291,12 @@ function JobApplicantsPage() {
     const isRejectLoading = loadingState === 'reject';
     const currentStatus = getCurrentStatus(applicant.id, applicant.status);
 
-    // If candidate is already hired or rejected, show status instead of buttons
-    if (currentStatus === 'hired') {
+    // If candidate is already shortlisted or rejected, show status instead of buttons
+    if (currentStatus === 'shortlisted') {
       return (
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-600" />
-          <span className="text-sm font-medium text-green-600">Hired</span>
+          <span className="text-sm font-medium text-green-600">Shortlisted</span>
         </div>
       );
     }
@@ -488,14 +488,8 @@ function JobApplicantsPage() {
           
           <Breadcrumb>
             <BreadcrumbList>
-              <BreadcrumbItem>
-                <BreadcrumbLink asChild>
-                  <Link to="/dashboard">Dashboard</Link>
-                </BreadcrumbLink>
-              </BreadcrumbItem>
-              <BreadcrumbSeparator>
-                <ChevronRight className="h-4 w-4" />
-              </BreadcrumbSeparator>
+              
+              
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
                   <Link to="/dashboard">My Job Postings</Link>

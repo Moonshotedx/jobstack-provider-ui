@@ -38,7 +38,7 @@
   "stats": {
     "activeJobs": "Active Jobs",
     "totalApplications": "Total Applications", 
-    "candidatesHired": "Candidates Hired",
+    "candidatesShortlisted": "Candidates Shortlisted",
     "totalJobs": "Total Jobs",
     "pendingApplications": "Pending Applications",
     "scheduledInterviews": "Scheduled Interviews",

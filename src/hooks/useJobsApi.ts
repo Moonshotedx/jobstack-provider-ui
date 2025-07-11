@@ -29,36 +29,51 @@ export const useGetJobs = (organizationId: string) => {
 // Hook to create a new job
 export const useCreateJob = () => {
   const queryClient = useQueryClient();
-
+  
   return useMutation({
-    mutationFn: ({ organizationId, jobData }: { organizationId: string; jobData: CreateJobRequest }) =>
-      jobsApi.createJob(organizationId, jobData),
-    onSuccess: async (newJob, { organizationId }) => {
-      // First, invalidate session to ensure it's current
-      await queryClient.invalidateQueries({ queryKey: ['session'] });
+    mutationFn: async ({ organizationId, jobData }: { organizationId: string; jobData: CreateJobRequest }) => {
+      console.log('🚀 Creating job with payload:', { organizationId, jobData });
+      return await jobsApi.createJob(organizationId, jobData);
+    },
+    onSuccess: (data, variables) => {
+      console.log('✅ Job created successfully:', data);
       
-      // Then invalidate and refetch jobs queries
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) }),
-        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.all }),
-      ]);
-      
-      // Force immediate refetch of jobs for this organization
-      await queryClient.refetchQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) });
-
-      toast.success('Job posted successfully!', {
-        description: `"${newJob.title}" has been created.`,
+      // Invalidate and refetch jobs list
+      queryClient.invalidateQueries({
+        queryKey: ['jobs', variables.organizationId]
       });
+      
+      toast.success('Job posted successfully!');
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || 
-                          error?.message || 
-                          'Failed to create job posting';
-      
-      toast.error('Failed to post job', {
-        description: errorMessage,
-      });
+      console.error('❌ Failed to create job:', error);
+      toast.error(error?.response?.data?.message || 'Failed to post job. Please try again.');
+    }
+  });
+};
+
+export const useUpdateJob = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ organizationId, jobId, jobData }: { organizationId: string; jobId: string; jobData: CreateJobRequest }) => {
+      console.log('🔄 Updating job with payload:', { organizationId, jobId, jobData });
+      return await jobsApi.updateJob(organizationId, jobId, jobData);
     },
+    onSuccess: (data, variables) => {
+      console.log('✅ Job updated successfully:', data);
+      
+      // Invalidate and refetch jobs list
+      queryClient.invalidateQueries({
+        queryKey: ['jobs', variables.organizationId]
+      });
+      
+      toast.success('Job updated successfully!');
+    },
+    onError: (error: any) => {
+      console.error('❌ Failed to update job:', error);
+      toast.error(error?.response?.data?.message || 'Failed to update job. Please try again.');
+    }
   });
 };
 
@@ -139,7 +154,7 @@ export const useTakeApplicationAction = () => {
 
       // Show success toast based on action
       const actionType = actionData.action === 'accept' ? 'accepted' : 'rejected';
-      const statusType = actionData.applicationStatus === 'Hired' ? 'hired' : 'rejected';
+      const statusType = actionData.applicationStatus === 'Shortlisted' ? 'shortlisted' : 'rejected';
       
       toast.success(`Candidate ${actionType} successfully!`, {
         description: `Application status updated to ${statusType}.`,

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bell, User, Briefcase, LogOut, AlertCircle } from 'lucide-react';
+import { User, Briefcase, LogOut, AlertCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
@@ -67,7 +67,7 @@ const Header = () => {
             <div className="flex items-center gap-6">
               <Link to="/" className="flex items-center gap-2">
                 <Briefcase className="h-6 w-6 text-primary" />
-                <span className="text-xl font-bold">{t('header.appName')}</span>
+                
               </Link>
             </div>
 
@@ -87,17 +87,9 @@ const Header = () => {
               {/* Language Selector */}
               <LanguageSwitcher variant="ghost" size="sm" />
 
-              {/* Location */}
-              <Button variant="ghost" size="sm" className="gap-2">
-                <MapPin className="h-4 w-4" />
-                <span className="hidden sm:inline">Mumbai</span>
-              </Button>
+             
 
-              {/* Notifications */}
-              <Button variant="ghost" size="sm" aria-label={t('header.notifications')}>
-                <Bell className="h-4 w-4" />
-              </Button>
-
+            
               {/* User Menu */}
               {isUserLoggedIn ? (
                 <DropdownMenu>
@@ -116,9 +108,6 @@ const Header = () => {
                         Complete Profile
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem onClick={() => {}}>
-                      {t('header.settings')}
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="h-4 w-4 mr-2" />
                       {t('header.logout')}
