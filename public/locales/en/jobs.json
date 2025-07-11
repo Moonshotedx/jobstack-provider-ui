@@ -157,6 +157,7 @@
     "editJob": "Edit Job",
     "viewApplications": "View Applications",
     "duplicateJob": "Duplicate Job",
+    "deleteJob": "Delete Job",
     "closeJob": "Close Job",
     "jobActive": "● Active",
     "loadingJobs": "Loading your job postings...",

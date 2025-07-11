@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,10 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { useUpdateOrganization } from '@/hooks/useJobsApi';
+import { Loader2, Upload, Building, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
@@ -35,60 +39,204 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   onClose, 
   employer 
 }) => {
+  const { t } = useTranslation('organizations');
   const [formData, setFormData] = useState({
-    name: employer?.name || '',
-    address: employer?.address || '',
-    gstNumber: employer?.gstNumber || '',
-    contactPersonName: employer?.contactPersonName || '',
-    contactEmail: employer?.contactEmail || '',
-    contactPhone: employer?.contactPhone || '',
-    website: employer?.website || '',
-    description: employer?.description || ''
+    name: '',
+    address: '',
+    gstNumber: '',
+    contactPersonName: '',
+    contactEmail: '',
+    contactPhone: '',
+    website: '',
+    description: '',
+    logo: ''
   });
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
-  const handleSubmit = () => {
+  // Update form data when employer changes
+  useEffect(() => {
+    if (employer) {
+      setFormData({
+        name: employer.name || '',
+        address: employer.address || '',
+        gstNumber: employer.gstNumber || '',
+        contactPersonName: employer.contactPersonName || '',
+        contactEmail: employer.contactEmail || '',
+        contactPhone: employer.contactPhone || '',
+        website: employer.website || '',
+        description: employer.description || '',
+        logo: employer.logo || ''
+      });
+    } else {
+      // Reset form for new employer
+      setFormData({
+        name: '',
+        address: '',
+        gstNumber: '',
+        contactPersonName: '',
+        contactEmail: '',
+        contactPhone: '',
+        website: '',
+        description: '',
+        logo: ''
+      });
+    }
+  }, [employer]);
+
+  const updateOrganizationMutation = useUpdateOrganization();
+
+  const handleLogoUpload = async () => {
+    // Create a file input element
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/png,image/jpeg,image/jpg';
+    input.style.display = 'none';
+    
+    input.onchange = async (event) => {
+      const target = event.target as HTMLInputElement;
+      const file = target.files?.[0];
+      
+      if (!file) return;
+      
+      // Validate file size (5MB limit)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('File too large', {
+          description: 'Please select a file smaller than 5MB.'
+        });
+        return;
+      }
+      
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error('Invalid file type', {
+          description: 'Please select a valid image file (PNG, JPEG, JPG).'
+        });
+        return;
+      }
+      
+      setIsUploadingLogo(true);
+      
+      try {
+        // Generate unique object key for the logo
+        const objectKey = `provider/id${Date.now()}`;
+        
+        // Get presigned URL
+        const presignedUrlResponse = await getPresignedUrl({
+          bucketName: 'onest-job-storage',
+          contentType: file.type,
+          objectKey: objectKey
+        });
+        
+        // Upload file to presigned URL
+        await uploadFileToPresignedUrl(presignedUrlResponse.uploadUrl, file);
+        
+        // Set the access URL in the form
+        setFormData(prev => ({ ...prev, logo: presignedUrlResponse.accessUrl }));
+        
+        toast.success('Logo uploaded successfully', {
+          description: 'Your organization logo has been uploaded.'
+        });
+        
+      } catch (error: any) {
+        console.error('Logo upload failed:', error);
+        
+        // If it's a CORS error, provide helpful message
+        if (error.message.includes('CORS restrictions')) {
+          toast.error('Upload failed', {
+            description: 'CORS error: Please contact support to configure storage bucket permissions.'
+          });
+        } else {
+          toast.error('Upload failed', {
+            description: 'Failed to upload logo. Please try again.'
+          });
+        }
+      } finally {
+        setIsUploadingLogo(false);
+      }
+    };
+    
+    // Trigger file selection
+    input.click();
+  };
+
+  const handleRemoveLogo = () => {
+    setFormData(prev => ({ ...prev, logo: '' }));
+    toast.info('Logo removed', {
+      description: 'Organization logo has been removed.'
+    });
+  };
+
+  const handleSubmit = async () => {
     if (!formData.name || !formData.address || !formData.contactPersonName || !formData.contactEmail || !formData.contactPhone) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
-    // TODO: Implement with separate employer store
     if (employer) {
-      toast.success("Employer profile updated successfully!");
+      // Update existing organization
+      try {
+        const metadata = {
+          address: formData.address,
+          gstNumber: formData.gstNumber,
+          contactPersonName: formData.contactPersonName,
+          contactEmail: formData.contactEmail,
+          contactPhone: formData.contactPhone,
+          website: formData.website,
+          description: formData.description
+        };
+
+        await updateOrganizationMutation.mutateAsync({
+          organizationId: employer.id,
+          organizationData: {
+            name: formData.name,
+            metadata: JSON.stringify(metadata),
+            logo: formData.logo
+          }
+        });
+
+        toast.success("Organization updated successfully!");
+        onClose();
+      } catch (error) {
+        console.error('Failed to update organization:', error);
+        toast.error("Failed to update organization. Please try again.");
+      }
     } else {
+      // TODO: Implement create organization functionality
       toast.success("Employer profile added successfully!");
+      onClose();
     }
-    
-    onClose();
   };
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const isSubmitting = updateOrganizationMutation.isPending;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {employer ? 'Edit Employer Profile' : 'Add New Employer Profile'}
+            {employer ? 'Edit Organization Profile' : 'Add New Organization Profile'}
           </DialogTitle>
         </DialogHeader>
         
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Employer Details</CardTitle>
+              <CardTitle className="text-lg">Organization Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="empName">Company Name *</Label>
+                  <Label htmlFor="empName">Organization Name *</Label>
                   <Input
                     id="empName"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    placeholder="Enter company name"
+                    placeholder="Enter organization name"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -98,6 +246,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.gstNumber}
                     onChange={(e) => handleInputChange('gstNumber', e.target.value)}
                     placeholder="Enter GST number"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -110,7 +259,71 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                   onChange={(e) => handleInputChange('address', e.target.value)}
                   placeholder="Enter complete address"
                   rows={3}
+                  disabled={isSubmitting}
                 />
+              </div>
+
+              <div>
+                <Label>{t('create.logo')}</Label>
+                <Card className="border-dashed">
+                  <CardContent className="p-6 text-center">
+                    {formData.logo ? (
+                      <div className="space-y-2">
+                        <img src={formData.logo} alt="Logo" className="h-16 w-16 mx-auto rounded" />
+                        <div className="flex gap-2 justify-center">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleLogoUpload}
+                            disabled={isUploadingLogo}
+                          >
+                            {isUploadingLogo ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Uploading...
+                              </>
+                            ) : (
+                              <>
+                                <Upload className="h-4 w-4 mr-2" />
+                                {t('create.changeLogo')}
+                              </>
+                            )}
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleRemoveLogo}
+                            disabled={isUploadingLogo}
+                          >
+                            <X className="h-4 w-4 mr-2" />
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <Building className="h-12 w-12 mx-auto text-muted-foreground" />
+                        <Button 
+                          type="button" 
+                          onClick={handleLogoUpload}
+                          disabled={isUploadingLogo}
+                        >
+                          {isUploadingLogo ? (
+                            <>
+                              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                              Uploading...
+                            </>
+                          ) : (
+                            <>
+                              <Upload className="h-4 w-4 mr-2" />
+                              {t('create.uploadLogo')}
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -121,6 +334,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.contactPersonName}
                     onChange={(e) => handleInputChange('contactPersonName', e.target.value)}
                     placeholder="Contact person name"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -131,6 +345,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.contactEmail}
                     onChange={(e) => handleInputChange('contactEmail', e.target.value)}
                     placeholder="company@example.com"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
@@ -143,6 +358,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.contactPhone}
                     onChange={(e) => handleInputChange('contactPhone', e.target.value)}
                     placeholder="+91 9876543210"
+                    disabled={isSubmitting}
                   />
                 </div>
                 <div>
@@ -152,28 +368,37 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.website}
                     onChange={(e) => handleInputChange('website', e.target.value)}
                     placeholder="https://company.com"
+                    disabled={isSubmitting}
                   />
                 </div>
               </div>
 
               <div>
-                <Label htmlFor="empDescription">Company Description</Label>
+                <Label htmlFor="empDescription">Organization Description</Label>
                 <Textarea
                   id="empDescription"
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  placeholder="Brief description of the company"
+                  placeholder="Brief description of the organization"
                   rows={3}
+                  disabled={isSubmitting}
                 />
               </div>
             </CardContent>
           </Card>
 
           <div className="flex gap-2">
-            <Button onClick={handleSubmit} className="flex-1">
-              {employer ? 'Update Employer' : 'Add Employer'}
+            <Button onClick={handleSubmit} className="flex-1" disabled={isSubmitting}>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {employer ? 'Updating...' : 'Adding...'}
+                </>
+              ) : (
+                employer ? 'Update Organization' : 'Add Organization'
+              )}
             </Button>
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={onClose} disabled={isSubmitting}>
               Cancel
             </Button>
           </div>

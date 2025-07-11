@@ -58,7 +58,8 @@
     "viewJob": "देखें",
     "editJob": "नौकरी संपादित करें",
     "viewApplications": "आवेदन देखें",
-    "duplicateJob": "नौकरी को दोहराएं",
+    "duplicateJob": "नौकरी दोहराएं",
+    "deleteJob": "नौकरी हटाएं",
     "closeJob": "नौकरी बंद करें",
     "jobActive": "● सक्रिय",
     "loadingJobs": "आपकी नौकरी पोस्टिंग लोड हो रही है...",
@@ -91,7 +92,7 @@
   "messages": {
     "jobPostedSuccess": "नौकरी सफलतापूर्वक पोस्ट की गई!",
     "jobUpdatedSuccess": "नौकरी सफलतापूर्वक अपडेट की गई!",
-    "jobDeletedSuccess": "नौकरी सफलतापूर्वक हटाई गई!",
+    "jobDeletedSuccess": "नौकरी सफलतापूर्वक हटा दी गई!",
     "jobDuplicatedSuccess": "नौकरी सफलतापूर्वक दोहराई गई!",
     "jobClosedSuccess": "नौकरी सफलतापूर्वक बंद की गई!",
     "jobPostFailed": "नौकरी पोस्ट करने में विफल",

@@ -186,16 +186,6 @@
               "title": "Other Proof Type",
               "description": "Specify other proof type"
             },
-            "uploadActualProof": {
-              "type": "array",
-              "title": "Upload or Scan Actual Proof",
-              "description": "Upload actual proof documents (up to 5 files)",
-              "items": {
-                "type": "string",
-                "format": "data-url"
-              },
-              "maxItems": 5
-            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -248,16 +238,6 @@
               "type": "string",
               "title": "Other Proof Type",
               "description": "Specify other proof type"
-            },
-            "uploadActualProof": {
-              "type": "array",
-              "title": "Upload Actual Proof",
-              "description": "Upload actual proof documents (up to 5 files)",
-              "items": {
-                "type": "string",
-                "format": "data-url"
-              },
-              "maxItems": 5
             },
             "uploadSampleMedia": {
               "type": "array",

@@ -6,6 +6,8 @@ import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 import EmployerCard from './EmployerCard';
 import EmployerProfileDialog from './EmployerProfileDialog';
+import { useGetOrganizationList } from '@/hooks/useJobsApi';
+import type { Organization } from '@/lib/api-client';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
@@ -34,52 +36,41 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [editingEmployer, setEditingEmployer] = useState<EmployerProfile | null>(null);
   
-  // Create employer list with user's organization as default + additional mock employers
+  // Fetch organizations from API
+  const { data: organizations, isLoading, error } = useGetOrganizationList();
+  
+  // Transform API organizations to EmployerProfile format
   const allEmployers = useMemo(() => {
-    const employers: EmployerProfile[] = [];
+    if (!organizations) return [];
     
-    // Add user's organization as the primary/default employer
-    if (user?.profile && 'contactEmail' in user.profile) {
-      const userOrg: EmployerProfile = {
-        id: 'user-org',
-        name: user.profile.name,
-        address: user.profile.address,
-        gstNumber: user.profile.gstNumber || '',
-        contactPersonName: user.profile.contactPersonName,
-        contactEmail: user.profile.contactEmail,
-        contactPhone: user.profile.contactPhone,
-        website: user.profile.website || '',
-        description: user.profile.description || '',
-        createdAt: new Date().toISOString().split('T')[0],
+    return organizations.map((org: Organization) => {
+      let metadata: any = {};
+      try {
+        metadata = JSON.parse(org.metadata);
+      } catch (e) {
+        console.warn('Failed to parse organization metadata:', e);
+      }
+      
+      return {
+        id: org.id,
+        name: org.name,
+        address: metadata.address || '',
+        gstNumber: metadata.gstNumber || '',
+        logo: org.logo,
+        contactPersonName: metadata.contactPersonName || '',
+        contactEmail: metadata.contactEmail || '',
+        contactPhone: metadata.contactPhone || '',
+        website: metadata.website || '',
+        description: metadata.description || '',
+        createdAt: org.createdAt,
         isActive: true,
-        isDefault: true
+        isDefault: false // We'll determine this based on user's current organization
       };
-      employers.push(userOrg);
-    }
-    
-    // Add additional mock employers for demonstration
-    // employers.push(
-    //   {
-    //     id: 'emp-2',
-    //     name: 'Innovation Labs',
-    //     address: '456 Tech Hub, Bangalore, Karnataka 560001',
-    //     gstNumber: '29XYZAB5678C1Z9',
-    //     contactPersonName: 'Priya Sharma',
-    //     contactEmail: 'priya@innovationlabs.com',
-    //     contactPhone: '+91 87654 32109',
-    //     website: 'https://innovationlabs.com',
-    //     description: 'Cutting-edge research and development in AI and machine learning technologies.',
-    //     createdAt: '2024-02-01',
-    //     isActive: true,
-    //     isDefault: false
-    //   }
-    // );
-    
-    return employers;
-  }, [user?.profile]);
+    });
+  }, [organizations]);
 
-  // Default to user's organization if available, otherwise first employer
-  const defaultEmployerId = allEmployers.find(emp => emp.isDefault)?.id || allEmployers[0]?.id || '';
+  // Default to first employer if available
+  const defaultEmployerId = allEmployers[0]?.id || '';
   const [selectedEmployerId, setSelectedEmployerId] = useState<string>(defaultEmployerId);
   
   const selectedEmployer = allEmployers.find(emp => emp.id === selectedEmployerId);
@@ -117,12 +108,44 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
 
   if (!user) return null;
 
-  // Sort employers to show default employer first
-  const sortedEmployers = [...allEmployers].sort((a, b) => {
-    if (a.isDefault && !b.isDefault) return -1;
-    if (!a.isDefault && b.isDefault) return 1;
-    return 0;
-  });
+  // Loading state
+  if (isLoading) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Employer Management</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading organizations...</p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Error state
+  if (error) {
+    return (
+      <Dialog open={isOpen} onOpenChange={onClose}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Employer Management</DialogTitle>
+          </DialogHeader>
+          <div className="text-center py-12">
+            <h3 className="text-lg font-medium mb-2 text-red-600">Error Loading Organizations</h3>
+            <p className="text-muted-foreground mb-4">
+              {error.message || 'Failed to load organizations. Please try again.'}
+            </p>
+            <Button onClick={() => window.location.reload()}>Retry</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <>
@@ -143,22 +166,22 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
               </Button>
             </div>
 
-            {sortedEmployers.length === 0 ? (
+            {allEmployers.length === 0 ? (
               <div className="text-center py-12">
                 <div className="space-y-4">
-                  <h3 className="text-lg font-medium">No Employers Added</h3>
+                  <h3 className="text-lg font-medium">No Organizations Found</h3>
                   <p className="text-muted-foreground">
-                    Add your first employer profile to start posting jobs and managing candidates
+                    No organizations are available. Please create an organization first.
                   </p>
                   <Button onClick={() => setShowAddDialog(true)}>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add First Employer
+                    Add First Organization
                   </Button>
                 </div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {sortedEmployers.map((employer) => (
+                {allEmployers.map((employer) => (
                   <EmployerCard
                     key={employer.id}
                     employer={employer}

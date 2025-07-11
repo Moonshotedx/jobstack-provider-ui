@@ -231,6 +231,31 @@ export const jobsApi = {
     return response.data.data.jobPost;
   },
 
+  // Duplicate an existing job posting
+  duplicateJob: async (organizationId: string, existingJob: JobPosting): Promise<JobPosting> => {
+    console.log('🔄 Duplicating job:', { organizationId, jobId: existingJob.id });
+    
+    // Create a new job with the same data but without the ID and timestamps
+    const duplicateJobData: CreateJobRequest = {
+      title: existingJob.title,
+      location: existingJob.location as LocationData, // Cast to LocationData type
+      metadata: {
+        ...existingJob.metadata,
+        // Remove any job-specific IDs or timestamps that shouldn't be duplicated
+        id: undefined,
+        createdAt: undefined,
+        updatedAt: undefined,
+        applicationsCount: undefined,
+        // Add a flag to indicate this is a duplicate
+        isDuplicate: true,
+        originalJobId: existingJob.id
+      }
+    };
+    
+    // Create the new job using the existing createJob method
+    return await jobsApi.createJob(organizationId, duplicateJobData);
+  },
+
   // Update an existing job posting
   updateJob: async (organizationId: string, jobId: string, jobData: CreateJobRequest): Promise<JobPosting> => {
     const updatePayload = {
@@ -310,6 +335,22 @@ export const jobsApi = {
       console.error('❌ Error taking application action:', error);
       throw new Error(error.response?.data?.message || 'Failed to take action on application');
     }
+  },
+
+  // Delete a job posting
+  deleteJob: async (organizationId: string, jobId: string): Promise<void> => {
+    console.log('🗑️ Deleting job:', { organizationId, jobId });
+    
+    const deletePayload = {
+      jobId: jobId
+    };
+    
+    const response = await apiClient.delete<ApiResponse<void>>(
+      `/jobs/${organizationId}`,
+      { data: deletePayload }
+    );
+    
+    console.log('✅ Job deleted successfully:', response.data);
   },
 };
 
@@ -433,5 +474,44 @@ const uploadFileThroughServer = async (file: File): Promise<void> => {
   } catch (error) {
     console.error('❌ Server upload error:', error);
     throw new Error('Upload failed due to CORS restrictions. Please contact support to configure CORS for the storage bucket.');
+  }
+}; 
+
+// Organization types
+export interface Organization {
+  id: string;
+  name: string;
+  slug: string;
+  logo?: string;
+  createdAt: string;
+  metadata: string; // JSON string containing organization details
+}
+
+export interface OrganizationListResponse {
+  organizations: Organization[];
+}
+
+// Organization API functions
+export const getOrganizationList = async (): Promise<Organization[]> => {
+  try {
+    const response = await apiClient.get('/auth/organization/list');
+    return response.data;
+  } catch (error) {
+    console.error('Failed to fetch organization list:', error);
+    throw error;
+  }
+};
+
+export const updateOrganization = async (organizationId: string, organizationData: {
+  name: string;
+  metadata: string;
+  logo?: string;
+}): Promise<Organization> => {
+  try {
+    const response = await apiClient.put(`/auth/organization/${organizationId}`, organizationData);
+    return response.data;
+  } catch (error) {
+    console.error('Failed to update organization:', error);
+    throw error;
   }
 }; 
