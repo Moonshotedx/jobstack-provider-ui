@@ -189,8 +189,9 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
           organizationId: employer.id,
           organizationData: {
             name: formData.name,
-            metadata: JSON.stringify(metadata),
-            logo: formData.logo
+            metadata: metadata, // Pass as object, not JSON string
+            logo: formData.logo,
+            slug: formData.gstNumber || employer.gstNumber // Use existing GST number as slug if available
           }
         });
 
