@@ -303,6 +303,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           maxFiles={isMultipleImageField ? 5 : undefined}
           value={value}
           onChange={(file) => updateFormData(sectionKey, fieldKey, file)}
+          usePresignedUrl={true}
+          objectKeyPrefix="job"
         />
       );
     }
@@ -409,6 +411,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                   updateFormData(sectionKey, fieldKey, [files]);
                 }
               }}
+              usePresignedUrl={true}
+              objectKeyPrefix="job"
             />
           </div>
         );
@@ -454,6 +458,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                         newItems[index] = { ...newItems[index], file };
                         updateFormData(sectionKey, fieldKey, newItems);
                       }}
+                      usePresignedUrl={true}
+                      objectKeyPrefix="job"
                     />
                     <div>
                       <Label>{fieldSchema.items.properties.description.title}</Label>
