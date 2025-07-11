@@ -54,12 +54,15 @@ function DashboardContent() {
 
   // Calculate real-time dashboard stats
   const dashboardStats = {
-    activeJobs: jobs?.filter(job => job.metadata?.status === 'active').length || 0,
+    activeJobs: jobs?.filter(job => {
+      const status = job.metadata?.status;
+      return status === 'active' || status === 'open';
+    }).length || 0,
     totalApplications: jobs?.reduce((total, job) => {
       const applicationsCount = job.applicationsCount ? parseInt(job.applicationsCount) : 0;
       return total + applicationsCount;
     }, 0) || 0,
-    candidatesHired: 5 // TODO: Implement real-time hired candidates count
+    candidatesShortlisted: 5 // TODO: Implement real-time shortlisted candidates count
   };
 
   // Safety check: If no user, they shouldn't be here
@@ -325,8 +328,8 @@ function DashboardContent() {
           <CardContent className="flex items-center p-6">
             <CheckCircle className="h-8 w-8 text-green-500 mr-4" />
             <div>
-              <p className="text-2xl font-bold">{dashboardStats.candidatesHired}</p>
-              <p className="text-muted-foreground">{t('stats.candidatesHired')}</p>
+              <p className="text-2xl font-bold">{dashboardStats.candidatesShortlisted}</p>
+              <p className="text-muted-foreground">{t('stats.candidatesShortlisted')}</p>
             </div>
           </CardContent>
         </Card>

@@ -38,7 +38,7 @@
   "stats": {
     "activeJobs": "সক্রিয় চাকরি",
     "totalApplications": "মোট আবেদন", 
-    "candidatesHired": "নিয়োগপ্রাপ্ত প্রার্থী",
+    "candidatesShortlisted": "শর্টলিস্টেড প্রার্থী",
     "totalJobs": "মোট চাকরি",
     "pendingApplications": "অপেক্ষমাণ আবেদন",
     "scheduledInterviews": "নির্ধারিত সাক্ষাৎকার",

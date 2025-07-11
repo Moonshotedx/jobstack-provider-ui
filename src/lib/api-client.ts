@@ -231,6 +231,22 @@ export const jobsApi = {
     return response.data.data.jobPost;
   },
 
+  // Update an existing job posting
+  updateJob: async (organizationId: string, jobId: string, jobData: CreateJobRequest): Promise<JobPosting> => {
+    const updatePayload = {
+      jobId,
+      ...jobData
+    };
+    
+    console.log('🔄 Updating job with payload:', updatePayload);
+    
+    const response = await apiClient.put<ApiResponse<CreateJobResponse>>(
+      `/jobs/${organizationId}`,
+      updatePayload
+    );
+    return response.data.data.jobPost;
+  },
+
   // Get all job postings for an organization
   getJobs: async (organizationId: string): Promise<JobPosting[]> => {
     const response = await apiClient.get<ApiResponse<GetJobsResponse>>(

@@ -38,7 +38,7 @@
   "stats": {
     "activeJobs": "సక్రియ ఉద్యోగాలు",
     "totalApplications": "మొత్తం దరఖాస్తులు", 
-    "candidatesHired": "నియామకం చేయబడిన అభ్యర్థులు",
+    "candidatesShortlisted": "షార్ట్‌లిస్ట్ చేయబడిన అభ్యర్థులు",
     "totalJobs": "మొత్తం ఉద్యోగాలు",
     "pendingApplications": "పెండింగ్ దరఖాస్తులు",
     "scheduledInterviews": "షెడ్యూల్ చేయబడిన ఇంటర్వ్యూలు",

@@ -1,23 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import RoleSelectionStep from './postJob/RoleSelectionStep';
 import RJSFJobPostStep from './postJob/RJSFJobPostStep';
 import type { PostJobDialogProps, JobPostStep as StepType } from '@/types/jobPost';
 import type { LocationData } from './postJob/LocationField';
 import { toast } from 'sonner';
-import { useCreateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
+import { useCreateJob, useUpdateJob, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import type { JobRoleName } from '@/lib/role-schema-loader';
 import { getRoleDisplayInfo } from '@/lib/role-schema-loader';
 
 const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuthSteps = false, editJobData }) => {
   const [step, setStep] = useState<StepType>(
-    skipAuthSteps ? 'roleSelection' : 'login'
+    // If editing a job, skip role selection and go directly to job form
+    editJobData ? 'jobPost' : (skipAuthSteps ? 'roleSelection' : 'login')
   );
   const [selectedJobRole, setSelectedJobRole] = useState<JobRoleName | null>(
     editJobData?.metadata?.role || null
   );
   
+  // Debug logging for edit flow
+  useEffect(() => {
+    if (editJobData) {
+      console.log('🔧 Edit Job Data:', editJobData);
+      console.log('🎯 Job Role from metadata:', editJobData.metadata?.role);
+      console.log('📋 Selected Job Role:', selectedJobRole);
+      
+      // Ensure we have a job role when editing - check multiple possible locations
+      if (!selectedJobRole) {
+        let jobRole = null;
+        
+        // Try to get role from different possible locations
+        if (editJobData.metadata?.role) {
+          jobRole = editJobData.metadata.role;
+        } else if (editJobData.metadata?.jobDetails?.role) {
+          jobRole = editJobData.metadata.jobDetails.role;
+        } else if (editJobData.metadata?.basicInfo?.role) {
+          jobRole = editJobData.metadata.basicInfo.role;
+        } else if (editJobData.title) {
+          // Fallback: try to extract role from title
+          const title = editJobData.title.toLowerCase();
+          if (title.includes('tailor')) {
+            jobRole = 'Industrial Tailor';
+          } else if (title.includes('warehouse') || title.includes('loader') || title.includes('picker')) {
+            jobRole = 'Warehouse Loader and Picker';
+          } else if (title.includes('sales') || title.includes('executive')) {
+            jobRole = 'Field Sales Executive';
+          } else if (title.includes('promoter') || title.includes('store')) {
+            jobRole = 'In Store Promoter';
+          } else if (title.includes('recruitment') || title.includes('associate')) {
+            jobRole = 'Recruitment Associate';
+          }
+        }
+        
+        if (jobRole) {
+          console.log('🔄 Setting job role from edit data:', jobRole);
+          setSelectedJobRole(jobRole);
+        } else {
+          console.error('❌ Could not determine job role from edit data');
+        }
+      }
+    }
+  }, [editJobData, selectedJobRole]);
+
+  // Reset selectedJobRole when editJobData changes to prevent caching issues
+  useEffect(() => {
+    if (editJobData) {
+      // Reset selectedJobRole to null first to force re-evaluation
+      setSelectedJobRole(null);
+      
+      // Then extract the new job role
+      let jobRole = null;
+      
+      // Try to get role from different possible locations
+      if (editJobData.metadata?.role) {
+        jobRole = editJobData.metadata.role;
+      } else if (editJobData.metadata?.jobDetails?.role) {
+        jobRole = editJobData.metadata.jobDetails.role;
+      } else if (editJobData.metadata?.basicInfo?.role) {
+        jobRole = editJobData.metadata.basicInfo.role;
+      } else if (editJobData.title) {
+        // Fallback: try to extract role from title
+        const title = editJobData.title.toLowerCase();
+        if (title.includes('tailor')) {
+          jobRole = 'Industrial Tailor';
+        } else if (title.includes('warehouse') || title.includes('loader') || title.includes('picker')) {
+          jobRole = 'Warehouse Loader and Picker';
+        } else if (title.includes('sales') || title.includes('executive')) {
+          jobRole = 'Field Sales Executive';
+        } else if (title.includes('promoter') || title.includes('store')) {
+          jobRole = 'In Store Promoter';
+        } else if (title.includes('recruitment') || title.includes('associate')) {
+          jobRole = 'Recruitment Associate';
+        }
+      }
+      
+      if (jobRole) {
+        console.log('🔄 Updating job role for new edit job:', jobRole);
+        setSelectedJobRole(jobRole);
+      } else {
+        console.error('❌ Could not determine job role from new edit data');
+      }
+    }
+  }, [editJobData]);
+  
+  // Cleanup when dialog closes
+  useEffect(() => {
+    if (!isOpen) {
+      console.log('🧹 Cleaning up PostJobDialog state when dialog closes');
+      setSelectedJobRole(null);
+      setStep(editJobData ? 'jobPost' : (skipAuthSteps ? 'roleSelection' : 'login'));
+    }
+  }, [isOpen, editJobData, skipAuthSteps]);
+  
   // API hooks
   const createJobMutation = useCreateJob();
+  const updateJobMutation = useUpdateJob();
   const activeOrganizationId = useActiveOrganizationId();
 
   const handleRoleSelection = (role: JobRoleName) => {
@@ -32,6 +128,16 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
 
   const handleBackToRoleSelection = () => {
     setStep('roleSelection');
+  };
+
+  const handleBackOrCancel = () => {
+    if (editJobData) {
+      // When editing, back button should close the dialog
+      onClose();
+    } else {
+      // When creating new job, go back to role selection
+      handleBackToRoleSelection();
+    }
   };
 
   // Helper function to extract and structure location data
@@ -77,7 +183,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     };
   };
 
-  const handleJobSubmit = async (formData: any) => {
+  const handleJobSubmit = async (formData: any, status: 'open' | 'draft' = 'open') => {
     if (!activeOrganizationId) {
       toast.error('No active organization found. Please select an organization first.');
       return;
@@ -110,7 +216,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
           ...formData,
           role: selectedJobRole,
           industry: roleInfo.industry,
-          status: editJobData?.metadata?.status || 'active',
+          status: status, // Use the passed status instead of hardcoded 'active'
           // Keep original jobProviderLocation in metadata for reference
           jobProviderLocation: formData.basicInfo?.jobProviderLocation
         }
@@ -119,15 +225,32 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       console.log('🚀 Submitting job with payload:', createJobRequest);
 
       if (editJobData) {
-        // TODO: Implement update job API call
-        toast.success(`${selectedJobRole} job updated successfully!`);
+        // Update existing job using the API
+        const updatedJob = await updateJobMutation.mutateAsync({
+          organizationId: activeOrganizationId,
+          jobId: editJobData.id,
+          jobData: createJobRequest,
+        });
+        
+        const successMessage = status === 'open' 
+          ? `${selectedJobRole} job updated successfully!`
+          : `${selectedJobRole} job saved as draft!`;
+        toast.success(successMessage);
+        
+        // Close dialog and reset form after successful update
+        onClose();
+        resetForm();
       } else {
         // Submit the job using the API
         await createJobMutation.mutateAsync({
           organizationId: activeOrganizationId,
           jobData: createJobRequest,
         });
-        toast.success(`${selectedJobRole} job posted successfully!`);
+        
+        const successMessage = status === 'open' 
+          ? `${selectedJobRole} job posted successfully!`
+          : `${selectedJobRole} job saved as draft!`;
+        toast.success(successMessage);
       }
 
       // Close dialog and reset form after successful creation
@@ -146,11 +269,18 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
 
   const resetForm = () => {
     setSelectedJobRole(null);
-    setStep(skipAuthSteps ? 'roleSelection' : 'login');
+    setStep(editJobData ? 'jobPost' : (skipAuthSteps ? 'roleSelection' : 'login'));
   };
 
   // Role Selection Step
   if (step === 'roleSelection') {
+    // Skip role selection if we're editing and have a job role
+    if (editJobData && selectedJobRole) {
+      console.log('⏭️ Skipping role selection for edit mode, going directly to job form');
+      setStep('jobPost');
+      return null;
+    }
+    
     return (
       <RoleSelectionStep
         isOpen={isOpen}
@@ -168,12 +298,13 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
   if (step === 'jobPost') {
     return (
       <RJSFJobPostStep
+        key={`job-post-${selectedJobRole}-${editJobData?.id || 'new'}`}
         isOpen={isOpen}
         onClose={onClose}
         selectedJobRole={selectedJobRole}
         onSubmit={handleJobSubmit}
-        onBack={handleBackToRoleSelection}
-        isSubmitting={createJobMutation.isPending}
+        onBack={handleBackOrCancel}
+        isSubmitting={editJobData ? updateJobMutation.isPending : createJobMutation.isPending}
         editJobData={editJobData}
       />
     );
