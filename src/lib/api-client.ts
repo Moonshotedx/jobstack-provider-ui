@@ -510,16 +510,5 @@ export const getOrganizationList = async (): Promise<Organization[]> => {
   }
 };
 
-export const updateOrganization = async (organizationId: string, organizationData: {
-  name: string;
-  metadata: string;
-  logo?: string;
-}): Promise<Organization> => {
-  try {
-    const response = await apiClient.put(`/auth/organization/${organizationId}`, organizationData);
-    return response.data;
-  } catch (error) {
-    console.error('Failed to update organization:', error);
-    throw error;
-  }
-};
+// Organization update functionality has been moved to use the new auth client API
+// in src/hooks/useJobsApi.ts - useUpdateOrganization hook

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, updateOrganization } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList } from '@/lib/api-client';
 import { authClient } from '@/lib/auth-client';
 
 // Query keys for cache management
@@ -241,18 +241,44 @@ export const useUpdateOrganization = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: ({ organizationId, organizationData }: {
+    mutationFn: async ({ organizationId, organizationData }: {
       organizationId: string;
       organizationData: {
         name: string;
-        metadata: string;
         logo?: string;
+        metadata: Record<string, any>;
+        slug?: string;
       };
-    }) => updateOrganization(organizationId, organizationData),
-    onSuccess: () => {
+    }) => {
+      console.log('🔄 Updating organization with new auth API:', { organizationId, organizationData });
+      
+      const result = await authClient.organization.update({
+        data: {
+          name: organizationData.name,
+          logo: organizationData.logo,
+          metadata: organizationData.metadata,
+          slug: organizationData.slug
+        },
+        organizationId: organizationId // Use as safeguard even though it defaults to current active organization
+      });
+
+      if (result.error) {
+        throw new Error(result.error.message || 'Failed to update organization');
+      }
+
+      console.log('✅ Organization updated successfully:', result.data);
+      return result.data;
+    },
+    onSuccess: (data) => {
+      console.log('Organization update success:', data);
       // Invalidate and refetch organization list
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
+      queryClient.invalidateQueries({ queryKey: ['organizations-with-metadata'] });
+      queryClient.invalidateQueries({ queryKey: ['session'] });
     },
+    onError: (error: any) => {
+      console.error('❌ Failed to update organization:', error);
+    }
   });
 };
 
