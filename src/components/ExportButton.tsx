@@ -48,8 +48,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       
       await exportCandidates(data, {
         format,
-        filename,
-        includeHeaders: true
+        filename
       });
 
       toast.success(t('export.exportSuccess'), {

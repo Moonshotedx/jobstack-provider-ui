@@ -7,7 +7,6 @@ export type ExportFormat = 'json' | 'csv' | 'xlsx';
 export interface ExportOptions {
   format: ExportFormat;
   filename?: string;
-  includeHeaders?: boolean;
 }
 
 // Helper function to convert data to CSV format
@@ -90,7 +89,7 @@ export const exportCandidates = async (
   data: JobApplicant[],
   options: ExportOptions
 ): Promise<void> => {
-  const { format, filename = 'candidates-export', includeHeaders = true } = options;
+  const { format, filename = 'candidates-export' } = options;
 
   // Remove any existing file extension from filename to prevent duplication
   const baseFilename = filename.replace(/\.(json|csv|xlsx)$/i, '');
