@@ -19,6 +19,7 @@ import {
   CheckCircle,
   XCircle
 } from 'lucide-react';
+import ExportButton from '@/components/ExportButton';
 import type { JobApplicant } from '@/types/jobPost';
 import CandidateDetails from '@/components/CandidateDetails';
 import { useTranslation } from 'react-i18next';
@@ -450,6 +451,13 @@ function JobApplicantsPage() {
                   No applications found for this job
                 </p>
               </div>
+              <div className="flex items-center gap-2">
+                <ExportButton 
+                  data={[]}
+                  jobTitle={jobDetails?.title || `job-${jobId}`}
+                  disabled={true}
+                />
+              </div>
             </div>
           </div>
 
@@ -516,6 +524,13 @@ function JobApplicantsPage() {
               <p className="text-muted-foreground mt-1">
                 {jobDetails?.title ? `Applications for: ${jobDetails.title}` : `Job ${jobId}`} • {filteredApplicants.length} candidates found
               </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <ExportButton 
+                data={filteredApplicants}
+                jobTitle={jobDetails?.title || `job-${jobId}`}
+                disabled={filteredApplicants.length === 0}
+              />
             </div>
           </div>
         </div>

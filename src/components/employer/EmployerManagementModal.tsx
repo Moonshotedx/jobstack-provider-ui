@@ -46,22 +46,23 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
     return organizations.map((org: Organization) => {
       let metadata: any = {};
       try {
-        metadata = JSON.parse(org.metadata);
+        metadata = JSON.parse(org.metadata || '{}');
       } catch (e) {
         console.warn('Failed to parse organization metadata:', e);
+        metadata = {};
       }
       
       return {
         id: org.id,
-        name: org.name,
-        address: metadata.address || '',
-        gstNumber: metadata.gstNumber || '',
+        name: org.name || '',
+        address: metadata?.address || '',
+        gstNumber: metadata?.gstNumber || '',
         logo: org.logo,
-        contactPersonName: metadata.contactPersonName || '',
-        contactEmail: metadata.contactEmail || '',
-        contactPhone: metadata.contactPhone || '',
-        website: metadata.website || '',
-        description: metadata.description || '',
+        contactPersonName: metadata?.contactPersonName || '',
+        contactEmail: metadata?.contactEmail || '',
+        contactPhone: metadata?.contactPhone || '',
+        website: metadata?.website || '',
+        description: metadata?.description || '',
         createdAt: org.createdAt,
         isActive: true,
         isDefault: false // We'll determine this based on user's current organization

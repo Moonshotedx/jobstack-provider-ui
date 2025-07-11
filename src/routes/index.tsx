@@ -7,6 +7,7 @@ import { Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/stores/authStore';
 import { logout } from '@/lib/utils';
+import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -32,15 +33,29 @@ function RouteComponent() {
   useEffect(() => {
     const clearSession = async () => {
       try {
-        // Clear the user from the store
+        // Clear the user from the store first
         clearUser();
-        // Also call the logout function to clear any stored tokens/session
-        await logout();
         
         // Clear any persisted data from localStorage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('user-storage');
           sessionStorage.clear();
+        }
+        
+        // Only attempt logout if we have a session to clear
+        // This prevents unnecessary API calls when user is already logged out
+        try {
+          const session = await authClient.getSession(undefined, { credentials: 'include' });
+          if (session.data?.user) {
+            // User has an active session, so we should logout
+            await logout();
+          } else {
+            // No active session, just clear local state
+            console.log('No active session found, skipping logout call');
+          }
+        } catch (sessionError) {
+          // Session check failed, which means no valid session anyway
+          console.log('Session check failed, skipping logout call:', sessionError);
         }
         
         // Force a re-render by updating the store
@@ -50,7 +65,9 @@ function RouteComponent() {
         }, 100);
       } catch (error) {
         // Silently handle any errors during logout
-        console.log('Session cleared');
+        console.log('Session cleared (with potential errors):', error);
+        // Ensure user is still cleared even if logout fails
+        clearUser();
       }
     };
 
