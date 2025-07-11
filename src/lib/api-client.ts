@@ -139,6 +139,7 @@ export interface JobApplication {
         isNameVerified: boolean;
         currentLocation: string;
         desiredLocation: string;
+        [key: string]: any; // Allow additional properties like media URLs
       };
       education: any[];
       whatIHave: {
@@ -148,6 +149,8 @@ export interface JobApplication {
         machinesOperated: string[];
         jukiMachineExperience: string;
         qualityScoreExplanation: string;
+        taskVideo?: string;
+        [key: string]: any; // Allow additional properties like media URLs
       };
       whatIWant: {
         monthlyPFESIC: string;
@@ -157,6 +160,7 @@ export interface JobApplication {
         maxCostPerSharingBed: number;
         monthlyOTExpectation: number;
         monthlyInHandPreferred: number;
+        [key: string]: any; // Allow additional properties like media URLs
       };
       experience: any[];
       certificates: any[];

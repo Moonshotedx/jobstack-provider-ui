@@ -23,7 +23,12 @@ import {
   DollarSign,
   Home,
   Car,
-  Zap
+  Zap,
+  Image,
+  FileVideo,
+  AlertCircle,
+  Play,
+  Maximize2
 } from 'lucide-react';
 import type { JobApplication } from '@/lib/api-client';
 import { useTranslation } from 'react-i18next';
@@ -42,6 +47,266 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
   jobTitle 
 }) => {
   const { t } = useTranslation('candidates');
+
+  // Helper function to check if URL is a media file
+  const isMediaUrl = (url: string): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    
+    // Check for common media extensions
+    const mediaExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.avi', '.mov', '.wmv', '.mkv', '.webm'];
+    const hasExtension = mediaExtensions.some(ext => url.toLowerCase().includes(ext));
+    
+    // Check for GCS storage URLs
+    const isGCS = url.includes('storage.googleapis.com');
+    
+    // Check for other common media URL patterns
+    const isMediaPattern = url.includes('/video/') || url.includes('/image/') || url.includes('/media/') || 
+                          url.includes('/uploads/') || url.includes('/assets/');
+    
+    // Check for data URLs (base64 encoded media)
+    const isDataUrl = url.startsWith('data:image/') || url.startsWith('data:video/');
+    
+    const isMedia = hasExtension || isGCS || isMediaPattern || isDataUrl;
+    
+    // Debug logging
+    if (isMedia) {
+      console.log('Media URL detected:', url, { hasExtension, isGCS, isMediaPattern, isDataUrl });
+    }
+    
+    return isMedia;
+  };
+
+  // Helper function to determine media type
+  const getMediaType = (url: string): 'image' | 'video' | 'unknown' => {
+    if (!url) return 'unknown';
+    
+    const videoExtensions = ['.mp4', '.avi', '.mov', '.wmv', '.mkv', '.webm'];
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    
+    const lowerUrl = url.toLowerCase();
+    
+    // Check for data URLs
+    if (url.startsWith('data:')) {
+      if (url.startsWith('data:video/')) return 'video';
+      if (url.startsWith('data:image/')) return 'image';
+    }
+    
+    // Check file extensions
+    if (videoExtensions.some(ext => lowerUrl.includes(ext))) return 'video';
+    if (imageExtensions.some(ext => lowerUrl.includes(ext))) return 'image';
+    
+    // For GCS URLs without clear extension, check the context
+    if (lowerUrl.includes('storage.googleapis.com')) {
+      // If it's from a field named 'taskVideo' or contains 'video' in the path, treat as video
+      if (lowerUrl.includes('video') || lowerUrl.includes('task') || lowerUrl.includes('mp4')) return 'video';
+      // If it contains image-related terms, treat as image
+      if (lowerUrl.includes('image') || lowerUrl.includes('photo') || lowerUrl.includes('jpg') || lowerUrl.includes('png')) return 'image';
+      // Otherwise assume image for GCS URLs
+      return 'image';
+    }
+    
+    // Check URL patterns
+    if (lowerUrl.includes('/video/') || lowerUrl.includes('video')) return 'video';
+    if (lowerUrl.includes('/image/') || lowerUrl.includes('image') || lowerUrl.includes('photo')) return 'image';
+    
+    return 'unknown';
+  };
+
+  // Enhanced media content renderer with better layout
+  const renderMediaContent = (url: string, title: string, className: string = '', fieldName?: string) => {
+    console.log('renderMediaContent called with:', { url, title, className, fieldName });
+    
+    if (!isMediaUrl(url)) {
+      console.log('URL is not a media URL:', url);
+      return null;
+    }
+
+    // Determine media type based on URL and field name context
+    let mediaType = getMediaType(url);
+    if (mediaType === 'unknown' && fieldName) {
+      // Use field name to determine type
+      if (fieldName.toLowerCase().includes('video')) {
+        mediaType = 'video';
+      } else if (fieldName.toLowerCase().includes('image') || fieldName.toLowerCase().includes('photo')) {
+        mediaType = 'image';
+      }
+    }
+    console.log('Media type determined as:', mediaType);
+    
+    return (
+      <div className={`${className} space-y-3`}>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {mediaType === 'video' ? (
+              <FileVideo className="h-5 w-5 text-blue-600" />
+            ) : (
+              <Image className="h-5 w-5 text-green-600" />
+            )}
+            <span className="font-semibold text-lg">{title}</span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => window.open(url, '_blank')}
+            className="flex items-center gap-1"
+          >
+            <Maximize2 className="h-4 w-4" />
+            Open in new tab
+          </Button>
+        </div>
+        
+        <div className="relative rounded-lg overflow-hidden border-2 border-gray-200 bg-gray-50 shadow-sm">
+          {mediaType === 'video' ? (
+            <div className="relative">
+              <video 
+                controls 
+                className="w-full max-h-80 object-contain bg-black"
+                preload="metadata"
+                onError={(e) => {
+                  console.error('Video load error:', e);
+                  const target = e.target as HTMLVideoElement;
+                  target.style.display = 'none';
+                  const errorDiv = target.parentElement?.querySelector('.media-error');
+                  if (errorDiv) errorDiv.classList.remove('hidden');
+                }}
+                onLoadStart={() => {
+                  console.log('Video loading started:', url);
+                }}
+                onLoadedData={() => {
+                  console.log('Video loaded successfully:', url);
+                }}
+              >
+                <source src={url} type="video/mp4" />
+                <source src={url} type="video/webm" />
+                <source src={url} type="video/ogg" />
+                Your browser does not support the video tag.
+              </video>
+              <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                <Play className="h-3 w-3 inline mr-1" />
+                Video
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              <img 
+                src={url} 
+                alt={title}
+                className="w-full max-h-80 object-contain"
+                loading="lazy"
+                onError={(e) => {
+                  console.error('Image load error:', e);
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  const errorDiv = target.parentElement?.querySelector('.media-error');
+                  if (errorDiv) errorDiv.classList.remove('hidden');
+                }}
+                onLoad={() => {
+                  console.log('Image loaded successfully:', url);
+                }}
+              />
+              <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
+                <Image className="h-3 w-3 inline mr-1" />
+                Image
+              </div>
+            </div>
+          )}
+          
+          {/* Error fallback */}
+          <div className="media-error hidden absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="text-center text-gray-500">
+              <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+              <p className="text-sm">Failed to load media</p>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={() => window.open(url, '_blank')}
+                className="mt-2"
+              >
+                Open in new tab
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Enhanced media URL extraction with better field detection
+  const extractMediaUrls = () => {
+    const mediaUrls: Array<{ url: string; title: string; section: string; fieldName: string }> = [];
+    
+    if (!candidate.metadata?.metadata) {
+      console.log('No metadata found');
+      return mediaUrls;
+    }
+
+    const { whoIAm, whatIHave, whatIWant } = candidate.metadata.metadata;
+    console.log('Extracting media URLs from metadata:', { whoIAm, whatIHave, whatIWant });
+
+    // Check for media in whatIHave section
+    if (whatIHave) {
+      console.log('Checking whatIHave section:', whatIHave);
+      
+      // Check for taskVideo specifically
+      if (whatIHave.taskVideo && isMediaUrl(whatIHave.taskVideo)) {
+        console.log('Found taskVideo:', whatIHave.taskVideo);
+        mediaUrls.push({
+          url: whatIHave.taskVideo,
+          title: 'Task Video',
+          section: 'whatIHave',
+          fieldName: 'taskVideo'
+        });
+      }
+      
+      // Check for other potential media fields
+      Object.entries(whatIHave).forEach(([key, value]) => {
+        if (typeof value === 'string' && isMediaUrl(value) && key !== 'taskVideo') {
+          console.log('Found media in whatIHave:', key, value);
+          mediaUrls.push({
+            url: value,
+            title: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+            section: 'whatIHave',
+            fieldName: key
+          });
+        }
+      });
+    }
+
+    // Check for media in whoIAm section
+    if (whoIAm) {
+      console.log('Checking whoIAm section:', whoIAm);
+      Object.entries(whoIAm).forEach(([key, value]) => {
+        if (typeof value === 'string' && isMediaUrl(value)) {
+          console.log('Found media in whoIAm:', key, value);
+          mediaUrls.push({
+            url: value,
+            title: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+            section: 'whoIAm',
+            fieldName: key
+          });
+        }
+      });
+    }
+
+    // Check for media in whatIWant section
+    if (whatIWant) {
+      console.log('Checking whatIWant section:', whatIWant);
+      Object.entries(whatIWant).forEach(([key, value]) => {
+        if (typeof value === 'string' && isMediaUrl(value)) {
+          console.log('Found media in whatIWant:', key, value);
+          mediaUrls.push({
+            url: value,
+            title: key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1'),
+            section: 'whatIWant',
+            fieldName: key
+          });
+        }
+      });
+    }
+
+    console.log('Extracted media URLs:', mediaUrls);
+    return mediaUrls;
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -267,6 +532,9 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 <span>{whoIAm.desiredLocation}</span>
               </div>
             </div>
+
+            {/* Media from whoIAm section */}
+            {/* Removed duplicate media rendering - now handled in dedicated Media Content section */}
           </CardContent>
         </Card>
 
@@ -302,18 +570,18 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
               </div>
             </div>
             
-                         {whatIHave.machinesOperated && whatIHave.machinesOperated.length > 0 && (
-               <div>
-                 <span className="font-medium">Machines Operated:</span>
-                 <div className="flex flex-wrap gap-2 mt-2">
-                   {whatIHave.machinesOperated.map((machine: string, index: number) => (
-                     <Badge key={index} variant="secondary">
-                       {machine}
-                     </Badge>
-                   ))}
-                 </div>
-               </div>
-             )}
+            {whatIHave.machinesOperated && whatIHave.machinesOperated.length > 0 && (
+              <div>
+                <span className="font-medium">Machines Operated:</span>
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {whatIHave.machinesOperated.map((machine: string, index: number) => (
+                    <Badge key={index} variant="secondary">
+                      {machine}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {whatIHave.qualityScoreExplanation && (
               <div>
@@ -323,6 +591,9 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 </p>
               </div>
             )}
+
+            {/* Media from whatIHave section */}
+            {/* Removed duplicate media rendering - now handled in dedicated Media Content section */}
           </CardContent>
         </Card>
 
@@ -372,6 +643,9 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 <span>₹{whatIWant.monthlyInHandPreferred}</span>
               </div>
             </div>
+
+            {/* Media from whatIWant section */}
+            {/* Removed duplicate media rendering - now handled in dedicated Media Content section */}
           </CardContent>
         </Card>
       </>
@@ -449,19 +723,19 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             </div>
           )}
 
-                     {/* Tags */}
-           {candidate.metadata?.tags && candidate.metadata.tags.length > 0 && (
-             <div>
-               <span className="font-medium">Tags:</span>
-               <div className="flex flex-wrap gap-2 mt-2">
-                 {candidate.metadata.tags.map((tag, index) => (
-                   <Badge key={index} variant="outline">
-                     {tag.descriptor?.name || tag.list?.[0]?.value || 'Tag'}
-                   </Badge>
-                 ))}
-               </div>
-             </div>
-           )}
+          {/* Tags */}
+          {candidate.metadata?.tags && candidate.metadata.tags.length > 0 && (
+            <div>
+              <span className="font-medium">Tags:</span>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {candidate.metadata.tags.map((tag, index) => (
+                  <Badge key={index} variant="outline">
+                    {tag.descriptor?.name || tag.list?.[0]?.value || 'Tag'}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     );
@@ -469,7 +743,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <User className="h-5 w-5" />
@@ -537,6 +811,31 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
               </div>
             </CardContent>
           </Card>
+
+          {/* Media Section - New dedicated section for media content */}
+          {(() => {
+            const mediaUrls = extractMediaUrls();
+            if (mediaUrls.length > 0) {
+              return (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg flex items-center gap-2">
+                      <FileVideo className="h-5 w-5" />
+                      Media Content
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    {mediaUrls.map((media, index) => (
+                      <div key={`media-${index}`} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                        {renderMediaContent(media.url, media.title, '', media.fieldName)}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              );
+            }
+            return null;
+          })()}
 
           {/* Basic Information */}
           {renderBasicInfo()}
