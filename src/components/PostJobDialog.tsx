@@ -226,7 +226,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
 
       if (editJobData) {
         // Update existing job using the API
-        const updatedJob = await updateJobMutation.mutateAsync({
+        await updateJobMutation.mutateAsync({
           organizationId: activeOrganizationId,
           jobId: editJobData.id,
           jobData: createJobRequest,

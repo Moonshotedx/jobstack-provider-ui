@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { MapPin, Bell, User, Briefcase, LogOut, AlertCircle } from 'lucide-react';
+import { User, Briefcase, LogOut, AlertCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
