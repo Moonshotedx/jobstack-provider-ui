@@ -77,12 +77,6 @@
           "minimum": 1,
           "maximum": 24
         },
-        "salaryCTC": {
-          "type": "number",
-          "title": "Salary CTC (Annual in INR)",
-          "description": "Enter annual CTC amount",
-          "minimum": 0
-        },
         "monthlyInHand": {
           "type": "number",
           "title": "Monthly In-hand Salary (INR)",
