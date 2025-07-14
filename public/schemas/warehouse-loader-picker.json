@@ -89,10 +89,10 @@
           "description": "Enter monthly PF & ESIC benefits amount",
           "minimum": 0
         },
-        "monthlyPfEsicExplanation": {
+        "monthlyAverageOt": {
           "type": "string",
-          "title": "Monthly PF & ESIC Explanation",
-          "description": "Explain the PF & ESIC benefits details"
+          "title": "Monthly Average OT (Overtime) (INR)",
+          "description": "Enter monthly average OT (overtime) amount"
         },
         "stayProvided": {
           "type": "string",
@@ -152,40 +152,6 @@
           "x-subsection": "physical-fitness-subsection",
           "x-ui-subsection": "border",
           "properties": {
-            "physicallyFitForRole": {
-              "type": "string",
-              "title": "Physically Fit for Role",
-              "enum": ["yes", "no"],
-              "enumNames": ["Yes", "No"],
-              "description": "Select if physically fit for the role"
-            },
-            "acceptableProofs": {
-              "type": "array",
-              "title": "Acceptable Proofs",
-              "description": "Select acceptable proof types",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "work-ex-certificate-previous-employer",
-                  "referral-peer-similar-role",
-                  "rating-on-ground-agent",
-                  "other"
-                ],
-                "enumNames": [
-                  "Work ex certificate by previous employer",
-                  "Referral by a peer in a similar role",
-                  "Rating by on-ground agent",
-                  "Other"
-                ]
-              },
-              "uniqueItems": true,
-              "minItems": 1
-            },
-            "acceptableProofsOther": {
-              "type": "string",
-              "title": "Other Proof Type",
-              "description": "Specify other proof type"
-            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -197,7 +163,7 @@
               "maxItems": 5
             }
           },
-          "required": ["physicallyFitForRole", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          "required": ["uploadSampleMedia"]
         },
         "englishReadingSkillsSubsection": {
           "type": "object",
@@ -205,40 +171,6 @@
           "x-subsection": "english-reading-skills-subsection",
           "x-ui-subsection": "border",
           "properties": {
-            "ableToReadComprehendBasicEnglish": {
-              "type": "string",
-              "title": "Able to read and comprehend basic english words commonly occurring on labels?",
-              "enum": ["yes", "no"],
-              "enumNames": ["Yes", "No"],
-              "description": "Select if able to read and comprehend basic English"
-            },
-            "acceptableProofs": {
-              "type": "array",
-              "title": "Acceptable Proofs",
-              "description": "Select acceptable proof types",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "work-ex-certificate-previous-employer",
-                  "referral-peer-similar-role",
-                  "rating-on-ground-agent",
-                  "other"
-                ],
-                "enumNames": [
-                  "Work ex certificate by previous employer",
-                  "Referral by a peer in a similar role",
-                  "Rating by on-ground agent",
-                  "Other"
-                ]
-              },
-              "uniqueItems": true,
-              "minItems": 1
-            },
-            "acceptableProofsOther": {
-              "type": "string",
-              "title": "Other Proof Type",
-              "description": "Specify other proof type"
-            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -250,7 +182,7 @@
               "maxItems": 5
             }
           },
-          "required": ["ableToReadComprehendBasicEnglish", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          "required": ["uploadSampleMedia"]
         }
       },
       "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "physicalFitnessSubsection", "englishReadingSkillsSubsection"]
