@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
-import { User, Briefcase, LogOut, AlertCircle } from 'lucide-react';
+import { User, LogOut, AlertCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
@@ -75,8 +75,12 @@ const Header = () => {
             {/* Logo and Brand */}
             <div className="flex items-center gap-6">
               <Link to="/" className="flex items-center gap-2">
-                <Briefcase className="h-6 w-6 text-primary" />
-                
+                <img
+                  src="/Onest_logo_mobile.png"
+                  alt="ONEST Logo"
+                  className="h-8 w-auto object-contain"
+                  style={{ maxWidth: 120 }}
+                />
               </Link>
             </div>
 
