@@ -117,32 +117,6 @@
           "minimum": 18,
           "maximum": 100
         },
-        "languageSubsection": {
-          "type": "object",
-          "title": "Language",
-          "x-subsection": "language-subsection",
-          "x-ui-subsection": "border",
-          "properties": {
-            "languageKnown": {
-              "type": "string",
-              "title": "Language Known",
-              "description": "Enter the language known"
-            }
-          }
-        },
-        "highestQualificationSubsection": {
-          "type": "object",
-          "title": "Highest Qualification",
-          "x-subsection": "highest-qualification-subsection",
-          "x-ui-subsection": "border",
-          "properties": {
-            "highestQualification": {
-              "type": "string",
-              "title": "Min. Highest Qualification Preferred",
-              "description": "Enter the highest qualification preferred"
-            }
-          }
-        },
         "customerHandlingSubsection": {
           "type": "object",
           "title": "Customer Handling",
