@@ -748,61 +748,36 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     const subsectionTitle = subsectionSchema.title;
     const hasBorder = subsectionSchema['x-ui-subsection'] === 'border';
     
-    // Group fields by type for better layout
+    // Preserve the exact order from the JSON schema
     const fields = Object.entries(subsectionSchema.properties || {});
-    const fileFields = fields.filter(([_, schema]: [string, any]) => schema.format === 'data-url' || (schema.type === 'array' && schema.items?.properties?.file));
-    const textareaFields = fields.filter(([key, schema]: [string, any]) => 
-      schema.type === 'string' && (
-        key.toLowerCase().includes('description') || 
-        key.toLowerCase().includes('explanation') ||
-        key.toLowerCase().includes('terms') ||
-        key.toLowerCase().includes('proof')
-      )
-    );
     
-    // Filter out "Other" fields as they will be handled conditionally within the multiselect fields
-    const otherFields = fields.filter(([key, _]: [string, any]) => 
-      key.toLowerCase().includes('other') && key.toLowerCase().includes('proof')
-    );
-    
-    const regularFields = fields.filter(([key, _]: [string, any]) => 
-      !fileFields.some(([fk]) => fk === key) && 
-      !textareaFields.some(([tk]) => tk === key) &&
-      !otherFields.some(([ok]) => ok === key)
-    );
-
     const subsectionContent = (
       <div className="space-y-6">
-        {/* Regular fields in grid */}
-        {regularFields.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {regularFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-              <div key={fieldKey} className={
-                fieldSchema.type === 'array' ? 'md:col-span-2' : ''
-              }>
-                {renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])}
-              </div>
-            ))}
-          </div>
-        )}
-        
-        {/* Textarea fields full width */}
-        {textareaFields.length > 0 && (
-          <div className="space-y-6 mb-6">
-            {textareaFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-              renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])
-            ))}
-          </div>
-        )}
-        
-        {/* File upload fields full width */}
-        {fileFields.length > 0 && (
-          <div className="space-y-6">
-            {fileFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-              renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, subsectionData[fieldKey])
-            ))}
-          </div>
-        )}
+        {/* Render fields in the exact order they appear in the JSON schema */}
+        {fields.map(([fieldKey, fieldSchema]: [string, any]) => {
+          const fieldValue = subsectionData[fieldKey];
+          
+          // Handle "Other" fields that are conditionally shown within multiselect fields
+          if (fieldKey.toLowerCase().includes('other') && fieldKey.toLowerCase().includes('proof')) {
+            return null; // Skip these as they're handled conditionally
+          }
+          
+          // Determine if this field should take full width
+          const isFullWidth = fieldSchema.type === 'array' || 
+            fieldSchema.format === 'data-url' || 
+            (fieldSchema.type === 'string' && (
+              fieldKey.toLowerCase().includes('description') || 
+              fieldKey.toLowerCase().includes('explanation') ||
+              fieldKey.toLowerCase().includes('terms') ||
+              fieldKey.toLowerCase().includes('proof')
+            ));
+          
+          return (
+            <div key={fieldKey} className={isFullWidth ? 'w-full' : 'md:col-span-1'}>
+              {renderField(sectionKey, `${subsectionKey}.${fieldKey}`, fieldSchema, fieldValue)}
+            </div>
+          );
+        })}
       </div>
     );
 
@@ -830,27 +805,20 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     const isSectionRequired = schema?.required?.includes(sectionKey);
     const sectionTitle = sectionSchema.title + (isSectionRequired ? ' *' : '');
     
-    // Separate regular fields from subsections
+    // Preserve the exact order from the JSON schema
     const fields = Object.entries(sectionSchema.properties || {});
-    const subsections = fields.filter(([_, schema]: [string, any]) => schema.type === 'object' && schema['x-subsection']);
-    const regularFields = fields.filter(([_, schema]: [string, any]) => 
-      schema.type !== 'object' || !schema['x-subsection']
-    );
     
-    // Group regular fields by type for better layout
-    const fileFields = regularFields.filter(([_, schema]: [string, any]) => schema.format === 'data-url' || (schema.type === 'array' && schema.items?.properties?.file));
-    const textareaFields = regularFields.filter(([key, schema]: [string, any]) => 
-      schema.type === 'string' && (
-        key.toLowerCase().includes('description') || 
-        key.toLowerCase().includes('explanation') ||
-        key.toLowerCase().includes('terms') ||
-        key.toLowerCase().includes('proof')
-      )
-    );
-    const otherRegularFields = regularFields.filter(([key, _]: [string, any]) => 
-      !fileFields.some(([fk]) => fk === key) && 
-      !textareaFields.some(([tk]) => tk === key)
-    );
+    // Separate subsections from regular fields while maintaining order
+    const orderedFields: Array<{ key: string; schema: any; isSubsection: boolean }> = [];
+    
+    fields.forEach(([fieldKey, fieldSchema]: [string, any]) => {
+      const isSubsection = fieldSchema.type === 'object' && fieldSchema['x-subsection'];
+      orderedFields.push({
+        key: fieldKey,
+        schema: fieldSchema,
+        isSubsection
+      });
+    });
     
     return (
       <Card key={sectionKey} className="overflow-hidden border shadow-sm">
@@ -858,45 +826,34 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           <CardTitle className="text-lg font-semibold">{sectionTitle}</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
-          {/* Regular fields in grid */}
-          {otherRegularFields.length > 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              {otherRegularFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-                <div key={fieldKey} className={
-                  fieldSchema.type === 'array' ? 'md:col-span-2' : ''
-                }>
-                  {renderField(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey])}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Textarea fields full width */}
-          {textareaFields.length > 0 && (
-            <div className="space-y-6 mb-6">
-              {textareaFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-                renderField(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey])
-              ))}
-            </div>
-          )}
-          
-          {/* File upload fields full width */}
-          {fileFields.length > 0 && (
-            <div className="space-y-6 mb-6">
-              {fileFields.map(([fieldKey, fieldSchema]: [string, any]) => (
-                renderField(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey])
-              ))}
-            </div>
-          )}
-
-          {/* Subsections */}
-          {subsections.length > 0 && (
-            <div className="space-y-6 mt-6">
-              {subsections.map(([subsectionKey, subsectionSchema]: [string, any]) => (
-                renderSubsection(sectionKey, subsectionKey, subsectionSchema, sectionData[subsectionKey] || {})
-              ))}
-            </div>
-          )}
+          {/* Render fields in the exact order they appear in the JSON schema */}
+          <div className="space-y-6">
+            {orderedFields.map(({ key: fieldKey, schema: fieldSchema, isSubsection }) => {
+              if (isSubsection) {
+                // Render subsection
+                return renderSubsection(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey] || {});
+              } else {
+                // Render regular field
+                const fieldValue = sectionData[fieldKey];
+                
+                // Determine if this field should take full width
+                const isFullWidth = fieldSchema.type === 'array' || 
+                  fieldSchema.format === 'data-url' || 
+                  (fieldSchema.type === 'string' && (
+                    fieldKey.toLowerCase().includes('description') || 
+                    fieldKey.toLowerCase().includes('explanation') ||
+                    fieldKey.toLowerCase().includes('terms') ||
+                    fieldKey.toLowerCase().includes('proof')
+                  ));
+                
+                return (
+                  <div key={fieldKey} className={isFullWidth ? 'w-full' : 'md:col-span-1'}>
+                    {renderField(sectionKey, fieldKey, fieldSchema, fieldValue)}
+                  </div>
+                );
+              }
+            })}
+          </div>
         </CardContent>
       </Card>
     );
