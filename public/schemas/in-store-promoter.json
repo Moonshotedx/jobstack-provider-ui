@@ -1,168 +1,19 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "In Store Promoter Job Posting",
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
   "type": "object",
+  "title": "In-Store Promoter Job Posting",
+  "description": "Complete job posting form for In-Store Promoter positions",
   "properties": {
     "basicInfo": {
       "type": "object",
       "title": "Basic Information",
       "x-section": "basic-info",
       "properties": {
-        "title": {
-          "type": "string",
-          "title": "Job Title",
-          "default": "In Store Promoter"
-        },
-        "location": {
-          "type": "string",
-          "title": "Location",
-          "description": "Provide the specific location where candidates will work"
-        },
-        "jobType": {
-          "type": "string",
-          "title": "Job Type",
-          "enum": ["full-time", "part-time", "contract"],
-          "enumNames": ["Full-time", "Part-time", "Contract"]
-        },
-        "salary": {
-          "type": "string",
-          "title": "Salary Range",
-          "description": "e.g., ₹15,000 - ₹25,000"
-        },
-        "payFrequency": {
-          "type": "string",
-          "title": "Pay Frequency",
-          "enum": ["daily", "weekly", "monthly"],
-          "enumNames": ["Daily", "Weekly", "Monthly"]
-        },
-        "experience": {
-          "type": "string",
-          "title": "Experience Required",
-          "description": "e.g., 2-5 years"
-        },
-        "positions": {
-          "type": "number",
-          "title": "Number of Positions",
-          "minimum": 1,
-          "default": 1
-        }
-      },
-      "required": ["title", "location", "jobType", "salary", "payFrequency"]
-    },
-    "promoterSpecific": {
-      "type": "object",
-      "title": "Promoter Specific Requirements",
-      "x-section": "promoter-specific",
-      "properties": {
-        "brandProducts": {
-          "type": "string",
-          "title": "Brand/Products to Promote",
-          "description": "Specific brands or product categories"
-        },
-        "storeType": {
-          "type": "string",
-          "title": "Store Type",
-          "enum": ["retail-chain", "department-store", "supermarket", "electronics-store"],
-          "enumNames": ["Retail Chain", "Department Store", "Supermarket", "Electronics Store"]
-        },
-        "workingHours": {
-          "type": "string",
-          "title": "Working Hours",
-          "description": "Store timings and shift details"
-        },
-        "languageRequirements": {
-          "type": "array",
-          "title": "Language Requirements",
-          "items": {
-            "type": "string",
-            "enum": ["hindi", "english", "local-language", "regional-language"],
-            "enumNames": ["Hindi", "English", "Local Language", "Regional Language"]
-          },
-          "uniqueItems": true
-        },
-        "presentationSkills": {
-          "type": "boolean",
-          "title": "Presentation Skills Required",
-          "default": true
-        }
-      }
-    },
-    "jobDescription": {
-      "type": "object",
-      "title": "Job Description",
-      "x-section": "job-description",
-      "properties": {
-        "description": {
-          "type": "string",
-          "title": "Job Description",
-          "description": "Describe the job role, responsibilities, and what you're looking for..."
-        },
-        "workTimings": {
-          "type": "string",
-          "title": "Work Timings",
-          "description": "e.g., 9 AM - 6 PM"
-        },
-        "workDays": {
-          "type": "string",
-          "title": "Work Days",
-          "description": "e.g., Monday to Friday"
-        }
-      },
-      "required": ["description"]
-    },
-    "requirements": {
-      "type": "object",
-      "title": "Requirements & Benefits",
-      "x-section": "requirements-benefits",
-      "properties": {
-        "requirements": {
-          "type": "array",
-          "title": "Job Requirements",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "default": [""]
-        },
-        "benefits": {
-          "type": "array",
-          "title": "Benefits & Perks",
-          "items": {
-            "type": "string"
-          },
-          "minItems": 1,
-          "default": [""]
-        }
-      }
-    },
-    "applicationDetails": {
-      "type": "object",
-      "title": "Application Details",
-      "x-section": "application-details",
-      "properties": {
-        "lastDate": {
-          "type": "string",
-          "title": "Last Date to Apply",
-          "format": "date"
-        },
-        "questions": {
-          "type": "array",
-          "title": "Custom Questions for Applicants",
-          "items": {
-            "type": "string"
-          },
-          "default": [""]
-        }
-      }
-    },
-    "jobProviderInfo": {
-      "type": "object",
-      "title": "Job Provider Information",
-      "x-section": "job-provider-info",
-      "properties": {
         "jobProviderName": {
           "type": "string",
-          "title": "Job Provider Name"
+          "title": "Job Provider Name",
+          "description": "Enter job provider/company name",
+          "minLength": 1
         },
         "jobProviderRegistration": {
           "type": "string",
@@ -170,30 +21,153 @@
           "description": "GST, CIN, TAN, PAN or other registration number",
           "minLength": 1,
           "pattern": "^.+$"
+        },
+        "jobProviderLocation": {
+          "type": "string",
+          "title": "Job Provider Location",
+          "description": "Enter job provider location",
+          "minLength": 1
+        },
+        "jobProviderLogo": {
+          "type": "string",
+          "title": "Job Provider Logo",
+          "description": "Upload company logo (PNG, JPG, max 5MB)",
+          "format": "data-url"
         }
       },
-      "required": ["jobProviderName", "jobProviderRegistration"]
+      "required": ["jobProviderName", "jobProviderLocation"]
     },
-    "hiringManager": {
+    "jobDetails": {
       "type": "object",
-      "title": "Hiring Manager Details",
-      "x-section": "hiring-manager",
+      "title": "Job Details",
+      "x-section": "job-details",
       "properties": {
-        "managerName": {
+        "title": {
           "type": "string",
-          "title": "Provider Contact Name"
+          "title": "Job Title",
+          "description": "Job title (editable)",
+          "minLength": 1
         },
-        "phoneNo": {
-          "type": "string",
-          "title": "Provider Contact Phone No"
+        "positions": {
+          "type": "integer",
+          "title": "Number of Openings",
+          "description": "How many positions are available?",
+          "minimum": 1,
+          "default": 1
         },
-        "emailId": {
+        "jobDetailsVideo": {
           "type": "string",
-          "title": "Provider Contact Email ID",
-          "format": "email"
+          "title": "Job Details Video",
+          "format": "data-url",
+          "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        },
+        "jobLocationPhotos": {
+          "type": "array",
+          "title": "Job Location Photos",
+          "items": {
+            "type": "string",
+            "format": "data-url"
+          },
+          "description": "Upload photos of the job location (PNG, JPEG, JPG, max 5MB each)"
+        },
+        "workingHoursPerDay": {
+          "type": "number",
+          "title": "Working Hours Per Day",
+          "description": "Enter working hours per day",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "modeOfWork": {
+          "type": "string",
+          "title": "Mode of Work",
+          "description": "Select mode of work",
+          "enum": ["full-time", "part-time", "flexible"],
+          "enumNames": ["Full Time", "Part Time", "Flexible"]
+        },
+        "monthlyInHand": {
+          "type": "number",
+          "title": "Monthly In-hand Salary (INR)",
+          "description": "Enter monthly in-hand salary amount",
+          "minimum": 0
+        },
+        "monthlyIncentivePosissible": {
+          "type": "string",
+          "title": "Monthly Incentive Posissible",
+          "description": "Enter monthly incentive amount",
+          "minimum": 0
+        },
+        "monthlyPfEsicBenefits": {
+          "type": "number",
+          "title": "Monthly PF & Health Insurance Benefits (INR)",
+          "description": "Enter monthly PF & Health Insurance benefits amount",
+          "minimum": 0
         }
       },
-      "required": ["managerName", "phoneNo", "emailId"]
+      "required": ["title", "positions"]
+    },
+    "jobNeeds": {
+      "type": "object",
+      "title": "Job Needs",
+      "x-section": "job-needs",
+      "properties": {
+        "ageAllowedLowerLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Lower Limit",
+          "description": "Enter minimum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "languageSubsection": {
+          "type": "object",
+          "title": "Language",
+          "x-subsection": "language-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "languageKnown": {
+              "type": "string",
+              "title": "Language Known",
+              "description": "Enter the language known"
+            }
+          }
+        },
+        "highestQualificationSubsection": {
+          "type": "object",
+          "title": "Highest Qualification",
+          "x-subsection": "highest-qualification-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "highestQualification": {
+              "type": "string",
+              "title": "Min. Highest Qualification Preferred",
+              "description": "Enter the highest qualification preferred"
+            }
+          }
+        },
+        "customerHandlingSubsection": {
+          "type": "object",
+          "title": "Customer Handling",
+          "x-subsection": "customer-handling-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "presentabilityScore": {
+              "type": "string",
+              "title": "Presentability Score",
+              "description": "Enter the presentability score"
+            },
+            "communicationSkillScore": {
+              "type": "string",
+              "title": "Communication Skill Score",
+              "description": "Enter the communication skill score"
+            },
+            "domainKnowledge": {
+              "type": "string",
+              "title": "Domain Knowledge",
+              "description": "Enter the domain knowledge"
+            }
+          }
+        }
+      }
     }
-  }
-} 
+  },
+  "required": ["basicInfo", "jobDetails", "jobNeeds"]
+}

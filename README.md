@@ -1,6 +1,18 @@
 Welcome to your new TanStack app! 
 
-# Getting Started
+# ONEST Jobs - Mobile-First Job Posting Platform
+
+A modern, mobile-friendly Progressive Web App (PWA) for posting jobs and managing candidates.
+
+## Mobile Features
+
+- **Responsive Design**: Optimized for mobile, tablet, and desktop
+- **PWA Support**: Install as a native app on mobile devices
+- **Touch-Friendly**: Large touch targets and intuitive gestures
+- **Offline Capability**: Basic offline functionality with service worker
+- **Mobile Navigation**: Slide-out menus and mobile-optimized layouts
+
+## Getting Started
 
 To run this application:
 

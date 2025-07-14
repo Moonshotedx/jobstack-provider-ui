@@ -2,19 +2,92 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- <link rel="icon" href="/favicon.ico" /> -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-tsrouter-app"
-    />
-    <!-- <link rel="apple-touch-icon" href="/logo192.png" /> -->
+    <meta name="description" content="ONEST Jobs - Post jobs, manage candidates, and hire talent with our comprehensive job posting platform" />
+    <meta name="keywords" content="jobs, hiring, recruitment, employment, job posting, candidates, talent" />
+    <meta name="author" content="ONEST Jobs" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="ONEST Jobs" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="msapplication-TileColor" content="#000000" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://onest-jobs.com/" />
+    <meta property="og:title" content="ONEST Jobs - Job Posting Platform" />
+    <meta property="og:description" content="Post jobs, manage candidates, and hire talent with ONEST Jobs platform" />
+    <meta property="og:image" content="/logo512.png" />
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://onest-jobs.com/" />
+    <meta property="twitter:title" content="ONEST Jobs - Job Posting Platform" />
+    <meta property="twitter:description" content="Post jobs, manage candidates, and hire talent with ONEST Jobs platform" />
+    <meta property="twitter:image" content="/logo512.png" />
+    
+    <!-- Favicon and Icons -->
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/logo192.png" />
     <link rel="manifest" href="/manifest.json" />
-    <title>onest jobs-provider</title>
+    
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    
+    <!-- Prevent zoom on input focus for mobile -->
+    <style>
+      input[type="text"], input[type="email"], input[type="password"], textarea, select {
+        font-size: 16px !important;
+      }
+      
+      /* Prevent horizontal scroll on mobile */
+      body {
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+      }
+      
+      /* Improve touch targets on mobile */
+      button, [role="button"] {
+        min-height: 44px;
+        min-width: 44px;
+      }
+      
+      /* Smooth scrolling */
+      html {
+        scroll-behavior: smooth;
+      }
+      
+      /* Better focus indicators for accessibility */
+      *:focus {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+      }
+    </style>
+    
+    <title>ONEST Jobs - Job Posting Platform</title>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration for PWA -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+              console.log('SW registered: ', registration);
+            })
+            .catch(function(registrationError) {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

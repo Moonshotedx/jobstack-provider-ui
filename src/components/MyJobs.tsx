@@ -24,11 +24,13 @@ import { Link } from '@tanstack/react-router';
 import JobDetailsDialog from './JobDetailsDialog';
 import PostJobDialog from './PostJobDialog';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const MyJobs = () => {
   const { t } = useTranslation('jobs');
   const { data: jobs, isLoading, error } = useCurrentOrganizationJobs();
   const activeOrganizationId = useActiveOrganizationId();
+  const isMobile = useIsMobile();
   
   // State for dialogs
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
@@ -280,19 +282,18 @@ const MyJobs = () => {
 
   return (
     <div className="space-y-6">
-
-      
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold">{t('management.title')}</h2>
-          <p className="text-muted-foreground">{t('management.subtitle')}</p>
+          <h2 className="text-xl sm:text-2xl font-bold">{t('management.title')}</h2>
+          <p className="text-sm sm:text-base text-muted-foreground">{t('management.subtitle')}</p>
         </div>
-        <Badge variant="secondary" className="text-sm">
+        <Badge variant="secondary" className="text-sm w-fit">
           {t('management.totalJobs', { count: jobs?.length || 0 })}
         </Badge>
       </div>
-     
 
+      {/* Jobs Grid */}
       <div className="grid gap-4">
         {jobs?.map((job) => {
           const jobStatus = getJobStatus(job);
@@ -301,115 +302,202 @@ const MyJobs = () => {
           
           return (
             <Card key={job.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-xl font-semibold">{job.title}</h3>
-                      <Badge className={getStatusColor(jobStatus)}>
-                        {t(`status.${jobStatus}`)}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        <Users className="h-3 w-3 mr-1" />
-                        {getApplicationsCount(job)} applications
-                      </Badge>
-                      {/* {industryRole && (
-                        <Badge variant="outline" className="text-xs">
-                          {industryRole}
-                        </Badge>
-                      )} */}
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="h-4 w-4" />
-                        {getJobLocation(job)}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4" />
-                        {t('management.postedOn', { date: formatDate(job.createdAt) })}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="flex flex-col">
-                          <span>{getJobSalary(job)}</span>
-                          {payFrequency && (
-                            <span className="text-xs text-muted-foreground">
-                              {payFrequency}
-                            </span>
-                          )}
+              <CardContent className="p-4 sm:p-6">
+                {/* Mobile Layout */}
+                {isMobile ? (
+                  <div className="space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-lg font-semibold truncate">{job.title}</h3>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge className={`text-xs ${getStatusColor(jobStatus)}`}>
+                            {t(`status.${jobStatus}`)}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            <Users className="h-3 w-3 mr-1" />
+                            {getApplicationsCount(job)}
+                          </Badge>
                         </div>
                       </div>
-                      {/* <div className="flex items-center gap-2">
-                        <Badge variant="outline" className="text-xs">
-                          {getJobType(job)}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm" className="p-2">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewJob(job)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditJob(job)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            {t('management.editJob')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
+                              <Users className="h-4 w-4 mr-2" />
+                              {t('management.viewApplications')}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            {t('management.duplicateJob')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {t('management.deleteJob')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+
+                    {/* Job Info */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <MapPin className="h-4 w-4 flex-shrink-0" />
+                        <span className="truncate">{getJobLocation(job)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4 flex-shrink-0" />
+                        <span>{t('management.postedOn', { date: formatDate(job.createdAt) })}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="font-medium">Salary:</span>
+                        <span className="truncate">{getJobSalary(job)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="font-medium">Positions:</span>
+                        <span>{positions}</span>
+                      </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-2 pt-2 border-t">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
+                        onClick={() => handleViewJob(job)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        View
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="flex-1"
+                        asChild
+                      >
+                        <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
+                          <Users className="h-4 w-4 mr-2" />
+                          Applications
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Desktop Layout */
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-xl font-semibold">{job.title}</h3>
+                        <Badge className={getStatusColor(jobStatus)}>
+                          {t(`status.${jobStatus}`)}
                         </Badge>
-                      </div> */}
-                    </div>
-
-                    {/* Additional Details Row */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-3">
-                      <div>
-                        <span className="font-medium">Positions:</span> {positions}
+                        <Badge variant="outline" className="text-xs">
+                          <Users className="h-3 w-3 mr-1" />
+                          {getApplicationsCount(job)} applications
+                        </Badge>
                       </div>
-                    </div>
-
-                    {/* Dynamic Job Details */}
-                    {job.metadata?.jobDetails && (
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-muted-foreground mb-3">
-                        {renderJobDetails(job.metadata.jobDetails)}
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
+                        <div className="flex items-center gap-2">
+                          <MapPin className="h-4 w-4" />
+                          {getJobLocation(job)}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="h-4 w-4" />
+                          {t('management.postedOn', { date: formatDate(job.createdAt) })}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex flex-col">
+                            <span>{getJobSalary(job)}</span>
+                            {payFrequency && (
+                              <span className="text-xs text-muted-foreground">
+                                {payFrequency}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                    )}
 
-                    <div className="flex items-center gap-4">
-                      {(jobStatus === 'active' || jobStatus === 'open') && (
-                        <span className="text-sm text-green-600">{t('management.jobActive')}</span>
+                      {/* Additional Details Row */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-3">
+                        <div>
+                          <span className="font-medium">Positions:</span> {positions}
+                        </div>
+                      </div>
+
+                      {/* Dynamic Job Details */}
+                      {job.metadata?.jobDetails && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm text-muted-foreground mb-3">
+                          {renderJobDetails(job.metadata.jobDetails)}
+                        </div>
                       )}
+
+                      <div className="flex items-center gap-4">
+                        {(jobStatus === 'active' || jobStatus === 'open') && (
+                          <span className="text-sm text-green-600">{t('management.jobActive')}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleViewJob(job)}
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        {t('management.viewJob')}
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleViewJob(job)}>
+                            <Eye className="h-4 w-4 mr-2" />
+                            View Job Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleEditJob(job)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            {t('management.editJob')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
+                              <Users className="h-4 w-4 mr-2" />
+                              {t('management.viewApplications')}
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
+                            <Copy className="h-4 w-4 mr-2" />
+                            {t('management.duplicateJob')}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            {t('management.deleteJob')}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </div>
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => handleViewJob(job)}
-                    >
-                      <Eye className="h-4 w-4 mr-2" />
-                      {t('management.viewJob')}
-                    </Button>
-                    
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleViewJob(job)}>
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Job Details
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEditJob(job)}>
-                          <Edit className="h-4 w-4 mr-2" />
-                          {t('management.editJob')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
-                          <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
-                            <Users className="h-4 w-4 mr-2" />
-                            {t('management.viewApplications')}
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
-                          <Copy className="h-4 w-4 mr-2" />
-                          {t('management.duplicateJob')}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          {t('management.deleteJob')}
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           );
@@ -451,30 +539,15 @@ const MyJobs = () => {
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-                <AlertTriangle className="h-5 w-5 text-red-600" />
-              </div>
-              <div>
-                <DialogTitle className="text-lg">Delete Job Posting</DialogTitle>
-                <DialogDescription className="text-sm text-muted-foreground">
-                  This action cannot be undone. This will permanently delete the job posting and remove it from your dashboard.
-                </DialogDescription>
-              </div>
-            </div>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirm Delete
+            </DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
+            </DialogDescription>
           </DialogHeader>
-          
-          {jobToDelete && (
-            <div className="rounded-lg bg-muted p-4">
-              <h4 className="font-medium mb-2">Job to be deleted:</h4>
-              <p className="text-sm text-muted-foreground">{jobToDelete.title}</p>
-              <p className="text-xs text-muted-foreground mt-1">
-                Posted on {formatDate(jobToDelete.createdAt)}
-              </p>
-            </div>
-          )}
-          
-          <DialogFooter className="gap-2">
+          <DialogFooter className="flex gap-2">
             <Button variant="outline" onClick={handleCancelDelete}>
               Cancel
             </Button>
@@ -489,16 +562,12 @@ const MyJobs = () => {
                   Deleting...
                 </>
               ) : (
-                <>
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete Job
-                </>
+                'Delete Job'
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 };
