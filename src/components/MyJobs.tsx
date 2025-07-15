@@ -511,7 +511,6 @@ const MyJobs = () => {
             <p className="text-muted-foreground mb-4">
               {t('management.noJobsDesc')}
             </p>
-            <Button>{t('management.createFirstJob')}</Button>
           </CardContent>
         </Card>
       )}

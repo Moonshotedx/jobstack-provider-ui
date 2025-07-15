@@ -248,9 +248,6 @@ function DashboardContent() {
           </div>
 
           <Card className="p-4 md:p-6">
-            <CardHeader>
-              <CardTitle className="text-lg">{t('welcome.createOrganization')}</CardTitle>
-            </CardHeader>
             <CardContent>
               <Button 
                 className="w-full" 
