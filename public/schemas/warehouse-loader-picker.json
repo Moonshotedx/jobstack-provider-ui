@@ -157,34 +157,14 @@
               "title": "Physically Fit for Role",
               "enum": ["yes", "no"],
               "enumNames": ["Yes", "No"],
-              "description": "Select if physically fit for the role"
+              "description": "Can do standing work for 9 hours"
             },
-            "acceptableProofs": {
-              "type": "array",
-              "title": "Acceptable Proofs",
-              "description": "Select acceptable proof types",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "work-ex-certificate-previous-employer",
-                  "referral-peer-similar-role",
-                  "rating-on-ground-agent",
-                  "other"
-                ],
-                "enumNames": [
-                  "Work ex certificate by previous employer",
-                  "Referral by a peer in a similar role",
-                  "Rating by on-ground agent",
-                  "Other"
-                ]
-              },
-              "uniqueItems": true,
-              "minItems": 1
-            },
-            "acceptableProofsOther": {
+            "okayToStandAndWork": {
               "type": "string",
-              "title": "Other Proof Type",
-              "description": "Specify other proof type"
+              "title": "Okay to stand and work?",
+              "enum": ["yes", "no"],
+              "enumNames": ["Yes", "No"],
+              "description": "Will do standing work for 9 hours"
             },
             "uploadSampleMedia": {
               "type": "array",
@@ -196,8 +176,7 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["physicallyFitForRole", "acceptableProofs", "uploadSampleMedia"]
+          }
         },
         "englishReadingSkillsSubsection": {
           "type": "object",
@@ -206,38 +185,11 @@
           "x-ui-subsection": "border",
           "properties": {
             "ableToReadComprehendBasicEnglish": {
-              "type": "string",
+              "type": "number",
               "title": "Able to read and comprehend basic english words commonly occurring on labels?",
-              "enum": ["yes", "no"],
-              "enumNames": ["Yes", "No"],
-              "description": "Select if able to read and comprehend basic English"
-            },
-            "acceptableProofs": {
-              "type": "array",
-              "title": "Acceptable Proofs",
-              "description": "Select acceptable proof types",
-              "items": {
-                "type": "string",
-                "enum": [
-                  "work-ex-certificate-previous-employer",
-                  "referral-peer-similar-role",
-                  "rating-on-ground-agent",
-                  "other"
-                ],
-                "enumNames": [
-                  "Work ex certificate by previous employer",
-                  "Referral by a peer in a similar role",
-                  "Rating by on-ground agent",
-                  "Other"
-                ]
-              },
-              "uniqueItems": true,
-              "minItems": 1
-            },
-            "acceptableProofsOther": {
-              "type": "string",
-              "title": "Other Proof Type",
-              "description": "Specify other proof type"
+              "minimum": 0,
+              "maximum": 100,
+              "description": "Assessment score"
             },
             "uploadSampleMedia": {
               "type": "array",
@@ -249,12 +201,10 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["ableToReadComprehendBasicEnglish", "acceptableProofs", "uploadSampleMedia"]
+          }
         }
-      },
-      "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "physicalFitnessSubsection", "englishReadingSkillsSubsection"]
+      }
     }
   },
-  "required": ["basicInfo", "jobDetails", "jobNeeds"]
+  "required": ["basicInfo", "jobDetails"]
 } 
