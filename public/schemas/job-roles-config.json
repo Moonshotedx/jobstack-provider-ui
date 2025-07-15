@@ -10,11 +10,7 @@
       "industry": "Logistics", 
       "description": "Logistics and warehouse operations"
     },
-    "Field Sales Executive": {
-      "schemaFile": "field-sales-executive.json",
-      "industry": "Sales",
-      "description": "Sales and business development roles"
-    },
+
     "In Store Promoter": {
       "schemaFile": "in-store-promoter.json",
       "industry": "Retail",
