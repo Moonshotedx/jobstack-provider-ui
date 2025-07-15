@@ -157,14 +157,14 @@
           "x-ui-subsection": "border",
           "properties": {
             "presentabilityScore": {
-              "type": "number",
+              "type": "string",
               "title": "Presentability Score",
-              "description": "Enter the presentability score"
+              "description": "Enter the minimum acceptable presentability score"
             },
             "communicationSkillScore": {
-              "type": "number",
+              "type": "string",
               "title": "Communication Skill Score",
-              "description": "Enter the communication skill score"
+              "description": "Enter the minimum acceptable communication skill score"
             },
             "domainKnowledge": {
               "type": "array",
