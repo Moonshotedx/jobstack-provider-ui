@@ -108,9 +108,7 @@ export const JOB_ROLES_BY_INDUSTRY = {
   'Warehouse Loader and Picker': [
     'Warehouse Loader and Picker'
   ],
-  'Field Sales Executive': [
-    'Field Sales Executive'
-  ],
+
   'In Store Promoter': [
     'In Store Promoter'
   ],
