@@ -15,17 +15,17 @@ jobs:
         with:
           version: 9
 
-      # setup node with pnpm cache
+      # Setup Node (❌ no cache key)
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
 
       - run: pnpm --version && ls -la  # optional debug
 
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
+      # Deploy to Firebase
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
