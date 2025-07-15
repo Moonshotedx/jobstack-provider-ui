@@ -20,8 +20,6 @@ jobs:
         with:
           node-version: 20
 
-      - run: pnpm --version && ls -la  # optional debug
-
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
