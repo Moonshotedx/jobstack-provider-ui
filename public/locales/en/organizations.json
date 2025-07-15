@@ -81,6 +81,8 @@
   },
   "errors": {
     "slugExists": "Organization Identifier Already Exists",
+    "slugTakenUserFriendly": "Organization identifier already taken by other organization",
+    "slugTakenDescription": "Please provide a different identifier and try again.",
     "createFailed": "Failed to Create Organization",
     "loadFailed": "Failed to load organizations",
     "selectFailed": "Failed to set active organization",

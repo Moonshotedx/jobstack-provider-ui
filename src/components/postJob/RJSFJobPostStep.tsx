@@ -573,7 +573,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+              <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                 <DropdownMenuLabel>{fieldSchema.title}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {fieldSchema.items.enum.map((option: string, index: number) => (
