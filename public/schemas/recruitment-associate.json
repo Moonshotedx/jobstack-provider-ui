@@ -184,6 +184,60 @@
           "x-subsection": "educational-qualification-subsection",
           "x-ui-subsection": "border",
           "properties": {
+            "highestQualification": {
+              "type": "array",
+              "title": "Highest Qualification",
+              "description": "Select highest qualification(s)",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "12th-pass",
+                  "graduate-btech-be",
+                  "graduate-mba-hr",
+                  "graduate-other"
+                ],
+                "enumNames": [
+                  "12th Pass",
+                  "Graduate - B.Tech/B.E.",
+                  "Graduate - MBA HR",
+                  "Graduate - Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "highestQualificationOther": {
+              "type": "string",
+              "title": "Other Qualification Details",
+              "description": "Specify other qualification details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "degree-certificate-aicte",
+                  "provisional-degree-certificate-aicte",
+                  "digilocker",
+                  "other"
+                ],
+                "enumNames": [
+                  "Degree certificate from any AICTE approved college",
+                  "Provisional degree certificate from any AICTE approved college",
+                  "Digilocker",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -195,7 +249,7 @@
               "maxItems": 5
             }
           },
-          "required": ["uploadSampleMedia"]
+          "required": ["highestQualification", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "hrKnowledgeSubsection": {
           "type": "object",
@@ -203,6 +257,66 @@
           "x-subsection": "hr-knowledge-subsection",
           "x-ui-subsection": "border",
           "properties": {
+            "hrKnowledgePreferences": {
+              "type": "array",
+              "title": "HR Knowledge Preferences",
+              "description": "Select HR knowledge preferences",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no-preference",
+                  "hr-statutory-compliances",
+                  "pf-calculation-certification",
+                  "eq-iq-theory-certification",
+                  "latest-hr-trends-certification",
+                  "ms-office",
+                  "hrms-tools",
+                  "other"
+                ],
+                "enumNames": [
+                  "No preference",
+                  "HR Statutory Compliances",
+                  "PF Calculation certification",
+                  "EQ/IQ theory certification",
+                  "Latest HR trends certification",
+                  "MS Office",
+                  "HRMS Tools",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "hrKnowledgePreferencesOther": {
+              "type": "string",
+              "title": "Other HR Knowledge Details",
+              "description": "Specify other HR knowledge details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "college-transcript",
+                  "skill-certification",
+                  "other"
+                ],
+                "enumNames": [
+                  "College transcript",
+                  "Skill certification",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -214,7 +328,7 @@
               "maxItems": 5
             }
           },
-          "required": ["uploadSampleMedia"]
+          "required": ["hrKnowledgePreferences", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "hrWorkExperienceSubsection": {
           "type": "object",
@@ -222,6 +336,60 @@
           "x-subsection": "hr-work-experience-subsection",
           "x-ui-subsection": "border",
           "properties": {
+            "hrWorkExperience": {
+              "type": "array",
+              "title": "HR Work Experience",
+              "description": "Select HR work experience requirements",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "no-preference",
+                  "yes-internship",
+                  "yes-job",
+                  "yes-other"
+                ],
+                "enumNames": [
+                  "No preference",
+                  "Yes - Internship",
+                  "Yes - Job",
+                  "Yes - Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "hrWorkExperienceOther": {
+              "type": "string",
+              "title": "Other Work Experience Details",
+              "description": "Specify other work experience details"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "internship-completion-certificate",
+                  "work-ex-certificate",
+                  "recommendation-letter",
+                  "other"
+                ],
+                "enumNames": [
+                  "Internship completion certificate",
+                  "Work ex certificate",
+                  "Recommendation letter",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -233,7 +401,7 @@
               "maxItems": 5
             }
           },
-          "required": ["uploadSampleMedia"]
+          "required": ["hrWorkExperience", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         },
         "communicationSubsection": {
           "type": "object",
@@ -241,6 +409,38 @@
           "x-subsection": "communication-subsection",
           "x-ui-subsection": "border",
           "properties": {
+            "minimumCommunicationSkillBenchmark": {
+              "type": "string",
+              "title": "Minimum Communication Skill Benchmark",
+              "enum": ["high", "med", "low", "none"],
+              "enumNames": ["High", "Med", "Low", "None"],
+              "description": "Select minimum communication skill benchmark"
+            },
+            "acceptableProofs": {
+              "type": "array",
+              "title": "Acceptable Proofs",
+              "description": "Select acceptable proof types",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "skill-certification",
+                  "video-proof",
+                  "other"
+                ],
+                "enumNames": [
+                  "Skill certification",
+                  "Video proof",
+                  "Other"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            },
+            "acceptableProofsOther": {
+              "type": "string",
+              "title": "Other Proof Type",
+              "description": "Specify other proof type"
+            },
             "uploadSampleMedia": {
               "type": "array",
               "title": "Sample Media for Each Acceptable Proof",
@@ -252,11 +452,11 @@
               "maxItems": 5
             }
           },
-          "required": ["uploadSampleMedia"]
+          "required": ["minimumCommunicationSkillBenchmark", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
         }
       },
       "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "locationPreference", "educationalQualificationSubsection", "hrKnowledgeSubsection", "hrWorkExperienceSubsection", "communicationSubsection"]
     }
   },
   "required": ["basicInfo", "jobDetails", "jobNeeds"]
-} 
+}
