@@ -18,10 +18,15 @@ jobs:
       - uses: pnpm/action-setup@v4
         with:
           version: 9
+
+      # Optional: debug info
       - run: pnpm --version && ls -la
+
+      # Install dependencies and build
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
 
+      # Deploy to Firebase Hosting
       - uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
