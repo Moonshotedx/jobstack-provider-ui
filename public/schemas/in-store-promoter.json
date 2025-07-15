@@ -183,5 +183,5 @@
       }
     }
   },
-  "required": ["basicInfo", "jobDetails", "jobNeeds"]
+  "required": ["basicInfo", "jobDetails"]
 }
