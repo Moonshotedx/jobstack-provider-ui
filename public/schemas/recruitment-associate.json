@@ -406,10 +406,8 @@
           "properties": {
             "minimumCommunicationSkillBenchmark": {
               "type": "string",
-              "title": "Minimum Communication Skill Benchmark",
-              "enum": ["high", "med", "low", "none"],
-              "enumNames": ["High", "Med", "Low", "None"],
-              "description": "Select minimum communication skill benchmark"
+              "title": "Minimum Communication Skill Score",
+              "description": "Enter the minimum acceptable communication skill score"
             },
             "acceptableProofs": {
               "type": "array",
