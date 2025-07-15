@@ -1,5 +1,4 @@
 packages:
   - .
-
 onlyBuiltDependencies:
   - browser-tabs-lock
