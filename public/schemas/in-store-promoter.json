@@ -117,6 +117,39 @@
           "minimum": 18,
           "maximum": 100
         },
+        "languageSubsection": {
+          "type": "object",
+          "title": "Language",
+          "x-subsection": "language-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "languageKnown": {
+              "type": "string",
+              "title": "Language Known",
+              "description": "Enter the language known"
+            }
+          }
+        },
+        "highestQualificationSubsection": {
+          "type": "object",
+          "title": "Highest Qualification",
+          "x-subsection": "highest-qualification-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "highestQualification": {
+              "type": "array",
+              "title": "Min. Highest Qualification Preferred",
+              "description": "Select the minimum highest qualification",
+              "items": {
+                "type": "string",
+                "enum": ["10th", "12th", "3 year Undergraduate Degree", "4 year Undergraduate Degree", "Postgraduate and above"],
+                "enumNames": ["10th", "12th", "3 year Undergraduate Degree", "4 year Undergraduate Degree", "Postgraduate and above"]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        },
         "customerHandlingSubsection": {
           "type": "object",
           "title": "Customer Handling",
@@ -124,19 +157,26 @@
           "x-ui-subsection": "border",
           "properties": {
             "presentabilityScore": {
-              "type": "string",
+              "type": "number",
               "title": "Presentability Score",
               "description": "Enter the presentability score"
             },
             "communicationSkillScore": {
-              "type": "string",
+              "type": "number",
               "title": "Communication Skill Score",
               "description": "Enter the communication skill score"
             },
             "domainKnowledge": {
-              "type": "string",
+              "type": "array",
               "title": "Domain Knowledge",
-              "description": "Enter the domain knowledge"
+              "description": "Select domain knowledge areas",
+              "items": {
+                "type": "string",
+                "enum": ["general", "cashcards", "electronics", "mobile-phones", "kitchen-appliances", "furniture", "other"],
+                "enumNames": ["General", "Cashcards", "Electronics", "Mobile Phones", "Kitchen Appliances", "Furniture", "Other"]
+              },
+              "uniqueItems": true,
+              "minItems": 1
             }
           }
         }

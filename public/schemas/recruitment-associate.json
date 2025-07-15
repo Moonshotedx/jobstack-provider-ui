@@ -451,12 +451,10 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["minimumCommunicationSkillBenchmark", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          }
         }
-      },
-      "required": ["ageAllowedLowerLimit", "ageAllowedUpperLimit", "locationPreference", "educationalQualificationSubsection", "hrKnowledgeSubsection", "hrWorkExperienceSubsection", "communicationSubsection"]
+      }
     }
   },
-  "required": ["basicInfo", "jobDetails", "jobNeeds"]
+  "required": ["basicInfo", "jobDetails"]
 }
