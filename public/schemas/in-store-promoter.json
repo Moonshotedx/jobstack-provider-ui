@@ -81,8 +81,8 @@
           "type": "string",
           "title": "Mode of Work",
           "description": "Select mode of work",
-          "enum": ["full-time", "part-time", "flexible"],
-          "enumNames": ["Full Time", "Part Time", "Flexible"]
+          "enum": ["on-site-no-shift", "on-site-shifts", "remote", "hybrid", "travelling"],
+          "enumNames": ["On-Site-No Shift", "On-Site-Shifts", "Remote", "Hybrid", "Travelling"]
         },
         "monthlyInHand": {
           "type": "number",
