@@ -132,7 +132,6 @@
           "description": "Specify other device details"
         }
       },
-      "required": ["title", "positions", "jobDetailsParagraph", "startTime", "endTime", "modeOfWork", "monthlyInHand", "monthlyMaxPerformanceBasedVariable", "devicesProvided"],
       "dependencies": {
         "devicesProvided": {
           "oneOf": [
@@ -140,8 +139,7 @@
               "properties": {
                 "devicesProvided": { "enum": ["yes-other"] },
                 "devicesProvidedOther": { "minLength": 1 }
-              },
-              "required": ["devicesProvidedOther"]
+              }
             },
             {
               "properties": {
@@ -248,8 +246,7 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["highestQualification", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          }
         },
         "hrKnowledgeSubsection": {
           "type": "object",
@@ -327,8 +324,7 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["hrKnowledgePreferences", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          }
         },
         "hrWorkExperienceSubsection": {
           "type": "object",
@@ -400,8 +396,7 @@
               },
               "maxItems": 5
             }
-          },
-          "required": ["hrWorkExperience", "acceptableProofs", "uploadActualProof", "uploadSampleMedia"]
+          }
         },
         "communicationSubsection": {
           "type": "object",
