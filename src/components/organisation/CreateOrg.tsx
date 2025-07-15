@@ -141,9 +141,10 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     } catch (error: any) {
       console.error('Organization creation failed:', error);
       
-      if (error.message === 'Organization Identifier Already Exists') {
-        toast.error(t('errors.slugExists'), {
-          description: t('errors.tryAgainLater')
+      // Check for the specific error code "SLUG_IS_TAKEN"
+      if (error.code === 'SLUG_IS_TAKEN' || error.message === 'Organization Identifier Already Exists') {
+        toast.error(t('errors.slugTakenUserFriendly'), {
+          description: t('errors.slugTakenDescription')
         });
       } else {
         toast.error(t('errors.createFailed'), {

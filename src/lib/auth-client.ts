@@ -39,7 +39,12 @@ export const createOrganisation = async (orgInfo: {
 
   // Check if the API call failed
   if (slugCheckResult.error) {
-    throw new Error(`Slug check failed: ${slugCheckResult.error.message}`);
+    const error = new Error(`Slug check failed: ${slugCheckResult.error.message}`);
+    // Preserve the error code if it exists
+    if (slugCheckResult.error.code) {
+      (error as any).code = slugCheckResult.error.code;
+    }
+    throw error;
   }
 
   // The response should be {"status": true} if slug is available
@@ -47,8 +52,10 @@ export const createOrganisation = async (orgInfo: {
   const isSlugAvailable = slugCheckResult.data?.status === true;
 
   if (!isSlugAvailable) {
-    // Slug is taken, throw error
-    throw new Error('Organization Identifier Already Exists');
+    // Slug is taken, throw error with code
+    const error = new Error('Organization Identifier Already Exists');
+    (error as any).code = 'SLUG_IS_TAKEN';
+    throw error;
   }
 
   // Slug is available, create organization
@@ -60,7 +67,12 @@ export const createOrganisation = async (orgInfo: {
   }, { credentials: 'include' });
 
   if (org.error) {
-    throw new Error(org.error.message);
+    const error = new Error(org.error.message);
+    // Preserve the error code if it exists
+    if (org.error.code) {
+      (error as any).code = org.error.code;
+    }
+    throw error;
   }
 
   return org.data;
