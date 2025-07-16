@@ -36,7 +36,7 @@ interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
-  const { setUser, clearUser, setLoading: setUserLoading } = useUserStore();
+  const { setUser, clearUser, setLoading: setUserLoading, user } = useUserStore();
   const queryClient = useQueryClient();
 
   // Helper function to load organization profile from better-auth
@@ -193,7 +193,7 @@ export const useAuth = (): UseAuthReturn => {
         name,
         email: data.email,
         password: data.password,
-        callbackURL: `${window.location.origin}/dashboard`
+        callbackURL: `${window.location.origin}/verify/email`
       }, { credentials: 'include' });
       
       if (signUpRequest.data?.user) {
@@ -283,19 +283,25 @@ export const useAuth = (): UseAuthReturn => {
   }, [setUser]);
 
   const resendVerificationEmail = useCallback(async () => {
-    if (!pendingVerificationEmail) {
-      throw new Error('No email pending verification');
+    const emailToResend = pendingVerificationEmail || user?.email;
+    if (!emailToResend) {
+      throw new Error('No email address found for verification');
     }
     
     try {
       // Use the better-auth sendVerificationEmail method
       const result = await authClient.sendVerificationEmail({ 
-        email: pendingVerificationEmail,
-        callbackURL: `${window.location.origin}/dashboard`
+        email: emailToResend,
+        callbackURL: `${window.location.origin}/verify/email`
       }, { credentials: 'include' });
       
       if (result.error) {
         throw new Error(result.error.message);
+      }
+      
+      // Update pending verification email if it wasn't set
+      if (!pendingVerificationEmail) {
+        setPendingVerificationEmail(emailToResend);
       }
       
       toast.success('Verification email resent successfully!');
@@ -303,7 +309,7 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Failed to resend verification email:', error);
       throw new Error('Failed to resend verification email');
     }
-  }, [pendingVerificationEmail]);
+  }, [pendingVerificationEmail, user?.email]);
 
   const forgotPassword = useCallback(async (email: string) => {
     try {
