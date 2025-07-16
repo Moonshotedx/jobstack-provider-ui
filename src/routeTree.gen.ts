@@ -13,9 +13,11 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as DashboardImport } from './routes/dashboard'
 import { Route as IndexImport } from './routes/index'
+import { Route as VerifyEmailImport } from './routes/verify.email'
 import { Route as JobApplicantsJobIdImport } from './routes/job-applicants.$jobId'
 import { Route as AuthResetPasswordImport } from './routes/auth.reset-password'
 import { Route as AuthActionImport } from './routes/auth.$action'
+import { Route as VerifyEmailErrorImport } from './routes/verify.email.$error'
 
 // Create/Update Routes
 
@@ -28,6 +30,12 @@ const DashboardRoute = DashboardImport.update({
 const IndexRoute = IndexImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const VerifyEmailRoute = VerifyEmailImport.update({
+  id: '/verify/email',
+  path: '/verify/email',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -47,6 +55,12 @@ const AuthActionRoute = AuthActionImport.update({
   id: '/auth/$action',
   path: '/auth/$action',
   getParentRoute: () => rootRoute,
+} as any)
+
+const VerifyEmailErrorRoute = VerifyEmailErrorImport.update({
+  id: '/$error',
+  path: '/$error',
+  getParentRoute: () => VerifyEmailRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
@@ -88,10 +102,36 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobApplicantsJobIdImport
       parentRoute: typeof rootRoute
     }
+    '/verify/email': {
+      id: '/verify/email'
+      path: '/verify/email'
+      fullPath: '/verify/email'
+      preLoaderRoute: typeof VerifyEmailImport
+      parentRoute: typeof rootRoute
+    }
+    '/verify/email/$error': {
+      id: '/verify/email/$error'
+      path: '/$error'
+      fullPath: '/verify/email/$error'
+      preLoaderRoute: typeof VerifyEmailErrorImport
+      parentRoute: typeof VerifyEmailImport
+    }
   }
 }
 
 // Create and export the route tree
+
+interface VerifyEmailRouteChildren {
+  VerifyEmailErrorRoute: typeof VerifyEmailErrorRoute
+}
+
+const VerifyEmailRouteChildren: VerifyEmailRouteChildren = {
+  VerifyEmailErrorRoute: VerifyEmailErrorRoute,
+}
+
+const VerifyEmailRouteWithChildren = VerifyEmailRoute._addFileChildren(
+  VerifyEmailRouteChildren,
+)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -99,6 +139,8 @@ export interface FileRoutesByFullPath {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/verify/email': typeof VerifyEmailRouteWithChildren
+  '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
 
 export interface FileRoutesByTo {
@@ -107,6 +149,8 @@ export interface FileRoutesByTo {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/verify/email': typeof VerifyEmailRouteWithChildren
+  '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
 
 export interface FileRoutesById {
@@ -116,6 +160,8 @@ export interface FileRoutesById {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/verify/email': typeof VerifyEmailRouteWithChildren
+  '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
 
 export interface FileRouteTypes {
@@ -126,6 +172,8 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/verify/email'
+    | '/verify/email/$error'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -133,6 +181,8 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/verify/email'
+    | '/verify/email/$error'
   id:
     | '__root__'
     | '/'
@@ -140,6 +190,8 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/verify/email'
+    | '/verify/email/$error'
   fileRoutesById: FileRoutesById
 }
 
@@ -149,6 +201,7 @@ export interface RootRouteChildren {
   AuthActionRoute: typeof AuthActionRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   JobApplicantsJobIdRoute: typeof JobApplicantsJobIdRoute
+  VerifyEmailRoute: typeof VerifyEmailRouteWithChildren
 }
 
 const rootRouteChildren: RootRouteChildren = {
@@ -157,6 +210,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthActionRoute: AuthActionRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   JobApplicantsJobIdRoute: JobApplicantsJobIdRoute,
+  VerifyEmailRoute: VerifyEmailRouteWithChildren,
 }
 
 export const routeTree = rootRoute
@@ -173,7 +227,8 @@ export const routeTree = rootRoute
         "/dashboard",
         "/auth/$action",
         "/auth/reset-password",
-        "/job-applicants/$jobId"
+        "/job-applicants/$jobId",
+        "/verify/email"
       ]
     },
     "/": {
@@ -190,6 +245,16 @@ export const routeTree = rootRoute
     },
     "/job-applicants/$jobId": {
       "filePath": "job-applicants.$jobId.tsx"
+    },
+    "/verify/email": {
+      "filePath": "verify.email.tsx",
+      "children": [
+        "/verify/email/$error"
+      ]
+    },
+    "/verify/email/$error": {
+      "filePath": "verify.email.$error.tsx",
+      "parent": "/verify/email"
     }
   }
 }
