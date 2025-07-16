@@ -133,11 +133,11 @@ const ForgotPasswordDialog: React.FC<ForgotPasswordDialogProps> = ({
         <div className="space-y-4">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <Label htmlFor="forgot-email">{t('forgotPassword.email')}</Label>
+              <Label htmlFor="forgot-email">{t('forgotPassword.emailLabel')}</Label>
               <Input
                 id="forgot-email"
                 type="email"
-                placeholder={t('forgotPassword.email')}
+                placeholder={t('forgotPassword.emailPlaceholder')}
                 {...form.register("email")}
               />
               {form.formState.errors.email && (
