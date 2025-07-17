@@ -63,9 +63,7 @@ function EmailVerificationComponent() {
     };
 
     handleVerification();
-
   }, [urlError, navigate, t]);
-
 
   const handleResendVerification = async () => {
     if (!user?.email) {
