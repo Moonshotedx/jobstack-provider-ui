@@ -36,6 +36,7 @@ interface UseAuthReturn {
 export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
+  const [isCheckingSession, setIsCheckingSession] = useState(false);
   const { setUser, clearUser, setLoading: setUserLoading, user } = useUserStore();
   const queryClient = useQueryClient();
 
@@ -83,8 +84,8 @@ export const useAuth = (): UseAuthReturn => {
       if (!activeOrg) {
         return undefined;
       }
-      
-      // Parse metadata from better-auth (could be string or object)
+
+      // Parse the metadata JSON string
       let metadata: {
         address?: string;
         gstNumber?: string;
@@ -95,40 +96,47 @@ export const useAuth = (): UseAuthReturn => {
         description?: string;
       } = {};
       
-      if (activeOrg.metadata) {
-        try {
-          metadata = typeof activeOrg.metadata === 'string' 
-            ? JSON.parse(activeOrg.metadata) 
-            : activeOrg.metadata;
-        } catch (error) {
-          console.error('Failed to parse organization metadata:', error);
-          metadata = {};
-        }
+      try {
+        metadata = JSON.parse(activeOrg.metadata || '{}');
+      } catch (error) {
+        console.error('Failed to parse organization metadata:', error);
+        metadata = {};
       }
-      
-      const profile = {
-        name: activeOrg.name || betterAuthUser.name || '',
+
+      return {
+        id: activeOrg.id,
+        name: activeOrg.name,
+        slug: activeOrg.slug,
+        logo: activeOrg.logo || undefined,
         address: metadata.address || '',
         gstNumber: metadata.gstNumber || '',
-        logo: activeOrg.logo || '',
         contactPersonName: metadata.contactPersonName || '',
         contactEmail: metadata.contactEmail || '',
         contactPhone: metadata.contactPhone || '',
         website: metadata.website || '',
-        description: metadata.description || ''
+        description: metadata.description || '',
+        createdAt: activeOrg.createdAt,
+        isActive: true,
+        isDefault: true
       };
-
-      return profile;
     } catch (error) {
-      console.error('Failed to load organization data:', error);
+      console.error('Failed to load organization profile:', error);
       return undefined;
     }
   };
 
   const checkSession = async () => {
+    // Prevent multiple simultaneous session checks
+    if (isCheckingSession) {
+      return;
+    }
+
     try {
+      setIsCheckingSession(true);
       setUserLoading(true);
+      
       const session = await authClient.getSession(undefined, { credentials: 'include' });
+      
       if (session.data?.user) {
         const betterAuthUser = session.data.user;
         const profile = await loadOrganizationProfile(session.data, betterAuthUser);
@@ -140,15 +148,32 @@ export const useAuth = (): UseAuthReturn => {
           isVerified: betterAuthUser.emailVerified || false,
           profile: profile,
         };
-        setUser(mappedUser);
+        
+        // Check if the user data has changed or if we need to update the store
+        const currentUser = useUserStore.getState().user;
+        const userChanged = !currentUser || 
+          currentUser.id !== mappedUser.id ||
+          currentUser.email !== mappedUser.email ||
+          currentUser.isVerified !== mappedUser.isVerified ||
+          JSON.stringify(currentUser.profile) !== JSON.stringify(mappedUser.profile);
+        
+        if (userChanged) {
+          setUser(mappedUser);
+        }
         
         // Invalidate session queries to ensure fresh data
         await queryClient.invalidateQueries({ queryKey: ['session'] });
+      } else {
+        // No user in session, ensure user is cleared
+        clearUser();
       }
     } catch (error) {
       console.error('Session check failed:', error);
+      // On session check failure, clear user to ensure consistent state
+      clearUser();
     } finally {
       setUserLoading(false);
+      setIsCheckingSession(false);
     }
   };
 
@@ -242,7 +267,7 @@ export const useAuth = (): UseAuthReturn => {
         // because it means the session was already invalid/expired
         if (signOutError?.response?.status === 400 && 
             signOutError?.response?.data?.code === 'FAILED_TO_GET_SESSION') {
-          console.log('Session was already invalid, continuing with logout');
+          // Session was already invalid, continuing with logout
         } else {
           // Re-throw other errors
           throw signOutError;
@@ -335,9 +360,11 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  // Check session on mount
+  // Check session on mount to ensure synchronization with server
   useEffect(() => {
-    checkSession();
+    if (!isCheckingSession) {
+      checkSession();
+    }
   }, []);
 
   return {
