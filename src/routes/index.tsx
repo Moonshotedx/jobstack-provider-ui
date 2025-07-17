@@ -28,51 +28,67 @@ function RouteComponent() {
   const { t } = useTranslation('dashboard');
   const navigate = useNavigate();
   const clearUser = useUserStore((state) => state.clearUser);
+  const user = useUserStore((state) => state.user);
 
-  // Automatically clear user session when visiting root page
+  // Redirect authenticated users to dashboard
   useEffect(() => {
-    const clearSession = async () => {
+    if (user) {
+      navigate({ to: '/dashboard', replace: true });
+    }
+  }, [user, navigate]);
+
+  // Only clear session if user is not authenticated
+  useEffect(() => {
+    const checkAndClearSession = async () => {
       try {
-        // Clear the user from the store first
+        // Check if user is already authenticated in the store
+        if (user) {
+          // User is authenticated, don't clear session
+          return;
+        }
+
+        // Check server session to see if user is actually logged in
+        const session = await authClient.getSession(undefined, { credentials: 'include' });
+        
+        if (session.data?.user) {
+          // User has an active session but not in store, this might be a race condition
+          // Don't clear the session, let the SessionInitializer handle it
+          return;
+        } else {
+          // No active session, safe to clear local state
+          clearUser();
+          
+          // Clear any persisted data from localStorage
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('user-storage');
+            sessionStorage.clear();
+          }
+        }
+      } catch (sessionError) {
+        // Session check failed, which means no valid session anyway
         clearUser();
         
-        // Clear any persisted data from localStorage
         if (typeof window !== 'undefined') {
           localStorage.removeItem('user-storage');
           sessionStorage.clear();
         }
-        
-        // Only attempt logout if we have a session to clear
-        // This prevents unnecessary API calls when user is already logged out
-        try {
-          const session = await authClient.getSession(undefined, { credentials: 'include' });
-          if (session.data?.user) {
-            // User has an active session, so we should logout
-            await logout();
-          } else {
-            // No active session, just clear local state
-            console.log('No active session found, skipping logout call');
-          }
-        } catch (sessionError) {
-          // Session check failed, which means no valid session anyway
-          console.log('Session check failed, skipping logout call:', sessionError);
-        }
-        
-        // Force a re-render by updating the store
-        // This ensures any cached data is cleared
-        setTimeout(() => {
-          clearUser(); // Call again to ensure it's cleared
-        }, 100);
-      } catch (error) {
-        // Silently handle any errors during logout
-        console.log('Session cleared (with potential errors):', error);
-        // Ensure user is still cleared even if logout fails
-        clearUser();
       }
     };
 
-    clearSession();
-  }, [clearUser]);
+    checkAndClearSession();
+  }, [clearUser, user]);
+
+  // Show loading state while checking authentication
+  if (user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Redirecting to dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
