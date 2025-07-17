@@ -2,7 +2,6 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Building2, 
@@ -25,14 +24,12 @@ interface JobDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   job: JobPosting | null;
-  onEdit?: () => void;
 }
 
 const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({ 
   isOpen, 
   onClose, 
-  job, 
-  onEdit 
+  job
 }) => {
   if (!job) return null;
 
@@ -172,11 +169,6 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   <Badge variant="outline">
                     {job.metadata?.status || 'Active'}
                   </Badge>
-                  {onEdit && (
-                    <Button onClick={onEdit} size="sm">
-                      Edit Job
-                    </Button>
-                  )}
                 </div>
               </div>
               

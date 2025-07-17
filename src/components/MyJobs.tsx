@@ -520,10 +520,6 @@ const MyJobs = () => {
         isOpen={showJobDetails}
         onClose={handleCloseJobDetails}
         job={selectedJob}
-        onEdit={() => {
-          handleCloseJobDetails();
-          handleEditJob(selectedJob!);
-        }}
       />
 
       {/* Edit Job Dialog */}
