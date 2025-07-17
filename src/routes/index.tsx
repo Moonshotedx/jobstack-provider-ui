@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/stores/authStore';
-import { logout } from '@/lib/utils';
+
 import { authClient } from '@/lib/auth-client';
 
 export const Route = createFileRoute('/')({

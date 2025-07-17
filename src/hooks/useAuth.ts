@@ -41,7 +41,7 @@ export const useAuth = (): UseAuthReturn => {
   const queryClient = useQueryClient();
 
   // Helper function to load organization profile from better-auth
-  const loadOrganizationProfile = async (sessionData: any, betterAuthUser: any) => {
+  const loadOrganizationProfile = async (sessionData: any) => {
     try {
       // First, get the user's organizations
       const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
@@ -139,7 +139,7 @@ export const useAuth = (): UseAuthReturn => {
       
       if (session.data?.user) {
         const betterAuthUser = session.data.user;
-        const profile = await loadOrganizationProfile(session.data, betterAuthUser);
+        const profile = await loadOrganizationProfile(session.data);
         
         const mappedUser = {
           id: betterAuthUser.id,
@@ -187,7 +187,7 @@ export const useAuth = (): UseAuthReturn => {
       
       if (loginRequest.data?.user) {
         const betterAuthUser = loginRequest.data.user;
-        const profile = await loadOrganizationProfile(loginRequest.data, betterAuthUser);
+        const profile = await loadOrganizationProfile(loginRequest.data);
         
         const mappedUser = {
           id: betterAuthUser.id,
