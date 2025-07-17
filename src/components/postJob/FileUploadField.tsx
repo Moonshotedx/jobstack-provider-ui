@@ -18,6 +18,7 @@ interface FileUploadFieldProps {
   maxFiles?: number;
   usePresignedUrl?: boolean; // New prop to enable presigned URL uploads
   objectKeyPrefix?: string; // Prefix for object key generation
+  hideEmptyState?: boolean; // New prop to hide empty state message
 }
 
 export const FileUploadField: React.FC<FileUploadFieldProps> = ({
@@ -31,7 +32,8 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
   multiple = false,
   maxFiles = 5,
   usePresignedUrl = false,
-  objectKeyPrefix = 'job'
+  objectKeyPrefix = 'job',
+  hideEmptyState = false
 }) => {
   const [previews, setPreviews] = useState<string[]>([]);
   const [isUploading, setIsUploading] = useState(false);
@@ -45,8 +47,9 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
       
       currentFiles.forEach((file) => {
         if (file instanceof File) {
-          // Create preview for images
-          if (fileType === 'image' && file.type.startsWith('image/')) {
+          // Create preview for images and videos
+          if ((fileType === 'image' && file.type.startsWith('image/')) ||
+              (fileType === 'video' && file.type.startsWith('video/'))) {
             const reader = new FileReader();
             reader.onloadend = () => {
               previewUrls.push(reader.result as string);
@@ -59,7 +62,7 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         }
       });
       
-      if (fileType !== 'image') {
+      if (fileType !== 'image' && fileType !== 'video') {
         setPreviews([]);
       }
     } else {
@@ -234,24 +237,40 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
           <div className="grid grid-cols-1 gap-3">
             {currentFiles.map((file, index) => {
               const fileName = file instanceof File ? file.name : `File ${index + 1}`;
-              const hasPreview = fileType === 'image' && previews[index];
+              const hasPreview = (fileType === 'image' || fileType === 'video') && previews[index];
               const isUrl = typeof file === 'string' && file.startsWith('http');
               
               return (
                 <div key={index} className="flex items-center justify-between p-3 border-2 border-muted-foreground/25 rounded-lg bg-muted/20">
                   <div className="flex items-center space-x-3 min-w-0 flex-1">
                     {hasPreview ? (
-                      <img 
-                        src={previews[index]} 
-                        alt={`Preview ${index + 1}`} 
-                        className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
-                      />
+                      fileType === 'video' ? (
+                        <video 
+                          src={previews[index]} 
+                          className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
+                          muted
+                        />
+                      ) : (
+                        <img 
+                          src={previews[index]} 
+                          alt={`Preview ${index + 1}`} 
+                          className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
+                        />
+                      )
                     ) : isUrl ? (
-                      <img 
-                        src={file as string} 
-                        alt={`Preview ${index + 1}`} 
-                        className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
-                      />
+                      fileType === 'video' ? (
+                        <video 
+                          src={file as string} 
+                          className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
+                          muted
+                        />
+                      ) : (
+                        <img 
+                          src={file as string} 
+                          alt={`Preview ${index + 1}`} 
+                          className="h-10 w-10 object-cover rounded-md border flex-shrink-0" 
+                        />
+                      )
                     ) : (
                       <div className="flex-shrink-0">
                         {getIcon()}
@@ -284,8 +303,8 @@ export const FileUploadField: React.FC<FileUploadFieldProps> = ({
         </div>
       )}
       
-      {/* Empty state for multiple files - only show for non-image fields */}
-      {multiple && currentFiles.length === 0 && fileType !== 'image' && !isUploading && (
+      {/* Empty state for multiple files - only show for non-image fields and when not hidden */}
+      {multiple && currentFiles.length === 0 && fileType !== 'image' && fileType !== 'video' && !isUploading && !hideEmptyState && (
         <div className="text-center py-4 border-2 border-dashed border-muted-foreground/25 rounded-lg bg-muted/10">
           <p className="text-sm text-muted-foreground">No files selected. Click above to add up to {maxFiles} files.</p>
         </div>

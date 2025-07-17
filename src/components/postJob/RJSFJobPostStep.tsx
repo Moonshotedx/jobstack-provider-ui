@@ -325,7 +325,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     // Handle file uploads with format: "data-url" FIRST (before location check)
     if (fieldSchema.format === 'data-url') {
       const fileType = fieldKey.toLowerCase().includes('video') ? 'video' : 
-                      fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('photo') ? 'image' : 
+                      fieldKey.toLowerCase().includes('image') || fieldKey.toLowerCase().includes('photo') || 
+                      fieldKey.toLowerCase().includes('media') || fieldKey.toLowerCase().includes('sample') ? 'image' : 
                       'document';
       
       const accept = fileType === 'video' ? 'video/*' : 
@@ -348,6 +349,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           onChange={(file) => updateFormData(sectionKey, fieldKey, file)}
           usePresignedUrl={true}
           objectKeyPrefix="job"
+          hideEmptyState={fieldKey.toLowerCase().includes('sample') || fieldKey.toLowerCase().includes('media')}
         />
       );
     }
@@ -435,15 +437,30 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       
       // Special handling for array of file uploads - direct strings with data-url format
       if (fieldSchema.items?.type === 'string' && fieldSchema.items?.format === 'data-url') {
+        // Determine file type based on field name and description
+        const isVideoField = fieldKey.toLowerCase().includes('video') || 
+                           (fieldSchema.description && fieldSchema.description.toLowerCase().includes('video'));
+        const isImageField = fieldKey.toLowerCase().includes('image') || 
+                           fieldKey.toLowerCase().includes('photo') ||
+                           fieldKey.toLowerCase().includes('media') ||
+                           fieldKey.toLowerCase().includes('sample') ||
+                           (fieldSchema.description && fieldSchema.description.toLowerCase().includes('image'));
+        
+        const fileType = isVideoField ? 'video' : (isImageField ? 'image' : 'document');
+        const accept = isVideoField ? 'video/*' : (isImageField ? 'image/*' : '*/*');
+        
+        // Get max files from schema if specified
+        const maxFiles = fieldSchema.maxItems || 5;
+        
         return (
           <div key={fieldKey} className="space-y-3">
             <FileUploadField
               label={fieldLabel}
               description={fieldSchema.description}
-              fileType="image"
-              accept="image/*"
+              fileType={fileType}
+              accept={accept}
               multiple={true}
-              maxFiles={5}
+              maxFiles={maxFiles}
               value={items}
               onChange={(files) => {
                 if (files === null) {
@@ -456,6 +473,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               }}
               usePresignedUrl={true}
               objectKeyPrefix="job"
+              hideEmptyState={fieldKey.toLowerCase().includes('sample') || fieldKey.toLowerCase().includes('media')}
             />
           </div>
         );

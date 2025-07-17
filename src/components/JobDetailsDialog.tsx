@@ -25,14 +25,12 @@ interface JobDetailsDialogProps {
   isOpen: boolean;
   onClose: () => void;
   job: JobPosting | null;
-  onEdit?: () => void;
 }
 
 const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({ 
   isOpen, 
   onClose, 
-  job, 
-  onEdit 
+  job
 }) => {
   if (!job) return null;
 
@@ -172,11 +170,6 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   <Badge variant="outline">
                     {job.metadata?.status || 'Active'}
                   </Badge>
-                  {onEdit && (
-                    <Button onClick={onEdit} size="sm">
-                      Edit Job
-                    </Button>
-                  )}
                 </div>
               </div>
               
