@@ -33,7 +33,7 @@ import { useTranslation } from 'react-i18next'
 import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import PWAInstallPrompt from '@/components/PWAInstallPrompt'
+
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardComponent,
@@ -489,8 +489,7 @@ function DashboardContent() {
           onClose={() => setShowManageEmployers(false)}
         />
 
-        {/* PWA Install Prompt */}
-        <PWAInstallPrompt />
+
       </div>
     </div>
   )

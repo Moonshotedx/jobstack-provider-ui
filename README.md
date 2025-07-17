@@ -1,11 +1,11 @@
 # ONEST Jobs - Mobile-First Job Posting Platform
 
-A modern, mobile-friendly Progressive Web App (PWA) for posting jobs and managing candidates, built with Vite, React, and TypeScript.
+A modern, mobile-friendly web application for posting jobs and managing candidates, built with Vite, React, and TypeScript.
 
 ## Features
 
 - **Mobile-First Responsive Design**: Optimized for a seamless experience on mobile, tablet, and desktop devices.
-- **Progressive Web App (PWA)**: Installable on mobile devices for a native-like experience with offline capabilities.
+- **Mobile-First Design**: Optimized for mobile devices with responsive design and touch-friendly interface.
 - **Job Management**: Create, edit, and manage job postings.
 - **Candidate Management**: View and manage applicants for each job.
 - **Employer Management**: Functionality for employers to manage their profiles and job listings.
