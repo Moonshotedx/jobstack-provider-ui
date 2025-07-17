@@ -134,7 +134,7 @@ function DashboardContent() {
     return () => {
       if (interval) clearInterval(interval)
     }
-  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, checkEmailVerification, t])
+  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, t])
 
   const handleResendVerification = async () => {
     setIsResendingVerification(true)

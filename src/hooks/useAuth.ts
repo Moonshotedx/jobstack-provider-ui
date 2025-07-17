@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authClient, forgetPassword as authForgetPassword, resetPassword as authResetPassword } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
@@ -40,7 +40,7 @@ export const useAuth = (): UseAuthReturn => {
   const queryClient = useQueryClient();
 
   // Helper function to load organization profile from better-auth
-  const loadOrganizationProfile = useCallback(async (sessionData: any, betterAuthUser: any) => {
+  const loadOrganizationProfile = async (sessionData: any, betterAuthUser: any) => {
     try {
       // First, get the user's organizations
       const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
@@ -123,9 +123,9 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Failed to load organization data:', error);
       return undefined;
     }
-  }, []);
+  };
 
-  const checkSession = useCallback(async () => {
+  const checkSession = async () => {
     try {
       setUserLoading(true);
       const session = await authClient.getSession(undefined, { credentials: 'include' });
@@ -150,9 +150,9 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setUserLoading(false);
     }
-  }, [setUser, setUserLoading, loadOrganizationProfile, queryClient]);
+  };
 
-  const login = useCallback(async (data: LoginData) => {
+  const login = async (data: LoginData) => {
     setIsLoading(true);
     try {
       const loginRequest = await authClient.signIn.email({ 
@@ -182,9 +182,9 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [setUser, loadOrganizationProfile, queryClient]);
+  };
 
-  const register = useCallback(async (data: RegisterData) => {
+  const register = async (data: RegisterData) => {
     setIsLoading(true);
     try {
       const name = `${data.firstName} ${data.lastName}`;
@@ -217,9 +217,9 @@ export const useAuth = (): UseAuthReturn => {
     } finally {
       setIsLoading(false);
     }
-  }, [setUser]);
+  };
 
-  const logout = useCallback(async () => {
+  const logout = async () => {
     try {
       // Clear user state first to prevent race conditions
       clearUser();
@@ -256,9 +256,9 @@ export const useAuth = (): UseAuthReturn => {
       clearUser();
       setPendingVerificationEmail(undefined);
     }
-  }, [clearUser, queryClient]);
+  };
 
-  const checkEmailVerification = useCallback(async () => {
+  const checkEmailVerification = async () => {
     try {
       const session = await authClient.getSession(undefined, { credentials: 'include' });
       if (session.data?.user) {
@@ -280,9 +280,9 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Verification check failed:', error);
       return false;
     }
-  }, [setUser]);
+  };
 
-  const resendVerificationEmail = useCallback(async () => {
+  const resendVerificationEmail = async () => {
     const emailToResend = pendingVerificationEmail || user?.email;
     if (!emailToResend) {
       throw new Error('No email address found for verification');
@@ -309,9 +309,9 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Failed to resend verification email:', error);
       throw new Error('Failed to resend verification email');
     }
-  }, [pendingVerificationEmail, user?.email]);
+  };
 
-  const forgotPassword = useCallback(async (email: string) => {
+  const forgotPassword = async (email: string) => {
     try {
       const result = await authForgetPassword(email);
       if (result.error) {
@@ -321,9 +321,9 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Failed to send password reset email:', error);
       throw error;
     }
-  }, []);
+  };
 
-  const resetPassword = useCallback(async (token: string, password: string) => {
+  const resetPassword = async (token: string, password: string) => {
     try {
       const result = await authResetPassword(token, password);
       if (result.error) {
@@ -333,12 +333,12 @@ export const useAuth = (): UseAuthReturn => {
       console.error('Failed to reset password:', error);
       throw error;
     }
-  }, []);
+  };
 
   // Check session on mount
   useEffect(() => {
     checkSession();
-  }, [checkSession]);
+  }, []);
 
   return {
     isLoading,

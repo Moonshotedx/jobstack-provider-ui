@@ -19,7 +19,7 @@ function SessionInitializer() {
   
   useEffect(() => {
     checkSession();
-  }, [checkSession]);
+  }, []);
   
   return null;
 }
