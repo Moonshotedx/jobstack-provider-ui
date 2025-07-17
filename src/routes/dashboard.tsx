@@ -457,8 +457,8 @@ function DashboardContent() {
             <CardContent className="flex items-center p-4 md:p-6">
               <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-500 mr-3 md:mr-4 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xl md:text-2xl font-bold">{dashboardStats.candidatesShortlisted}</p>
-                <p className="text-xs md:text-sm text-muted-foreground">{t('stats.candidatesShortlisted')}</p>
+                <p className="text-xl md:text-2xl font-bold">0</p>
+                <p className="text-xs md:text-sm text-muted-foreground">Candidates Shortlisted feature coming soon</p>
               </div>
             </CardContent>
           </Card>
