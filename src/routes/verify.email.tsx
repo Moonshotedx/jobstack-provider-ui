@@ -63,7 +63,9 @@ function EmailVerificationComponent() {
     };
 
     handleVerification();
-  }, [urlError, checkEmailVerification, navigate, t]);
+
+  }, [urlError, navigate, t]);
+
 
   const handleResendVerification = async () => {
     if (!user?.email) {
