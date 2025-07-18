@@ -90,9 +90,9 @@
           "description": "Enter monthly in-hand salary amount",
           "minimum": 0
         },
-        "monthlyIncentivePosissible": {
+        "monthlyIncentivePossible": {
           "type": "string",
-          "title": "Monthly Incentive Posissible",
+          "title": "Monthly Incentive Possible",
           "description": "Enter monthly incentive amount",
           "minimum": 0
         },
