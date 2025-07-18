@@ -1,9 +1,8 @@
-import { StrictMode, useEffect } from 'react'
+import { StrictMode } from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { Toaster } from "@/components/ui/sonner"
-import { useAuth } from '@/hooks/useAuth'
 
 // Import i18n configuration
 import './lib/i18n'
@@ -13,23 +12,11 @@ import { routeTree } from './routeTree.gen'
 
 import './styles.css'
 
-// Session Check Component
-function SessionInitializer() {
-  const { checkSession } = useAuth();
-  
-  useEffect(() => {
-    checkSession();
-  }, []);
-  
-  return null;
-}
-
 // App wrapper component
 function App() {
   return (
     <div className='w-dvw h-dvh bg-background'>
       <TanStackQueryProvider.Provider>
-        <SessionInitializer />
         <Toaster position='top-center' richColors theme='light' />
         <RouterProvider router={router} />
       </TanStackQueryProvider.Provider>
