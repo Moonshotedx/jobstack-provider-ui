@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authClient, forgetPassword as authForgetPassword, resetPassword as authResetPassword } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
@@ -37,6 +37,7 @@ export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
   const [isCheckingSession, setIsCheckingSession] = useState(false);
+  const [hasInitialCheck, setHasInitialCheck] = useState(false);
   const { setUser, clearUser, setLoading: setUserLoading, user } = useUserStore();
   const queryClient = useQueryClient();
 
@@ -125,7 +126,7 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const checkSession = useCallback(async () => {
+  const checkSession = async () => {
     // Prevent multiple simultaneous session checks
     if (isCheckingSession) {
       return;
@@ -175,7 +176,7 @@ export const useAuth = (): UseAuthReturn => {
       setUserLoading(false);
       setIsCheckingSession(false);
     }
-  }, [isCheckingSession, setUser, clearUser, setUserLoading, queryClient]);
+  };
 
   const login = async (data: LoginData) => {
     setIsLoading(true);
@@ -360,12 +361,13 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  // Check session on mount to ensure synchronization with server
+  // Check session on mount only once
   useEffect(() => {
-    if (!isCheckingSession) {
+    if (!hasInitialCheck && !isCheckingSession) {
+      setHasInitialCheck(true);
       checkSession();
     }
-  }, [checkSession, isCheckingSession]);
+  }, []); // Empty dependency array is intentional - we only want this to run once
 
   return {
     isLoading,
