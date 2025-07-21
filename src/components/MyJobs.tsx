@@ -378,7 +378,7 @@ const MyJobs = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 h-8"
                         onClick={() => handleViewJob(job)}
                       >
                         <Eye className="h-4 w-4 mr-2" />
@@ -387,7 +387,7 @@ const MyJobs = () => {
                       <Button 
                         variant="outline" 
                         size="sm"
-                        className="flex-1"
+                        className="flex-1 h-11"
                         asChild
                       >
                         <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>

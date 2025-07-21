@@ -471,6 +471,35 @@ function JobApplicantsPage() {
   // TODO: Use jobId to fetch actual job details from API
   const jobTitle = jobDetails?.title || `Job ${jobId}`; // Use job title from API
 
+  // --- DYNAMIC TABLE COLUMN LOGIC START ---
+  // Helper to get all unique keys from whatIHave and whatIWant
+  const allWhatIHaveKeys = React.useMemo(() => {
+    const keys = new Set<string>();
+    applicants.forEach(app => {
+      if (app.whatIHave) {
+        Object.keys(app.whatIHave).forEach(k => keys.add(k));
+      }
+    });
+    return Array.from(keys);
+  }, [applicants]);
+
+  const allWhatIWantKeys = React.useMemo(() => {
+    const keys = new Set<string>();
+    applicants.forEach(app => {
+      if (app.whatIWant) {
+        Object.keys(app.whatIWant).forEach(k => keys.add(k));
+      }
+    });
+    return Array.from(keys);
+  }, [applicants]);
+
+  // Special: check if any applicant has languagesKnown in whatIHave
+  const hasLanguagesKnown = React.useMemo(() => {
+    return applicants.some(app => Array.isArray((app.whatIHave as any)?.languagesKnown));
+  }, [applicants]);
+
+  // --- DYNAMIC TABLE COLUMN LOGIC END ---
+
   return (
     <div className="min-h-screen bg-background">
       <Header />
@@ -573,11 +602,20 @@ function JobApplicantsPage() {
                     <th className="text-left p-4 font-medium">Name</th>
                     <th className="text-left p-4 font-medium">Location</th>
                     <th className="text-left p-4 font-medium">Age</th>
-                    <th className="text-left p-4 font-medium">Quality Score</th>
-                    <th className="text-left p-4 font-medium">Stitching Speed</th>
-                    <th className="text-left p-4 font-medium">Juki Experience</th>
-                    <th className="text-left p-4 font-medium">Monthly In-Hand</th>
-                    <th className="text-left p-4 font-medium">Work Hours/Day</th>
+                    {/* Dynamically render whatIHave columns */}
+                    {allWhatIHaveKeys.map(key => (
+                      key === 'languagesKnown' ? null : (
+                        <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
+                      )
+                    ))}
+                    {/* Special column for languagesKnown */}
+                    {hasLanguagesKnown && (
+                      <th className="text-left p-4 font-medium">Languages Known</th>
+                    )}
+                    {/* Dynamically render whatIWant columns */}
+                    {allWhatIWantKeys.map(key => (
+                      <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
+                    ))}
                     <th className="text-left p-4 font-medium">
                       <div className="flex items-center gap-1">
                         Trust Score
@@ -625,30 +663,40 @@ function JobApplicantsPage() {
                             </div>
                           </div>
                         </td>
+                        {/* Use whoIAm.location for location */}
                         <td className="p-4">
                           <div className="flex items-center gap-1 text-sm">
                             <MapPin className="h-3 w-3" />
-                            {applicant.location}
+                            {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
                           </div>
                         </td>
                         <td className="p-4">
                           <span className="text-sm font-medium">{applicant.age} years</span>
                         </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.qualityScore || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.stitchingSpeed || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.jukiMachineExperience || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.monthlyInHandPreferred || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.workHoursPerDay || 'N/A'}</span>
-                        </td>
+                        {/* Render all whatIHave fields except languagesKnown and whoIAm */}
+                        {allWhatIHaveKeys.map(key => (
+                          key === 'languagesKnown' || key === 'whoIAm' ? null : (
+                            <td key={key} className="p-4">
+                              <span className="text-sm text-muted-foreground">{(applicant.whatIHave && (applicant.whatIHave as any)[key]) ?? 'N/A'}</span>
+                            </td>
+                          )
+                        ))}
+                        {/* Special: languagesKnown */}
+                        {hasLanguagesKnown && (
+                          <td className="p-4">
+                            <span className="text-sm text-muted-foreground">
+                              {Array.isArray((applicant.whatIHave as any)?.languagesKnown)
+                                ? (applicant.whatIHave as any).languagesKnown.join(', ')
+                                : 'N/A'}
+                            </span>
+                          </td>
+                        )}
+                        {/* Render all whatIWant fields */}
+                        {allWhatIWantKeys.map(key => (
+                          <td key={key} className="p-4">
+                            <span className="text-sm text-muted-foreground">{(applicant.whatIWant && (applicant.whatIWant as any)[key]) ?? 'N/A'}</span>
+                          </td>
+                        ))}
                         <td className="p-4">
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 text-blue-600" />
