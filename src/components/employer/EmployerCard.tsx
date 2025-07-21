@@ -34,7 +34,6 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
   isSelected,
   onSelect,
   onEdit,
-  onDelete,
   isDefault = false
 }) => {
   return (

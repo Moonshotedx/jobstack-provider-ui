@@ -26,20 +26,6 @@ const Header = () => {
   const { checkSession } = useAuth();
   const queryClient = useQueryClient();
 
-
-  const handlePostJobs = () => {
-    // If user is logged in with profile, redirect to dashboard
-    if (user && user.profile) {
-      navigate({ to: '/dashboard' });
-    } else if (user && !user.profile) {
-      // User is logged in but needs to complete profile
-      setShowPostJob(true);
-    } else {
-      // User is not logged in, redirect to auth
-      navigate({ to: "/auth/$action", params: { action: "login" } });
-    }
-  };
-
   const handleCompleteProfile = () => {
     if (!user) return;
     
