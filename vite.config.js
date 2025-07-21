@@ -11,5 +11,9 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
     },
+  },
+  build: {
+    minify: false, // Temporary: disable minification to see real errors
+    sourcemap: true, // Enable source maps for debugging
   }
 });
