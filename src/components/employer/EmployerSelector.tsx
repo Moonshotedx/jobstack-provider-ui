@@ -141,11 +141,11 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
             </div>
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onAddEmployer}>
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuItem onClick={onAddEmployer}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Employer
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );

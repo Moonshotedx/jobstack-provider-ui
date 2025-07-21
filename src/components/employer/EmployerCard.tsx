@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Building2, Edit, Trash2, Globe, Phone, Mail, Crown } from 'lucide-react';
+import { Building2, Edit, Globe, Phone, Mail, Crown } from 'lucide-react';
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
   id: string;
@@ -25,7 +25,7 @@ interface EmployerCardProps {
   isSelected: boolean;
   onSelect: () => void;
   onEdit: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   isDefault?: boolean;
 }
 
@@ -98,11 +98,6 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
           <Button variant="outline" size="sm" onClick={onEdit}>
             <Edit className="h-4 w-4" />
           </Button>
-          {!isDefault && (
-            <Button variant="destructive" size="sm" onClick={onDelete}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          )}
         </div>
       </CardContent>
     </Card>

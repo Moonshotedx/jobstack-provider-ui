@@ -114,7 +114,7 @@ const Header = () => {
                       Complete Profile
                     </Button>
                   )}
-                  <Button 
+                  {/* <Button 
                     variant="ghost" 
                     className="w-full justify-start"
                     onClick={() => {
@@ -123,7 +123,7 @@ const Header = () => {
                     }}
                   >
                     Post Jobs
-                  </Button>
+                  </Button> */}
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start"
@@ -179,7 +179,7 @@ const Header = () => {
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-6">
+            {/* <nav className="hidden md:flex items-center gap-6">
               <Button 
                 variant="ghost" 
                 onClick={handlePostJobs}
@@ -187,7 +187,7 @@ const Header = () => {
               >
                 {t('header.postJobs')}
               </Button>
-            </nav>
+            </nav> */}
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-3">

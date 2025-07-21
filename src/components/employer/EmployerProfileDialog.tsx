@@ -167,8 +167,57 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.address || !formData.contactPersonName || !formData.contactEmail || !formData.contactPhone) {
-      toast.error("Please fill in all required fields.");
+    // Enhanced validation with whitespace checks and phone number validation
+    const trimmedName = formData.name.trim();
+    const trimmedAddress = formData.address.trim();
+    const trimmedContactPerson = formData.contactPersonName.trim();
+    const trimmedEmail = formData.contactEmail.trim();
+    const trimmedPhone = formData.contactPhone.replace(/\s/g, '');
+
+    // Check for empty or whitespace-only fields
+    if (!trimmedName) {
+      toast.error("Organization name cannot be empty or contain only spaces.");
+      return;
+    }
+    if (!trimmedAddress) {
+      toast.error("Address cannot be empty or contain only spaces.");
+      return;
+    }
+    if (!trimmedContactPerson) {
+      toast.error("Contact person name cannot be empty or contain only spaces.");
+      return;
+    }
+    if (!trimmedEmail) {
+      toast.error("Contact email is required.");
+      return;
+    }
+    if (!trimmedPhone) {
+      toast.error("Contact phone cannot be empty or contain only spaces.");
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(trimmedEmail)) {
+      toast.error("Please enter a valid email address.");
+      return;
+    }
+
+    // Validate contact person name (only letters and spaces)
+    if (!/^[a-zA-Z\s]+$/.test(trimmedContactPerson)) {
+      toast.error("Contact person name can only contain letters and spaces.");
+      return;
+    }
+
+    // Validate phone number (exactly 10 digits)
+    if (!/^\d{10}$/.test(trimmedPhone)) {
+      toast.error("Phone number must be exactly 10 digits.");
+      return;
+    }
+
+    // Validate phone number format (only allowed characters)
+    if (!/^[\d\s+\-()]+$/.test(formData.contactPhone)) {
+      toast.error("Phone number can only contain digits, spaces, +, -, and parentheses.");
       return;
     }
 
@@ -176,19 +225,19 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       // Update existing organization
       try {
         const metadata = {
-          address: formData.address,
-          gstNumber: formData.gstNumber,
-          contactPersonName: formData.contactPersonName,
-          contactEmail: formData.contactEmail,
-          contactPhone: formData.contactPhone,
-          website: formData.website,
-          description: formData.description
+          address: trimmedAddress,
+          gstNumber: formData.gstNumber?.trim() || '',
+          contactPersonName: trimmedContactPerson,
+          contactEmail: trimmedEmail,
+          contactPhone: trimmedPhone,
+          website: formData.website?.trim() || '',
+          description: formData.description?.trim() || ''
         };
 
         await updateOrganizationMutation.mutateAsync({
           organizationId: employer.id,
           organizationData: {
-            name: formData.name,
+            name: trimmedName,
             metadata: metadata, // Pass as object, not JSON string
             logo: formData.logo,
             slug: formData.gstNumber || employer.gstNumber // Use existing GST number as slug if available
@@ -333,7 +382,11 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                   <Input
                     id="contactPerson"
                     value={formData.contactPersonName}
-                    onChange={(e) => handleInputChange('contactPersonName', e.target.value)}
+                    onChange={(e) => {
+                      // Only allow letters and spaces
+                      const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                      handleInputChange('contactPersonName', value);
+                    }}
                     placeholder="Contact person name"
                     disabled={isSubmitting}
                   />
@@ -357,7 +410,11 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                   <Input
                     id="empPhone"
                     value={formData.contactPhone}
-                    onChange={(e) => handleInputChange('contactPhone', e.target.value)}
+                    onChange={(e) => {
+                      // Only allow digits, spaces, +, -, and parentheses
+                      const value = e.target.value.replace(/[^\d\s+\-()]/g, '');
+                      handleInputChange('contactPhone', value);
+                    }}
                     placeholder="+91 9876543210"
                     disabled={isSubmitting}
                   />
