@@ -133,28 +133,6 @@ function JobApplicantsPage() {
     return value;
   };
 
-  const allWhatIHaveKeys = React.useMemo(() => {
-    const keys = new Set<string>();
-    applicants.forEach(app => {
-      if (app.whatIHave) {
-        Object.keys(app.whatIHave).forEach(k => keys.add(k));
-      }
-    });
-    return Array.from(keys);
-  }, [applicants]);
-  const allWhatIWantKeys = React.useMemo(() => {
-    const keys = new Set<string>();
-    applicants.forEach(app => {
-      if (app.whatIWant) {
-        Object.keys(app.whatIWant).forEach(k => keys.add(k));
-      }
-    });
-    return Array.from(keys);
-  }, [applicants]);
-  const hasLanguagesKnown = React.useMemo(() => {
-    return applicants.some(app => Array.isArray((app.whatIHave as any)?.languagesKnown));
-  }, [applicants]);
-  // --- DYNAMIC TABLE COLUMN LOGIC END ---
   // Debug logging
   React.useEffect(() => {
     console.log('🔍 Job Applications Debug:', {
@@ -590,20 +568,8 @@ function JobApplicantsPage() {
                     <th className="text-left p-4 font-medium">Name</th>
                     <th className="text-left p-4 font-medium">Location</th>
                     <th className="text-left p-4 font-medium">Age</th>
-                    {/* Dynamically render whatIHave columns */}
-                    {allWhatIHaveKeys.map(key => (
-                      key === 'languagesKnown' ? null : (
-                        <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
-                      )
-                    ))}
-                    {/* Special column for languagesKnown */}
-                    {hasLanguagesKnown && (
-                      <th className="text-left p-4 font-medium">Languages Known</th>
-                    )}
-                    {/* Dynamically render whatIWant columns */}
-                    {allWhatIWantKeys.map(key => (
-                      <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
-                    ))}
+                    {/* Consolidated What I Want column */}
+                    <th className="text-left p-4 font-medium">What I Want</th>
                     <th className="text-left p-4 font-medium">
                       <div className="flex items-center gap-1">
                         Trust Score
@@ -661,30 +627,10 @@ function JobApplicantsPage() {
                         <td className="p-4">
                           <span className="text-sm font-medium">{applicant.age} years</span>
                         </td>
-                        {/* Render all whatIHave fields except languagesKnown and whoIAm */}
-                        {allWhatIHaveKeys.map(key => (
-                          key === 'languagesKnown' || key === 'whoIAm' ? null : (
-                            <td key={key} className="p-4">
-                              <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIHave ? (applicant.whatIHave as any)[key] : undefined)}</span>
-                            </td>
-                          )
-                        ))}
-                        {/* Special: languagesKnown */}
-                        {hasLanguagesKnown && (
-                          <td className="p-4">
-                            <span className="text-sm text-muted-foreground">
-                              {Array.isArray((applicant.whatIHave as any)?.languagesKnown)
-                                ? (applicant.whatIHave as any).languagesKnown.join(', ')
-                                : 'N/A'}
-                            </span>
-                          </td>
-                        )}
-                        {/* Render all whatIWant fields */}
-                        {allWhatIWantKeys.map(key => (
-                          <td key={key} className="p-4">
-                            <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
-                          </td>
-                        ))}
+                        {/* Consolidated What I Want column */}
+                        <td className="p-4">
+                          <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant)}</span>
+                        </td>
                         <td className="p-4">
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 text-blue-600" />
