@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ChevronDown, Building2, Plus, Crown } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
@@ -141,11 +141,11 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
             </div>
           </DropdownMenuItem>
         ))}
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onAddEmployer}>
+        {/* <DropdownMenuSeparator /> */}
+        {/* <DropdownMenuItem onClick={onAddEmployer}>
           <Plus className="h-4 w-4 mr-2" />
           Add New Employer
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );

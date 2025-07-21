@@ -387,6 +387,7 @@ export const getPresignedUrl = async (request: PresignedUrlRequest): Promise<Pre
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(request),
+      credentials: 'include'
     });
 
     console.log('📡 Presigned URL response status:', response.status, response.statusText);

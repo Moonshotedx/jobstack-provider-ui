@@ -13,8 +13,22 @@ import { CheckCircle, Mail, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 const SignUpSchema = z.object({
-  firstName: z.string().nonempty().describe('Enter First Name'),
-  surname: z.string().nonempty().describe('Enter Surname'),
+  firstName: z.string()
+    .nonempty('First name is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'First name cannot be empty or contain only spaces'
+    })
+    .refine((val) => /^[a-zA-Z\s]+$/.test(val.trim()), {
+      message: 'First name can only contain letters and spaces'
+    }),
+  surname: z.string()
+    .nonempty('Surname is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'Surname cannot be empty or contain only spaces'
+    })
+    .refine((val) => /^[a-zA-Z\s]+$/.test(val.trim()), {
+      message: 'Surname can only contain letters and spaces'
+    }),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
@@ -62,11 +76,11 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
   const onSignUpSubmit = async (data: SignUpInputs) => {
     try {
       await register({ 
-        email: data.email,
+        email: data.email.trim(),
         password: data.password,
         role: data.role,
-        firstName: data.firstName,
-        lastName: data.surname
+        firstName: data.firstName.trim(),
+        lastName: data.surname.trim()
       });
       
       // Always show verification screen for new registrations
@@ -213,7 +227,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   id="reg-first-name"
                   type="text"
                   placeholder={t('register.firstNamePlaceholder')}
-                  {...signUpForm.register("firstName")}
+                  {...signUpForm.register("firstName", {
+                    onChange: (e) => {
+                      // Only allow letters and spaces
+                      const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                      e.target.value = value;
+                    }
+                  })}
                 />
                 {signUpForm.formState.errors.firstName && (
                   <span className="text-sm text-destructive">
@@ -227,7 +247,13 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   id="reg-surname"
                   type="text"
                   placeholder={t('register.lastNamePlaceholder')}
-                  {...signUpForm.register("surname")}
+                  {...signUpForm.register("surname", {
+                    onChange: (e) => {
+                      // Only allow letters and spaces
+                      const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                      e.target.value = value;
+                    }
+                  })}
                 />
                 {signUpForm.formState.errors.surname && (
                   <span className="text-sm text-destructive">
