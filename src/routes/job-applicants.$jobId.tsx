@@ -133,6 +133,17 @@ function JobApplicantsPage() {
     return value;
   };
 
+  // Collect all unique keys from whatIWant across all applicants
+  const allWhatIWantKeys = React.useMemo(() => {
+    const keysSet = new Set<string>();
+    applicants.forEach(applicant => {
+      if (applicant.whatIWant && typeof applicant.whatIWant === 'object') {
+        Object.keys(applicant.whatIWant).forEach(key => keysSet.add(key));
+      }
+    });
+    return Array.from(keysSet);
+  }, [applicants]);
+
   // Debug logging
   React.useEffect(() => {
     console.log('🔍 Job Applications Debug:', {
@@ -568,8 +579,10 @@ function JobApplicantsPage() {
                     <th className="text-left p-4 font-medium">Name</th>
                     <th className="text-left p-4 font-medium">Location</th>
                     <th className="text-left p-4 font-medium">Age</th>
-                    {/* Consolidated What I Want column */}
-                    <th className="text-left p-4 font-medium">What I Want</th>
+                    {/* Dynamically render whatIWant columns */}
+                    {allWhatIWantKeys.map(key => (
+                      <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
+                    ))}
                     <th className="text-left p-4 font-medium">
                       <div className="flex items-center gap-1">
                         Trust Score
@@ -627,10 +640,12 @@ function JobApplicantsPage() {
                         <td className="p-4">
                           <span className="text-sm font-medium">{applicant.age} years</span>
                         </td>
-                        {/* Consolidated What I Want column */}
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant)}</span>
-                        </td>
+                        {/* Render all whatIWant fields */}
+                        {allWhatIWantKeys.map(key => (
+                          <td key={key} className="p-4">
+                            <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
+                          </td>
+                        ))}
                         <td className="p-4">
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 text-blue-600" />
