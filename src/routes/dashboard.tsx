@@ -82,20 +82,9 @@ function DashboardContent() {
     candidatesShortlisted: 5 // TODO: Implement real-time shortlisted candidates count
   };
 
-  // Safety check: If no user, they shouldn't be here
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center space-y-6">
-          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Check verification status on mount and periodically
+  // Check verification status on mount only
   useEffect(() => {
-    if (!user) return
+    if (!user || hasCheckedInitialVerification) return
 
     const checkVerification = async () => {
       setIsCheckingVerification(true)
@@ -109,32 +98,35 @@ function DashboardContent() {
         }
         
         setHasCheckedInitialVerification(true)
-        setIsCheckingVerification(false)
       } catch (error) {
-        setIsCheckingVerification(false)
         setHasCheckedInitialVerification(true)
+      } finally {
+        setIsCheckingVerification(false)
       }
     }
 
-    // Always do initial verification check from server for security
-    if (!hasCheckedInitialVerification) {
-      // For new users or on fresh page load, always verify from server
-      setIsCheckingVerification(true)
-      checkVerification()
-    } else {
-      setIsCheckingVerification(false)
-    }
+    checkVerification()
+  }, [user?.id, hasCheckedInitialVerification]) // Only check once per user
 
-    // Set up periodic checking only if user is not verified and we've done initial check
-    let interval: number | null = null
-    if (hasCheckedInitialVerification && !user.isVerified) {
-      interval = setInterval(checkVerification, 10000)
-    }
+  // Set up periodic verification checking separately
+  useEffect(() => {
+    if (!user || !hasCheckedInitialVerification || user.isVerified) return
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, t])
+    const interval = setInterval(async () => {
+      try {
+        const wasVerified = user.isVerified
+        const isNowVerified = await checkEmailVerification()
+        
+        if (!wasVerified && isNowVerified) {
+          toast.success(t('verification.verificationSuccess'))
+        }
+      } catch (error) {
+        console.error('Periodic verification check failed:', error)
+      }
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [user?.isVerified, hasCheckedInitialVerification, user?.id]) // Dependencies without checkEmailVerification
 
   const handleResendVerification = async () => {
     setIsResendingVerification(true)
@@ -151,6 +143,89 @@ function DashboardContent() {
   const handleManageEmployers = () => {
     setShowManageEmployers(true)
     setMobileMenuOpen(false)
+  }
+
+  // Mobile Navigation Menu component defined after all hooks
+  const MobileNavMenu = () => (
+    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+      <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Dashboard Menu
+          </SheetTitle>
+        </SheetHeader>
+        <div className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+            <div className="space-y-2">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  setShowPostJob(true)
+                  setMobileMenuOpen(false)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-3" />
+                Post New Job
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={handleManageEmployers}
+              >
+                <Building2 className="h-4 w-4 mr-3" />
+                Manage Employers
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Navigation</h3>
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <Home className="h-4 w-4 mr-3" />
+                Dashboard
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <BriefcaseIcon className="h-4 w-4 mr-3" />
+                My Jobs
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Users className="h-4 w-4 mr-3" />
+                Candidates
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Account</h3>
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <User className="h-4 w-4 mr-3" />
+                Profile
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Settings className="h-4 w-4 mr-3" />
+                Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+
+  // Safety check: If no user, they shouldn't be here
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    )
   }
 
   // Show loading state while checking verification (be more conservative)
@@ -275,78 +350,6 @@ function DashboardContent() {
       </div>
     )
   }
-
-  // Mobile Navigation Menu
-  const MobileNavMenu = () => (
-    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-      <SheetContent side="left" className="w-[280px] sm:w-[350px]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Dashboard Menu
-          </SheetTitle>
-        </SheetHeader>
-        <div className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
-            <div className="space-y-2">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => {
-                  setShowPostJob(true)
-                  setMobileMenuOpen(false)
-                }}
-              >
-                <Plus className="h-4 w-4 mr-3" />
-                Post New Job
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={handleManageEmployers}
-              >
-                <Building2 className="h-4 w-4 mr-3" />
-                Manage Employers
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Navigation</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <Home className="h-4 w-4 mr-3" />
-                Dashboard
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <BriefcaseIcon className="h-4 w-4 mr-3" />
-                My Jobs
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Candidates
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Account</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <User className="h-4 w-4 mr-3" />
-                Profile
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Settings
-              </Button>
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
 
   // Main dashboard for authenticated users with profiles
   return (
