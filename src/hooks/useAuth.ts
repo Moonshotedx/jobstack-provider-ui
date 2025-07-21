@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { authClient, forgetPassword as authForgetPassword, resetPassword as authResetPassword } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
@@ -125,7 +125,7 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const checkSession = async () => {
+  const checkSession = useCallback(async () => {
     // Prevent multiple simultaneous session checks
     if (isCheckingSession) {
       return;
@@ -175,7 +175,7 @@ export const useAuth = (): UseAuthReturn => {
       setUserLoading(false);
       setIsCheckingSession(false);
     }
-  };
+  }, [isCheckingSession, setUser, clearUser, setUserLoading, queryClient]);
 
   const login = async (data: LoginData) => {
     setIsLoading(true);
@@ -365,7 +365,7 @@ export const useAuth = (): UseAuthReturn => {
     if (!isCheckingSession) {
       checkSession();
     }
-  }, []);
+  }, [checkSession, isCheckingSession]);
 
   return {
     isLoading,
