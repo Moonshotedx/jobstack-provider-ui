@@ -35,32 +35,21 @@ export const Route = createFileRoute('/job-applicants/$jobId')({
 });
 
 function JobApplicantsPage() {
+  // All hooks at the top
   const { jobId } = Route.useParams();
   const { t } = useTranslation('candidates');
   const activeOrganizationId = useActiveOrganizationId();
-  
-  // Fetch job applications using the API with the job ID from route params
   const { 
     data: applications, 
     isLoading, 
     error, 
     refetch 
   } = useGetJobApplications(activeOrganizationId || '', jobId);
-  
-  // Get job details from the existing jobs list (we'll need to fetch this)
   const { data: jobs } = useGetJobs(activeOrganizationId || '');
   const jobDetails = jobs?.find(job => job.id === jobId);
-  
-  // Application action mutation
   const takeActionMutation = useTakeApplicationAction();
-  
-  // Track loading states for individual candidates
   const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
-  
-  // Track status updates that should persist across refetches
   const [statusUpdates, setStatusUpdates] = useState<Record<string, 'shortlisted' | 'rejected'>>({});
-  
-  // Transform API data to match the existing JobApplicant interface
   const applicants: JobApplicant[] = React.useMemo(() => {
     if (!applications) return [];
     
@@ -124,8 +113,37 @@ function JobApplicantsPage() {
         };
       })
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
-  }, [applications, jobId, jobDetails]);
-
+  }, [applications, jobId, jobDetails, statusUpdates]);
+  const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
+  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
+  const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  // --- DYNAMIC TABLE COLUMN LOGIC START ---
+  const allWhatIHaveKeys = React.useMemo(() => {
+    const keys = new Set<string>();
+    applicants.forEach(app => {
+      if (app.whatIHave) {
+        Object.keys(app.whatIHave).forEach(k => keys.add(k));
+      }
+    });
+    return Array.from(keys);
+  }, [applicants]);
+  const allWhatIWantKeys = React.useMemo(() => {
+    const keys = new Set<string>();
+    applicants.forEach(app => {
+      if (app.whatIWant) {
+        Object.keys(app.whatIWant).forEach(k => keys.add(k));
+      }
+    });
+    return Array.from(keys);
+  }, [applicants]);
+  const hasLanguagesKnown = React.useMemo(() => {
+    return applicants.some(app => Array.isArray((app.whatIHave as any)?.languagesKnown));
+  }, [applicants]);
+  // --- DYNAMIC TABLE COLUMN LOGIC END ---
   // Debug logging
   React.useEffect(() => {
     console.log('🔍 Job Applications Debug:', {
@@ -138,21 +156,10 @@ function JobApplicantsPage() {
       applicantsCount: applicants?.length || 0
     });
   }, [activeOrganizationId, jobId, jobDetails, applications, isLoading, error, applicants]);
-
-  const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
-  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
-  // Sorting state
-  const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
   // Update filtered applicants when applicants data changes
   React.useEffect(() => {
     setFilteredApplicants(applicants);
   }, [applicants]);
-
   // Sorting handler
   const handleSort = (column: 'trustScore' | 'matchScore') => {
     if (sortBy === column) {
@@ -162,7 +169,6 @@ function JobApplicantsPage() {
       setSortOrder('desc');
     }
   };
-
   // Filter and sort applicants
   React.useEffect(() => {
     let filtered = applicants;
@@ -470,35 +476,6 @@ function JobApplicantsPage() {
   // For now, we'll use a placeholder job title
   // TODO: Use jobId to fetch actual job details from API
   const jobTitle = jobDetails?.title || `Job ${jobId}`; // Use job title from API
-
-  // --- DYNAMIC TABLE COLUMN LOGIC START ---
-  // Helper to get all unique keys from whatIHave and whatIWant
-  const allWhatIHaveKeys = React.useMemo(() => {
-    const keys = new Set<string>();
-    applicants.forEach(app => {
-      if (app.whatIHave) {
-        Object.keys(app.whatIHave).forEach(k => keys.add(k));
-      }
-    });
-    return Array.from(keys);
-  }, [applicants]);
-
-  const allWhatIWantKeys = React.useMemo(() => {
-    const keys = new Set<string>();
-    applicants.forEach(app => {
-      if (app.whatIWant) {
-        Object.keys(app.whatIWant).forEach(k => keys.add(k));
-      }
-    });
-    return Array.from(keys);
-  }, [applicants]);
-
-  // Special: check if any applicant has languagesKnown in whatIHave
-  const hasLanguagesKnown = React.useMemo(() => {
-    return applicants.some(app => Array.isArray((app.whatIHave as any)?.languagesKnown));
-  }, [applicants]);
-
-  // --- DYNAMIC TABLE COLUMN LOGIC END ---
 
   return (
     <div className="min-h-screen bg-background">
