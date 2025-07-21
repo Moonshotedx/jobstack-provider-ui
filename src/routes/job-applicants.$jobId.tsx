@@ -122,6 +122,17 @@ function JobApplicantsPage() {
   const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   // --- DYNAMIC TABLE COLUMN LOGIC START ---
+  // Helper to format any cell value for safe rendering
+  const formatValue = (value: any) => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) return value.join(', ');
+      // join object primitive values
+      return Object.values(value).join(', ');
+    }
+    return value;
+  };
+
   const allWhatIHaveKeys = React.useMemo(() => {
     const keys = new Set<string>();
     applicants.forEach(app => {
@@ -654,7 +665,7 @@ function JobApplicantsPage() {
                         {allWhatIHaveKeys.map(key => (
                           key === 'languagesKnown' || key === 'whoIAm' ? null : (
                             <td key={key} className="p-4">
-                              <span className="text-sm text-muted-foreground">{(applicant.whatIHave && (applicant.whatIHave as any)[key]) ?? 'N/A'}</span>
+                              <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIHave ? (applicant.whatIHave as any)[key] : undefined)}</span>
                             </td>
                           )
                         ))}
@@ -671,7 +682,7 @@ function JobApplicantsPage() {
                         {/* Render all whatIWant fields */}
                         {allWhatIWantKeys.map(key => (
                           <td key={key} className="p-4">
-                            <span className="text-sm text-muted-foreground">{(applicant.whatIWant && (applicant.whatIWant as any)[key]) ?? 'N/A'}</span>
+                            <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
                           </td>
                         ))}
                         <td className="p-4">
