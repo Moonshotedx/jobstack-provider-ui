@@ -49,7 +49,6 @@ function JobApplicantsPage() {
   const jobDetails = jobs?.find(job => job.id === jobId);
   const takeActionMutation = useTakeApplicationAction();
   const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
-  const [statusUpdates, setStatusUpdates] = useState<Record<string, 'shortlisted' | 'rejected'>>({});
   const applicants: JobApplicant[] = React.useMemo(() => {
     if (!applications) return [];
     
@@ -82,7 +81,7 @@ function JobApplicantsPage() {
           age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
-          status: statusUpdates[app.id] || app.status || 'applied', // Use persisted status if available
+          status: app.status || 'applied', // Use the actual API status
           trustScore: 85, // Default trust score - you can calculate this based on your logic
           matchScore: 78, // Default match score - you can calculate this based on your logic
           experience: nestedMetadata?.whoIAm?.location || '',
@@ -113,7 +112,7 @@ function JobApplicantsPage() {
         };
       })
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
-  }, [applications, jobId, jobDetails, statusUpdates]);
+  }, [applications, jobId, jobDetails]);
   const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -248,23 +247,14 @@ function JobApplicantsPage() {
         actionData
       });
       
-      // Update the status in our persistent state
-      const newStatus = action === 'accept' ? 'shortlisted' : 'rejected';
-      setStatusUpdates(prev => ({
-        ...prev,
-        [applicant.id]: newStatus
-      }));
-      
-      console.log('✅ Updated status for candidate:', {
+      console.log('✅ Action taken on candidate:', {
         candidateId: applicant.id,
         candidateName: applicant.name,
-        newStatus,
-        allStatusUpdates: { ...statusUpdates, [applicant.id]: newStatus }
+        action
       });
       
-      // Don't refetch immediately - let the local state handle the UI
-      // The API call has already succeeded, so we can trust our local state
-      // Refetch will happen automatically when the user navigates or refreshes
+      // Refetch the applications to get updated status from API
+      refetch();
     } catch (error) {
       console.error('Failed to take action on application:', error);
       // Show error toast
@@ -286,20 +276,20 @@ function JobApplicantsPage() {
     return loadingStates[applicantId] || null;
   };
   
-  // Helper function to get the current status considering updates
-  const getCurrentStatus = (applicantId: string, originalStatus: string) => {
-    return statusUpdates[applicantId] || originalStatus;
-  };
+
 
   // Helper function to render action buttons based on candidate status
   const renderActionButtons = (applicant: JobApplicant) => {
     const loadingState = getActionButtonState(applicant.id);
     const isAcceptLoading = loadingState === 'accept';
     const isRejectLoading = loadingState === 'reject';
-    const currentStatus = getCurrentStatus(applicant.id, applicant.status);
+    
+    // Find the original application to get the actual API status
+    const originalApplication = applications?.find(app => app.id === applicant.id);
+    const apiStatus = originalApplication?.status || applicant.status;
 
-    // If candidate is already shortlisted or rejected, show status instead of buttons
-    if (currentStatus === 'shortlisted') {
+    // If status is "closed", show "Shortlisted"
+    if (apiStatus === 'closed') {
       return (
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -308,11 +298,22 @@ function JobApplicantsPage() {
       );
     }
 
-    if (currentStatus === 'rejected') {
+    // If status is "rejected", show "Rejected"
+    if (apiStatus === 'rejected') {
       return (
         <div className="flex items-center gap-2">
           <XCircle className="h-4 w-4 text-red-600" />
           <span className="text-sm font-medium text-red-600">Rejected</span>
+        </div>
+      );
+    }
+
+    // If status is not "open", show the status as read-only
+    if (apiStatus !== 'open') {
+      const statusDisplay = apiStatus.charAt(0).toUpperCase() + apiStatus.slice(1);
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">{statusDisplay}</span>
         </div>
       );
     }
@@ -553,10 +554,9 @@ function JobApplicantsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  <SelectItem value="closed">Shortlisted</SelectItem>
                   <SelectItem value="applied">Applied</SelectItem>
                   <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
                   <SelectItem value="interview">Interview</SelectItem>
                   <SelectItem value="hired">Hired</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>

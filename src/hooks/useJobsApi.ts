@@ -284,3 +284,40 @@ export const useUpdateOrganization = () => {
 
 // Export types for use in components
 export type { CreateJobRequest, JobPosting, JobApplication, ApplicationActionRequest }; 
+
+// Helper function to get all applications for an organization across all jobs
+export const useGetAllOrganizationApplications = (organizationId: string) => {
+  const { data: jobs } = useGetJobs(organizationId);
+  
+  return useQuery({
+    queryKey: ['organizationApplications', organizationId],
+    queryFn: async () => {
+      if (!jobs || jobs.length === 0) return [];
+      
+      // Fetch applications for all jobs in parallel
+      const applicationPromises = jobs.map(job => 
+        jobsApi.getJobApplications(organizationId, job.id)
+      );
+      
+      const allApplicationsArrays = await Promise.all(applicationPromises);
+      // Flatten the arrays into a single array
+      return allApplicationsArrays.flat();
+    },
+    enabled: !!organizationId && !!jobs && jobs.length > 0,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+};
+
+// Helper function to calculate candidates statistics based on application status
+export const useOrganizationCandidateStats = (organizationId: string) => {
+  const { data: applications, isLoading } = useGetAllOrganizationApplications(organizationId);
+  
+  return {
+    isLoading,
+    stats: {
+      shortlisted: applications?.filter(app => app.status === 'closed').length || 0,
+      rejected: applications?.filter(app => app.status === 'rejected').length || 0,
+      totalApplications: applications?.length || 0,
+    }
+  };
+}; 
