@@ -26,20 +26,6 @@ const Header = () => {
   const { checkSession } = useAuth();
   const queryClient = useQueryClient();
 
-
-  const handlePostJobs = () => {
-    // If user is logged in with profile, redirect to dashboard
-    if (user && user.profile) {
-      navigate({ to: '/dashboard' });
-    } else if (user && !user.profile) {
-      // User is logged in but needs to complete profile
-      setShowPostJob(true);
-    } else {
-      // User is not logged in, redirect to auth
-      navigate({ to: "/auth/$action", params: { action: "login" } });
-    }
-  };
-
   const handleCompleteProfile = () => {
     if (!user) return;
     
@@ -114,7 +100,7 @@ const Header = () => {
                       Complete Profile
                     </Button>
                   )}
-                  <Button 
+                  {/* <Button 
                     variant="ghost" 
                     className="w-full justify-start"
                     onClick={() => {
@@ -123,7 +109,7 @@ const Header = () => {
                     }}
                   >
                     Post Jobs
-                  </Button>
+                  </Button> */}
                   <Button 
                     variant="ghost" 
                     className="w-full justify-start"
@@ -179,7 +165,7 @@ const Header = () => {
             </div>
 
             {/* Desktop Navigation Links */}
-            <nav className="hidden md:flex items-center gap-6">
+            {/* <nav className="hidden md:flex items-center gap-6">
               <Button 
                 variant="ghost" 
                 onClick={handlePostJobs}
@@ -187,7 +173,7 @@ const Header = () => {
               >
                 {t('header.postJobs')}
               </Button>
-            </nav>
+            </nav> */}
 
             {/* Right Side Actions */}
             <div className="flex items-center gap-3">

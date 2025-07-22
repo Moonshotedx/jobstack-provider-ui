@@ -24,13 +24,38 @@ import { useTranslation } from 'react-i18next';
 import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
 
 const FormSchema = z.object({
-  name: z.string().min(1, 'Organization name is required'),
+  name: z.string()
+    .min(1, 'Organization name is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'Organization name cannot be empty or contain only spaces'
+    }),
   logo: z.string().url().optional().or(z.literal('')),
-  address: z.string().min(1, 'Address is required'),
+  address: z.string()
+    .min(1, 'Address is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'Address cannot be empty or contain only spaces'
+    }),
   gstNumber: z.string().optional(),
-  contactPersonName: z.string().min(1, 'Contact person name is required'),
+  contactPersonName: z.string()
+    .min(1, 'Contact person name is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'Contact person name cannot be empty or contain only spaces'
+    })
+    .refine((val) => /^[a-zA-Z\s]+$/.test(val.trim()), {
+      message: 'Contact person name can only contain letters and spaces'
+    }),
   contactEmail: z.string().email('Valid email is required'),
-  contactPhone: z.string().min(1, 'Contact phone is required'),
+  contactPhone: z.string()
+    .min(1, 'Contact phone is required')
+    .refine((val) => val.trim().length > 0, {
+      message: 'Contact phone cannot be empty or contain only spaces'
+    })
+    .refine((val) => /^\d{10}$/.test(val.replace(/\s/g, '')), {
+      message: 'Phone number must be exactly 10 digits'
+    })
+    .refine((val) => /^[\d\s+\-()]+$/.test(val), {
+      message: 'Phone number can only contain digits, spaces, +, -, and parentheses'
+    }),
   website: z.string().url().optional().or(z.literal('')),
   description: z.string().optional()
 })
@@ -79,19 +104,19 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     try {
       const slug = generateSlug(data.gstNumber);
 
-      // Prepare metadata with extended fields
+      // Prepare metadata with extended fields - trim whitespace from string fields
       const metadata = {
-        address: data.address,
-        gstNumber: data.gstNumber,
-        contactPersonName: data.contactPersonName,
-        contactEmail: data.contactEmail,
-        contactPhone: data.contactPhone,
-        website: data.website,
-        description: data.description
+        address: data.address.trim(),
+        gstNumber: data.gstNumber?.trim() || '',
+        contactPersonName: data.contactPersonName.trim(),
+        contactEmail: data.contactEmail.trim(),
+        contactPhone: data.contactPhone.replace(/\s/g, ''), // Remove all spaces from phone
+        website: data.website?.trim() || '',
+        description: data.description?.trim() || ''
       };
 
       const orgData = {
-        name: data.name,
+        name: data.name.trim(),
         slug: slug,
         logo: data.logo || undefined,
         metadata: metadata // Pass metadata to better-auth
@@ -117,15 +142,15 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
 
         // Update user profile with organization data
         const organizationProfile = {
-          name: data.name,
-          address: data.address,
-          gstNumber: data.gstNumber || '',
+          name: data.name.trim(),
+          address: data.address.trim(),
+          gstNumber: data.gstNumber?.trim() || '',
           logo: data.logo || '',
-          contactPersonName: data.contactPersonName,
-          contactEmail: data.contactEmail,
-          contactPhone: data.contactPhone,
-          website: data.website || '',
-          description: data.description || ''
+          contactPersonName: data.contactPersonName.trim(),
+          contactEmail: data.contactEmail.trim(),
+          contactPhone: data.contactPhone.replace(/\s/g, ''),
+          website: data.website?.trim() || '',
+          description: data.description?.trim() || ''
         };
 
         updateProfile(organizationProfile);
@@ -405,19 +430,27 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
-              <FormField
-                control={form.control}
-                name="contactPersonName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('create.contactPersonName')}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('create.contactPersonPlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                                <FormField
+                    control={form.control}
+                    name="contactPersonName"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('create.contactPersonName')}</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder={t('create.contactPersonPlaceholder')} 
+                            {...field}
+                            onChange={(e) => {
+                              // Only allow letters and spaces
+                              const value = e.target.value.replace(/[^a-zA-Z\s]/g, '');
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
             </div>
 
             <div>
@@ -451,7 +484,12 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                       <Input 
                         type="tel" 
                         placeholder={t('create.contactPhonePlaceholder')} 
-                        {...field} 
+                        {...field}
+                        onChange={(e) => {
+                          // Only allow digits, spaces, +, -, and parentheses
+                          const value = e.target.value.replace(/[^\d\s+\-()]/g, '');
+                          field.onChange(value);
+                        }}
                       />
                     </FormControl>
                     <FormMessage />

@@ -37,6 +37,7 @@ export const useAuth = (): UseAuthReturn => {
   const [isLoading, setIsLoading] = useState(false);
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState<string>();
   const [isCheckingSession, setIsCheckingSession] = useState(false);
+  const [hasInitialCheck, setHasInitialCheck] = useState(false);
   const { setUser, clearUser, setLoading: setUserLoading, user } = useUserStore();
   const queryClient = useQueryClient();
 
@@ -359,13 +360,13 @@ export const useAuth = (): UseAuthReturn => {
       throw error;
     }
   };
-
-  // Check session on mount to ensure synchronization with server
+  // Check session on mount only once
   useEffect(() => {
-    if (!isCheckingSession) {
+    if (!hasInitialCheck && !isCheckingSession) {
+      setHasInitialCheck(true);
       checkSession();
     }
-  }, []);
+  }, []); // Empty dependency array is intentional - we only want this to run once
 
   return {
     isLoading,

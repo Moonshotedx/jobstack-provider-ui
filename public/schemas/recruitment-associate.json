@@ -101,11 +101,17 @@
           "enumNames": ["On-site - No Shift", "On-site - Shifts", "Remote", "Hybrid", "Travelling"],
           "description": "Select the mode of work"
         },
-        "monthlyInHand": {
+        "minMonthlyInHand": {
           "type": "number",
-          "title": "Monthly In-hand (INR)",
-          "description": "Enter monthly in-hand salary amount",
+          "title": "Monthly minimum in-hand (INR)",
+          "description": "Enter minimum monthly in-hand salary amount",
           "minimum": 0
+        },
+        "maxMonthlyInHand": {
+          "type": "number",
+          "title": "Monthly maximum in-hand (INR)",
+          "description": "Enter maximum monthly in-hand salary amount",
+          "maximum": 1000000
         },
         "monthlyMaxPerformanceBasedVariable": {
           "type": "number",

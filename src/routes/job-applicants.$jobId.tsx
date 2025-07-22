@@ -35,32 +35,20 @@ export const Route = createFileRoute('/job-applicants/$jobId')({
 });
 
 function JobApplicantsPage() {
+  // All hooks at the top
   const { jobId } = Route.useParams();
   const { t } = useTranslation('candidates');
   const activeOrganizationId = useActiveOrganizationId();
-  
-  // Fetch job applications using the API with the job ID from route params
   const { 
     data: applications, 
     isLoading, 
     error, 
     refetch 
   } = useGetJobApplications(activeOrganizationId || '', jobId);
-  
-  // Get job details from the existing jobs list (we'll need to fetch this)
   const { data: jobs } = useGetJobs(activeOrganizationId || '');
   const jobDetails = jobs?.find(job => job.id === jobId);
-  
-  // Application action mutation
   const takeActionMutation = useTakeApplicationAction();
-  
-  // Track loading states for individual candidates
   const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
-  
-  // Track status updates that should persist across refetches
-  const [statusUpdates, setStatusUpdates] = useState<Record<string, 'shortlisted' | 'rejected'>>({});
-  
-  // Transform API data to match the existing JobApplicant interface
   const applicants: JobApplicant[] = React.useMemo(() => {
     if (!applications) return [];
     
@@ -93,9 +81,9 @@ function JobApplicantsPage() {
           age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
-          status: statusUpdates[app.id] || app.status || 'applied', // Use persisted status if available
-          trustScore: 85, // Default trust score - you can calculate this based on your logic
-          matchScore: 78, // Default match score - you can calculate this based on your logic
+          status: app.status || 'applied', // Use the actual API status
+          trustScore: 0, // No trust score available
+          matchScore: 0, // No match score available
           experience: nestedMetadata?.whoIAm?.location || '',
           skills: app.metadata.skills || [],
           avatar: undefined, // No avatar in new API
@@ -125,6 +113,35 @@ function JobApplicantsPage() {
       })
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
   }, [applications, jobId, jobDetails]);
+  const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
+  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
+  const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  // --- DYNAMIC TABLE COLUMN LOGIC START ---
+  // Helper to format any cell value for safe rendering
+  const formatValue = (value: any) => {
+    if (value === null || value === undefined) return 'N/A';
+    if (typeof value === 'object') {
+      if (Array.isArray(value)) return value.join(', ');
+      // join object primitive values
+      return Object.values(value).join(', ');
+    }
+    return value;
+  };
+
+  // Collect all unique keys from whatIWant across all applicants
+  const allWhatIWantKeys = React.useMemo(() => {
+    const keysSet = new Set<string>();
+    applicants.forEach(applicant => {
+      if (applicant.whatIWant && typeof applicant.whatIWant === 'object') {
+        Object.keys(applicant.whatIWant).forEach(key => keysSet.add(key));
+      }
+    });
+    return Array.from(keysSet);
+  }, [applicants]);
 
   // Debug logging
   React.useEffect(() => {
@@ -138,21 +155,10 @@ function JobApplicantsPage() {
       applicantsCount: applicants?.length || 0
     });
   }, [activeOrganizationId, jobId, jobDetails, applications, isLoading, error, applicants]);
-
-  const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
-  const [showCandidateDetails, setShowCandidateDetails] = useState(false);
-  // Sorting state
-  const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
-
   // Update filtered applicants when applicants data changes
   React.useEffect(() => {
     setFilteredApplicants(applicants);
   }, [applicants]);
-
   // Sorting handler
   const handleSort = (column: 'trustScore' | 'matchScore') => {
     if (sortBy === column) {
@@ -162,7 +168,6 @@ function JobApplicantsPage() {
       setSortOrder('desc');
     }
   };
-
   // Filter and sort applicants
   React.useEffect(() => {
     let filtered = applicants;
@@ -242,23 +247,14 @@ function JobApplicantsPage() {
         actionData
       });
       
-      // Update the status in our persistent state
-      const newStatus = action === 'accept' ? 'shortlisted' : 'rejected';
-      setStatusUpdates(prev => ({
-        ...prev,
-        [applicant.id]: newStatus
-      }));
-      
-      console.log('✅ Updated status for candidate:', {
+      console.log('✅ Action taken on candidate:', {
         candidateId: applicant.id,
         candidateName: applicant.name,
-        newStatus,
-        allStatusUpdates: { ...statusUpdates, [applicant.id]: newStatus }
+        action
       });
       
-      // Don't refetch immediately - let the local state handle the UI
-      // The API call has already succeeded, so we can trust our local state
-      // Refetch will happen automatically when the user navigates or refreshes
+      // Refetch the applications to get updated status from API
+      refetch();
     } catch (error) {
       console.error('Failed to take action on application:', error);
       // Show error toast
@@ -280,20 +276,20 @@ function JobApplicantsPage() {
     return loadingStates[applicantId] || null;
   };
   
-  // Helper function to get the current status considering updates
-  const getCurrentStatus = (applicantId: string, originalStatus: string) => {
-    return statusUpdates[applicantId] || originalStatus;
-  };
+
 
   // Helper function to render action buttons based on candidate status
   const renderActionButtons = (applicant: JobApplicant) => {
     const loadingState = getActionButtonState(applicant.id);
     const isAcceptLoading = loadingState === 'accept';
     const isRejectLoading = loadingState === 'reject';
-    const currentStatus = getCurrentStatus(applicant.id, applicant.status);
+    
+    // Find the original application to get the actual API status
+    const originalApplication = applications?.find(app => app.id === applicant.id);
+    const apiStatus = originalApplication?.status || applicant.status;
 
-    // If candidate is already shortlisted or rejected, show status instead of buttons
-    if (currentStatus === 'shortlisted') {
+    // If status is "closed", show "Shortlisted"
+    if (apiStatus === 'closed') {
       return (
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -302,11 +298,22 @@ function JobApplicantsPage() {
       );
     }
 
-    if (currentStatus === 'rejected') {
+    // If status is "rejected" or "archived", show "Rejected"
+    if (apiStatus === 'rejected' || apiStatus === 'archived') {
       return (
         <div className="flex items-center gap-2">
           <XCircle className="h-4 w-4 text-red-600" />
           <span className="text-sm font-medium text-red-600">Rejected</span>
+        </div>
+      );
+    }
+
+    // If status is not "open", show the status as read-only
+    if (apiStatus !== 'open') {
+      const statusDisplay = apiStatus.charAt(0).toUpperCase() + apiStatus.slice(1);
+      return (
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium text-muted-foreground">{statusDisplay}</span>
         </div>
       );
     }
@@ -547,13 +554,13 @@ function JobApplicantsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="closed">Closed</SelectItem>
+                  <SelectItem value="closed">Shortlisted</SelectItem>
                   <SelectItem value="applied">Applied</SelectItem>
                   <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
                   <SelectItem value="interview">Interview</SelectItem>
                   <SelectItem value="hired">Hired</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="archived">Archived/Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -573,11 +580,10 @@ function JobApplicantsPage() {
                     <th className="text-left p-4 font-medium">Name</th>
                     <th className="text-left p-4 font-medium">Location</th>
                     <th className="text-left p-4 font-medium">Age</th>
-                    <th className="text-left p-4 font-medium">Quality Score</th>
-                    <th className="text-left p-4 font-medium">Stitching Speed</th>
-                    <th className="text-left p-4 font-medium">Juki Experience</th>
-                    <th className="text-left p-4 font-medium">Monthly In-Hand</th>
-                    <th className="text-left p-4 font-medium">Work Hours/Day</th>
+                    {/* Dynamically render whatIWant columns */}
+                    {allWhatIWantKeys.map(key => (
+                      <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
+                    ))}
                     <th className="text-left p-4 font-medium">
                       <div className="flex items-center gap-1">
                         Trust Score
@@ -625,30 +631,22 @@ function JobApplicantsPage() {
                             </div>
                           </div>
                         </td>
+                        {/* Use whoIAm.location for location */}
                         <td className="p-4">
                           <div className="flex items-center gap-1 text-sm">
                             <MapPin className="h-3 w-3" />
-                            {applicant.location}
+                            {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
                           </div>
                         </td>
                         <td className="p-4">
                           <span className="text-sm font-medium">{applicant.age} years</span>
                         </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.qualityScore || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.stitchingSpeed || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIHave?.jukiMachineExperience || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.monthlyInHandPreferred || 'N/A'}</span>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm text-muted-foreground">{applicant.whatIWant?.workHoursPerDay || 'N/A'}</span>
-                        </td>
+                        {/* Render all whatIWant fields */}
+                        {allWhatIWantKeys.map(key => (
+                          <td key={key} className="p-4">
+                            <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
+                          </td>
+                        ))}
                         <td className="p-4">
                           <div className="flex items-center gap-1">
                             <Star className="h-3 w-3 text-blue-600" />

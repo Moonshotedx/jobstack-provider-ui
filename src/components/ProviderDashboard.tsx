@@ -10,7 +10,7 @@ import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
 import { useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
-import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi';
+import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId } from '@/hooks/useJobsApi';
 
 const ProviderDashboard = () => {
   const { t } = useTranslation('dashboard');
@@ -23,6 +23,8 @@ const ProviderDashboard = () => {
   
   // Get real-time jobs data
   const { data: jobs } = useCurrentOrganizationJobs();
+  const activeOrganizationId = useActiveOrganizationId();
+  const { stats: candidateStats } = useOrganizationCandidateStats(activeOrganizationId || '');
 
   // Calculate real-time dashboard stats
   const dashboardStats = {
@@ -34,7 +36,7 @@ const ProviderDashboard = () => {
       const applicationsCount = job.applicationsCount ? parseInt(job.applicationsCount) : 0;
       return total + applicationsCount;
     }, 0) || 0,
-    candidatesShortlisted: 5 // TODO: Implement real-time shortlisted candidates count
+    candidatesShortlisted: candidateStats.shortlisted
   };
 
   // If user is not logged in, show authentication flow
@@ -187,8 +189,8 @@ const ProviderDashboard = () => {
           <CardContent className="flex items-center p-6">
             <CheckCircle className="h-8 w-8 text-green-500 mr-4" />
             <div>
-              <p className="text-2xl font-bold">0</p>
-              <p className="text-muted-foreground">Candidates Shortlisted feature coming soon</p>
+              <p className="text-2xl font-bold">{dashboardStats.candidatesShortlisted}</p>
+              <p className="text-muted-foreground">{t('stats.candidatesShortlisted')}</p>
             </div>
           </CardContent>
         </Card>

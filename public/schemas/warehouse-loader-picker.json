@@ -77,11 +77,17 @@
           "minimum": 1,
           "maximum": 24
         },
-        "monthlyInHand": {
+        "minMonthlyInHand": {
           "type": "number",
-          "title": "Monthly In-hand Salary (INR)",
-          "description": "Enter monthly in-hand salary amount",
+          "title": "Monthly minimum in-hand salary (INR)",
+          "description": "Enter minimum monthly in-hand salary amount",
           "minimum": 0
+        },
+        "maxMonthlyInHand": {
+          "type": "number",
+          "title": "Monthly maximum in-hand salary (INR)",
+          "description": "Enter maximum monthly in-hand salary amount",
+          "maximum": 1000000
         },
         "monthlyPfEsicBenefits": {
           "type": "number",

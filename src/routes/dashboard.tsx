@@ -30,7 +30,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { useCurrentOrganizationJobs } from '@/hooks/useJobsApi'
+import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId } from '@/hooks/useJobsApi'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
@@ -68,6 +68,8 @@ function DashboardContent() {
   
   // Get real-time jobs data
   const { data: jobs } = useCurrentOrganizationJobs();
+  const activeOrganizationId = useActiveOrganizationId();
+  const { stats: candidateStats } = useOrganizationCandidateStats(activeOrganizationId || '');
 
   // Calculate real-time dashboard stats
   const dashboardStats = {
@@ -79,23 +81,12 @@ function DashboardContent() {
       const applicationsCount = job.applicationsCount ? parseInt(job.applicationsCount) : 0;
       return total + applicationsCount;
     }, 0) || 0,
-    candidatesShortlisted: 5 // TODO: Implement real-time shortlisted candidates count
+    candidatesShortlisted: candidateStats.shortlisted
   };
 
-  // Safety check: If no user, they shouldn't be here
-  if (!user) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center space-y-6">
-          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Check verification status on mount and periodically
+  // Check verification status on mount only
   useEffect(() => {
-    if (!user) return
+    if (!user || hasCheckedInitialVerification) return
 
     const checkVerification = async () => {
       setIsCheckingVerification(true)
@@ -109,32 +100,35 @@ function DashboardContent() {
         }
         
         setHasCheckedInitialVerification(true)
-        setIsCheckingVerification(false)
       } catch (error) {
-        setIsCheckingVerification(false)
         setHasCheckedInitialVerification(true)
+      } finally {
+        setIsCheckingVerification(false)
       }
     }
 
-    // Always do initial verification check from server for security
-    if (!hasCheckedInitialVerification) {
-      // For new users or on fresh page load, always verify from server
-      setIsCheckingVerification(true)
-      checkVerification()
-    } else {
-      setIsCheckingVerification(false)
-    }
+    checkVerification()
+  }, [user?.id, hasCheckedInitialVerification]) // Only check once per user
 
-    // Set up periodic checking only if user is not verified and we've done initial check
-    let interval: number | null = null
-    if (hasCheckedInitialVerification && !user.isVerified) {
-      interval = setInterval(checkVerification, 10000)
-    }
+  // Set up periodic verification checking separately
+  useEffect(() => {
+    if (!user || !hasCheckedInitialVerification || user.isVerified) return
 
-    return () => {
-      if (interval) clearInterval(interval)
-    }
-  }, [user?.id, user?.isVerified, hasCheckedInitialVerification, t])
+    const interval = setInterval(async () => {
+      try {
+        const wasVerified = user.isVerified
+        const isNowVerified = await checkEmailVerification()
+        
+        if (!wasVerified && isNowVerified) {
+          toast.success(t('verification.verificationSuccess'))
+        }
+      } catch (error) {
+        console.error('Periodic verification check failed:', error)
+      }
+    }, 10000)
+
+    return () => clearInterval(interval)
+  }, [user?.isVerified, hasCheckedInitialVerification, user?.id]) // Dependencies without checkEmailVerification
 
   const handleResendVerification = async () => {
     setIsResendingVerification(true)
@@ -151,6 +145,89 @@ function DashboardContent() {
   const handleManageEmployers = () => {
     setShowManageEmployers(true)
     setMobileMenuOpen(false)
+  }
+
+  // Mobile Navigation Menu component defined after all hooks
+  const MobileNavMenu = () => (
+    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+      <SheetContent side="left" className="w-[280px] sm:w-[350px]">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <Building2 className="h-5 w-5" />
+            Dashboard Menu
+          </SheetTitle>
+        </SheetHeader>
+        <div className="mt-6 space-y-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
+            <div className="space-y-2">
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={() => {
+                  setShowPostJob(true)
+                  setMobileMenuOpen(false)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-3" />
+                Post New Job
+              </Button>
+              <Button 
+                variant="ghost" 
+                className="w-full justify-start"
+                onClick={handleManageEmployers}
+              >
+                <Building2 className="h-4 w-4 mr-3" />
+                Manage Employers
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Navigation</h3>
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <Home className="h-4 w-4 mr-3" />
+                Dashboard
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <BriefcaseIcon className="h-4 w-4 mr-3" />
+                My Jobs
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Users className="h-4 w-4 mr-3" />
+                Candidates
+              </Button>
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium text-muted-foreground">Account</h3>
+            <div className="space-y-2">
+              <Button variant="ghost" className="w-full justify-start">
+                <User className="h-4 w-4 mr-3" />
+                Profile
+              </Button>
+              <Button variant="ghost" className="w-full justify-start">
+                <Settings className="h-4 w-4 mr-3" />
+                Settings
+              </Button>
+            </div>
+          </div>
+        </div>
+      </SheetContent>
+    </Sheet>
+  )
+
+  // Safety check: If no user, they shouldn't be here
+  if (!user) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-2xl mx-auto text-center space-y-6">
+          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    )
   }
 
   // Show loading state while checking verification (be more conservative)
@@ -276,78 +353,6 @@ function DashboardContent() {
     )
   }
 
-  // Mobile Navigation Menu
-  const MobileNavMenu = () => (
-    <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-      <SheetContent side="left" className="w-[280px] sm:w-[350px]">
-        <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
-            Dashboard Menu
-          </SheetTitle>
-        </SheetHeader>
-        <div className="mt-6 space-y-4">
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Quick Actions</h3>
-            <div className="space-y-2">
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={() => {
-                  setShowPostJob(true)
-                  setMobileMenuOpen(false)
-                }}
-              >
-                <Plus className="h-4 w-4 mr-3" />
-                Post New Job
-              </Button>
-              <Button 
-                variant="ghost" 
-                className="w-full justify-start"
-                onClick={handleManageEmployers}
-              >
-                <Building2 className="h-4 w-4 mr-3" />
-                Manage Employers
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Navigation</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <Home className="h-4 w-4 mr-3" />
-                Dashboard
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <BriefcaseIcon className="h-4 w-4 mr-3" />
-                My Jobs
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Users className="h-4 w-4 mr-3" />
-                Candidates
-              </Button>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Account</h3>
-            <div className="space-y-2">
-              <Button variant="ghost" className="w-full justify-start">
-                <User className="h-4 w-4 mr-3" />
-                Profile
-              </Button>
-              <Button variant="ghost" className="w-full justify-start">
-                <Settings className="h-4 w-4 mr-3" />
-                Settings
-              </Button>
-            </div>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
-  )
-
   // Main dashboard for authenticated users with profiles
   return (
     <div className="min-h-screen bg-background">
@@ -457,8 +462,8 @@ function DashboardContent() {
             <CardContent className="flex items-center p-4 md:p-6">
               <CheckCircle className="h-6 w-6 md:h-8 md:w-8 text-green-500 mr-3 md:mr-4 flex-shrink-0" />
               <div className="min-w-0 flex-1">
-                <p className="text-xl md:text-2xl font-bold">0</p>
-                <p className="text-xs md:text-sm text-muted-foreground">Candidates Shortlisted feature coming soon</p>
+                <p className="text-xl md:text-2xl font-bold">{dashboardStats.candidatesShortlisted}</p>
+                <p className="text-xs md:text-sm text-muted-foreground">{t('stats.candidatesShortlisted')}</p>
               </div>
             </CardContent>
           </Card>

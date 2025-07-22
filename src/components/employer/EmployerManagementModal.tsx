@@ -1,7 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 import EmployerCard from './EmployerCard';
@@ -86,22 +85,6 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
     setEditingEmployer(employer);
   };
 
-  const handleDeleteEmployer = (employerId: string) => {
-    // Find the employer to check if it's default
-    const employer = allEmployers.find(emp => emp.id === employerId);
-    
-    // Prevent deletion of default employer (user's organization)
-    if (employer?.isDefault) {
-      toast.error('Cannot delete your organization profile. This represents your primary business.');
-      return;
-    }
-    
-    if (confirm('Are you sure you want to delete this employer profile?')) {
-      toast.success("Employer profile deleted successfully!");
-      // TODO: Implement actual deletion when employer store is ready
-    }
-  };
-
   const handleCloseDialog = () => {
     setShowAddDialog(false);
     setEditingEmployer(null);
@@ -159,12 +142,8 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <p className="text-muted-foreground">
-                Manage employer profiles and switch between different companies
+                Manage employer profile and Edit Organization details
               </p>
-              <Button onClick={() => setShowAddDialog(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Employer
-              </Button>
             </div>
 
             {allEmployers.length === 0 ? (
@@ -174,10 +153,6 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
                   <p className="text-muted-foreground">
                     No organizations are available. Please create an organization first.
                   </p>
-                  <Button onClick={() => setShowAddDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Organization
-                  </Button>
                 </div>
               </div>
             ) : (
@@ -189,7 +164,6 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
                     isSelected={selectedEmployer?.id === employer.id}
                     onSelect={() => handleSelectEmployer(employer.id)}
                     onEdit={() => handleEditEmployer(employer)}
-                    onDelete={() => handleDeleteEmployer(employer.id)}
                     isDefault={employer.isDefault || false}
                   />
                 ))}
