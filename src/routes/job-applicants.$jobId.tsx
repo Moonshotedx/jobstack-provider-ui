@@ -82,8 +82,8 @@ function JobApplicantsPage() {
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
           status: app.status || 'applied', // Use the actual API status
-          trustScore: 85, // Default trust score - you can calculate this based on your logic
-          matchScore: 78, // Default match score - you can calculate this based on your logic
+          trustScore: 0, // No trust score available
+          matchScore: 0, // No match score available
           experience: nestedMetadata?.whoIAm?.location || '',
           skills: app.metadata.skills || [],
           avatar: undefined, // No avatar in new API
@@ -298,8 +298,8 @@ function JobApplicantsPage() {
       );
     }
 
-    // If status is "rejected", show "Rejected"
-    if (apiStatus === 'rejected') {
+    // If status is "rejected" or "archived", show "Rejected"
+    if (apiStatus === 'rejected' || apiStatus === 'archived') {
       return (
         <div className="flex items-center gap-2">
           <XCircle className="h-4 w-4 text-red-600" />
@@ -560,6 +560,7 @@ function JobApplicantsPage() {
                   <SelectItem value="interview">Interview</SelectItem>
                   <SelectItem value="hired">Hired</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
+                  <SelectItem value="archived">Archived/Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>

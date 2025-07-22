@@ -199,7 +199,7 @@ export interface JobApplicant {
   age: number;
   appliedFor: string;
   applicationDate: string;
-  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'archived';
   trustScore: number;
   matchScore: number;
   experience: string;
