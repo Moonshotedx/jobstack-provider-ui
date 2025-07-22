@@ -360,7 +360,6 @@ export const useAuth = (): UseAuthReturn => {
       throw error;
     }
   };
-
   // Check session on mount only once
   useEffect(() => {
     if (!hasInitialCheck && !isCheckingSession) {
