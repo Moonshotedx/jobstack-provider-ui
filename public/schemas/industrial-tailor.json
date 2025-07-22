@@ -167,7 +167,7 @@
             "minQualityScore1b": {
               "type": "number",
               "title": "Min Quality Score 1b",
-              "description": "How many of the 100 boxes need to be squares at minimum?",
+              "description": "How many of the 10 rows need to be equidistant at minimum?",
               "minimum": 0
             },
             "maxTimeAllowed": {
