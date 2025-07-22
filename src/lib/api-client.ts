@@ -109,7 +109,7 @@ export interface GetJobsResponse {
 export interface JobApplication {
   id: string;
   jobId: string;
-  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
+  status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'archived';
   appliedAt: string;
   userName: string;
   metadata: {

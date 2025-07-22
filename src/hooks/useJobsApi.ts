@@ -316,7 +316,7 @@ export const useOrganizationCandidateStats = (organizationId: string) => {
     isLoading,
     stats: {
       shortlisted: applications?.filter(app => app.status === 'closed').length || 0,
-      rejected: applications?.filter(app => app.status === 'rejected').length || 0,
+      rejected: applications?.filter(app => app.status === 'rejected' || app.status === 'archived').length || 0,
       totalApplications: applications?.length || 0,
     }
   };
