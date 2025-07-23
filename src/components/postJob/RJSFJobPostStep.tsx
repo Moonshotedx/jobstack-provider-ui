@@ -56,6 +56,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roleDisplayInfo, setRoleDisplayInfo] = useState<JobRoleConfig | null>(null);
+  
+  // Add search state at component level
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
 
   // Reset form state when selectedJobRole changes to prevent caching issues
   useEffect(() => {
@@ -66,6 +69,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       setLoading(true);
       setError(null);
       setRoleDisplayInfo(null);
+      setSearchQueries({}); // Reset search queries
     }
   }, [selectedJobRole]);
 
@@ -78,6 +82,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       setLoading(true);
       setError(null);
       setRoleDisplayInfo(null);
+      setSearchQueries({}); // Reset search queries
     }
   }, [isOpen]);
 
@@ -109,14 +114,6 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             ...editJobData.metadata
           };
         }
-        
-        // Debug logging
-        console.log('📋 Loading schema for:', selectedJobRole);
-        console.log('📊 Schema loaded:', roleSchema);
-        console.log('📝 Schema sections:', Object.keys(roleSchema.properties || {}));
-        console.log('🎯 Initial data:', initialData);
-        console.log('🎨 Display info:', displayInfo);
-        console.log('✏️ Edit job data:', editJobData);
         
         setSchema(roleSchema);
         setFormData(initialData);
@@ -588,6 +585,23 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         const selectedItems = items || [];
         const hasOther = selectedItems.includes('other');
         
+        // Add search state for education fields
+        const isEducationField = fieldKey === 'minEducationLevel' || fieldKey.endsWith('.minEducationLevel');
+        const isItiSpecialtyField = fieldKey === 'itiSpecialtyPreference' || fieldKey.endsWith('.itiSpecialtyPreference');
+        const needsSearch = isEducationField || isItiSpecialtyField;
+        
+        // Use the base field key for search queries (remove subsection prefix if present)
+        const searchKey = fieldKey.includes('.') ? fieldKey.split('.').pop() || fieldKey : fieldKey;
+        
+        // Filter options based on search query for education fields
+        const filteredOptions = needsSearch 
+          ? fieldSchema.items.enum.filter((option: string, index: number) => {
+              const optionName = fieldSchema.items.enumNames?.[index] || option;
+              const searchQuery = searchQueries[searchKey] || '';
+              return optionName.toLowerCase().includes(searchQuery.toLowerCase());
+            })
+          : fieldSchema.items.enum;
+        
         const handleOptionToggle = (option: string) => {
           let newItems: string[];
           if (selectedItems.includes(option)) {
@@ -624,7 +638,23 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                 <DropdownMenuLabel>{fieldSchema.title}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {fieldSchema.items.enum.map((option: string, index: number) => (
+                
+                {/* Search input for education fields */}
+                {needsSearch && (
+                  <>
+                    <div className="px-2 py-1">
+                      <Input
+                        placeholder={`Search ${isEducationField ? 'education' : 'ITI specialty'} options...`}
+                        value={searchQueries[searchKey] || ''}
+                        onChange={(e) => setSearchQueries({ ...searchQueries, [searchKey]: e.target.value })}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                
+                {filteredOptions.map((option: string, index: number) => (
                   <DropdownMenuCheckboxItem
                     key={option}
                     checked={selectedItems.includes(option)}
@@ -636,6 +666,13 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                     {fieldSchema.items.enumNames?.[index] || option}
                   </DropdownMenuCheckboxItem>
                 ))}
+                
+                {/* Show message if no options match search */}
+                {needsSearch && filteredOptions.length === 0 && searchQueries[searchKey] && (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">
+                    No options match your search.
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -715,37 +752,115 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
       const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const inputValue = e.target.value;
+        
+        // Allow empty values
+        if (inputValue === '') {
+          updateFormData(sectionKey, fieldKey, null);
+          return;
+        }
+        
+        // For integer fields (like age), be more lenient during typing
+        const isIntegerField = fieldSchema.type === 'integer';
+        
+        // Allow partial input for integers (like typing "2" when going to "25")
+        if (isIntegerField && /^\d*$/.test(inputValue)) {
+          const numValue = parseInt(inputValue, 10);
+          if (!isNaN(numValue)) {
+            // Only validate constraints if we have a complete number that seems intentional
+            // Don't validate single digits as they might be part of a larger number
+            if (inputValue.length > 1 || numValue >= 10) {
+              if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+                toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+                return;
+              }
+              
+              if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+                toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum}`);
+                return;
+              }
+            }
+            
+            updateFormData(sectionKey, fieldKey, numValue);
+            return;
+          }
+        }
+        
+        // For number fields (not integers), parse as float
         const numValue = Number(inputValue);
         
-        // Validate against constraints
+        // Check if it's a valid number
+        if (isNaN(numValue)) {
+          toast.error(`${fieldSchema.title || fieldKey} must be a valid number`);
+          return; // Don't update the form data with invalid number
+        }
+        
+        // Check constraints while typing for non-integer fields
         if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
           toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
-          return;
+          return; // Don't update the form data with value below minimum
         }
         
         if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
           toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum.toLocaleString()}`);
+          return; // Don't update the form data with value above maximum
+        }
+        
+        // Update the form data only if validation passes
+        updateFormData(sectionKey, fieldKey, numValue);
+      };
+
+      const handleNumberBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        // More thorough validation when user leaves the field
+        const inputValue = e.target.value;
+        
+        if (inputValue === '') {
           return;
         }
         
-        updateFormData(sectionKey, fieldKey, numValue);
+        const isIntegerField = fieldSchema.type === 'integer';
+        const numValue = isIntegerField ? parseInt(inputValue, 10) : Number(inputValue);
+        
+        // If invalid number, clear the field
+        if (isNaN(numValue)) {
+          toast.error(`${fieldSchema.title || fieldKey} must be a valid ${isIntegerField ? 'whole number' : 'number'}`);
+          e.target.value = '';
+          updateFormData(sectionKey, fieldKey, null);
+          return;
+        }
+        
+        // Validate constraints on blur (when user is done typing)
+        if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+          e.target.value = fieldSchema.minimum.toString();
+          updateFormData(sectionKey, fieldKey, fieldSchema.minimum);
+          return;
+        }
+        
+        if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum}`);
+          e.target.value = fieldSchema.maximum.toString();
+          updateFormData(sectionKey, fieldKey, fieldSchema.maximum);
+          return;
+        }
+        
+        // Ensure the input shows the correct value from form data
+        const currentFormValue = formData[sectionKey]?.[fieldKey];
+        if (currentFormValue !== null && currentFormValue !== undefined) {
+          e.target.value = currentFormValue.toString();
+        }
       };
 
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>
             {fieldLabel}
-            {fieldSchema.minimum !== undefined && fieldSchema.maximum !== undefined && (
-              <span className="text-sm font-normal text-muted-foreground ml-1">
-                ({fieldSchema.minimum.toLocaleString()} - {fieldSchema.maximum.toLocaleString()})
-              </span>
-            )}
           </Label>
           <Input
             id={fieldId}
             type="number"
             value={value || ''}
             onChange={handleNumberChange}
+            onBlur={handleNumberBlur}
             placeholder={fieldSchema.description}
             min={fieldSchema.minimum}
             max={fieldSchema.maximum}

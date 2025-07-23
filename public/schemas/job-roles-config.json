@@ -20,6 +20,26 @@
       "schemaFile": "recruitment-associate.json",
       "industry": "Human Resources",
       "description": "HR and talent acquisition positions"
+    },
+    "Electrician": {
+      "schemaFile": "electrical.json",
+      "industry": "Electrical",
+      "description": "Electrical installation and maintenance positions"
+    },
+    "Fitter": {
+      "schemaFile": "fitter.json",
+      "industry": "Fitting",
+      "description": "Fitting and maintenance positions"
+    },
+    "Mechanic": {
+      "schemaFile": "mechanic.json",
+      "industry": "Mechanic",
+      "description": "Mechanic and maintenance positions"
+    },
+    "Machine Operator": {
+      "schemaFile": "machine-operator.json",
+      "industry": "Machine Operator",
+      "description": "Machine operator and maintenance positions"
     }
   }
 } 
