@@ -150,40 +150,70 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       });
     }
 
-    // Check section-level required fields
+    // Check section-level required fields and numeric constraints
     if (schema.properties) {
       Object.entries(schema.properties).forEach(([sectionKey, property]) => {
         const sectionSchema = property as any;
         
-        if (sectionSchema.type === 'object' && sectionSchema.required && sectionSchema.properties) {
+        if (sectionSchema.type === 'object' && sectionSchema.properties) {
           // Only validate if the section exists in formData
           if (formData[sectionKey]) {
-            sectionSchema.required.forEach((requiredField: string) => {
-              const fieldValue = formData[sectionKey][requiredField];
-              
-              // Check if field is empty, null, undefined, or empty array
-              const isEmpty = fieldValue === null || 
-                             fieldValue === undefined || 
-                             fieldValue === '' || 
-                             (Array.isArray(fieldValue) && fieldValue.length === 0);
-              
-              if (isEmpty) {
-                const fieldSchema = sectionSchema.properties[requiredField];
-                const fieldTitle = fieldSchema?.title || requiredField;
-                const sectionTitle = sectionSchema.title || sectionKey;
-                errors.push(`${sectionTitle}: ${fieldTitle} is required`);
-              } else {
-                // Custom validation for registration fields
-                if (requiredField.toLowerCase().includes('registration') || 
-                    requiredField.toLowerCase() === 'gstNumber' ||
-                    requiredField.toLowerCase() === 'jobProviderRegistration') {
-                  const validation = validateRegistrationNumber(fieldValue);
-                  if (!validation.isValid && fieldValue.trim() !== '') {
-                    const fieldSchema = sectionSchema.properties[requiredField];
-                    const fieldTitle = fieldSchema?.title || requiredField;
-                    const sectionTitle = sectionSchema.title || sectionKey;
-                    errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+            // Check required fields
+            if (sectionSchema.required) {
+              sectionSchema.required.forEach((requiredField: string) => {
+                const fieldValue = formData[sectionKey][requiredField];
+                
+                // Check if field is empty, null, undefined, or empty array
+                const isEmpty = fieldValue === null || 
+                               fieldValue === undefined || 
+                               fieldValue === '' || 
+                               (Array.isArray(fieldValue) && fieldValue.length === 0);
+                
+                if (isEmpty) {
+                  const fieldSchema = sectionSchema.properties[requiredField];
+                  const fieldTitle = fieldSchema?.title || requiredField;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} is required`);
+                } else {
+                  // Custom validation for registration fields
+                  if (requiredField.toLowerCase().includes('registration') || 
+                      requiredField.toLowerCase() === 'gstNumber' ||
+                      requiredField.toLowerCase() === 'jobProviderRegistration') {
+                    const validation = validateRegistrationNumber(fieldValue);
+                    if (!validation.isValid && fieldValue.trim() !== '') {
+                      const fieldSchema = sectionSchema.properties[requiredField];
+                      const fieldTitle = fieldSchema?.title || requiredField;
+                      const sectionTitle = sectionSchema.title || sectionKey;
+                      errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+                    }
                   }
+                }
+              });
+            }
+
+            // Check numeric constraints for all fields (not just required ones)
+            Object.entries(sectionSchema.properties).forEach(([fieldKey, fieldSchema]) => {
+              const fieldValue = formData[sectionKey][fieldKey];
+              const field = fieldSchema as any;
+              
+              // Only validate if field has a value and is a number type
+              if (fieldValue !== null && fieldValue !== undefined && fieldValue !== '' && 
+                  (field.type === 'number' || field.type === 'integer')) {
+                
+                const numValue = Number(fieldValue);
+                
+                // Check minimum constraint
+                if (field.minimum !== undefined && numValue < field.minimum) {
+                  const fieldTitle = field.title || fieldKey;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} must be at least ${field.minimum}`);
+                }
+                
+                // Check maximum constraint
+                if (field.maximum !== undefined && numValue > field.maximum) {
+                  const fieldTitle = field.title || fieldKey;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} must be no more than ${field.maximum.toLocaleString()}`);
                 }
               }
             });
@@ -683,13 +713,31 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
 
     // Handle number fields
     if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
+      const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputValue = e.target.value;
+        const numValue = Number(inputValue);
+        
+        // Validate against constraints
+        if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+          return;
+        }
+        
+        if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum.toLocaleString()}`);
+          return;
+        }
+        
+        updateFormData(sectionKey, fieldKey, numValue);
+      };
+
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>
             {fieldLabel}
             {fieldSchema.minimum !== undefined && fieldSchema.maximum !== undefined && (
               <span className="text-sm font-normal text-muted-foreground ml-1">
-                ({fieldSchema.minimum} - {fieldSchema.maximum})
+                ({fieldSchema.minimum.toLocaleString()} - {fieldSchema.maximum.toLocaleString()})
               </span>
             )}
           </Label>
@@ -697,12 +745,15 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             id={fieldId}
             type="number"
             value={value || ''}
-            onChange={(e) => updateFormData(sectionKey, fieldKey, Number(e.target.value))}
+            onChange={handleNumberChange}
             placeholder={fieldSchema.description}
             min={fieldSchema.minimum}
             max={fieldSchema.maximum}
             className={`[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isRequired && !value ? 'border-red-300' : ''}`}
           />
+          {/* {fieldSchema.description && (
+            <p className="text-sm text-muted-foreground">{fieldSchema.description}</p>
+          )} */}
         </div>
       );
     }
