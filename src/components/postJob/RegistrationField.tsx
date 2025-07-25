@@ -36,6 +36,19 @@ export const RegistrationField: React.FC<RegistrationFieldProps> = ({
     onChange(newValue);
   };
 
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const inputValue = e.target.value;
+    
+    // Check for whitespace-only values for required fields
+    if (required && typeof inputValue === 'string' && inputValue.trim() === '') {
+      // Don't show toast here as it might conflict with registration validation
+      // Just add visual feedback
+      e.target.classList.add('border-red-300');
+    } else {
+      e.target.classList.remove('border-red-300');
+    }
+  };
+
   const getValidationIcon = () => {
     if (!validation || !value) return <Info className="h-4 w-4 text-muted-foreground" />;
     
@@ -72,9 +85,12 @@ export const RegistrationField: React.FC<RegistrationFieldProps> = ({
           value={value}
           onChange={handleInputChange}
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onBlur={(e) => {
+            setFocused(false);
+            handleBlur(e);
+          }}
           placeholder={placeholder || "Enter GST, CIN, TAN, PAN or other registration number"}
-          className={`pr-10 ${getInputBorderClass()}`}
+          className={`pr-10 ${getInputBorderClass()} ${required && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}`}
           style={{ textTransform: 'uppercase' }}
         />
         

@@ -160,10 +160,11 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               sectionSchema.required.forEach((requiredField: string) => {
                 const fieldValue = formData[sectionKey][requiredField];
                 
-                // Check if field is empty, null, undefined, or empty array
+                // Check if field is empty, null, undefined, whitespace-only, or empty array
                 const isEmpty = fieldValue === null || 
                                fieldValue === undefined || 
                                fieldValue === '' || 
+                               (typeof fieldValue === 'string' && fieldValue.trim() === '') ||
                                (Array.isArray(fieldValue) && fieldValue.length === 0);
                 
                 if (isEmpty) {
@@ -182,6 +183,16 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                       const fieldTitle = fieldSchema?.title || requiredField;
                       const sectionTitle = sectionSchema.title || sectionKey;
                       errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+                    }
+                  }
+                  
+                  // Additional validation for job provider name, job title, and job provider location to prevent whitespace-only values
+                  if (requiredField === 'jobProviderName' || requiredField === 'title' || requiredField === 'jobProviderLocation') {
+                    if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
+                      const fieldSchema = sectionSchema.properties[requiredField];
+                      const fieldTitle = fieldSchema?.title || requiredField;
+                      const sectionTitle = sectionSchema.title || sectionKey;
+                      errors.push(`${sectionTitle}: ${fieldTitle} cannot be empty or contain only spaces`);
                     }
                   }
                 }
@@ -443,6 +454,18 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       fieldKey.toLowerCase().includes('terms') ||
       fieldKey.toLowerCase().includes('proof')
     )) {
+      const handleTextareaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        const inputValue = e.target.value;
+        
+        // Check for whitespace-only values for required fields
+        if (isRequired && typeof inputValue === 'string' && inputValue.trim() === '') {
+          toast.error(`${fieldSchema.title || fieldKey} cannot be empty or contain only spaces`);
+          e.target.classList.add('border-red-300');
+        } else {
+          e.target.classList.remove('border-red-300');
+        }
+      };
+
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>{fieldLabel}</Label>
@@ -450,9 +473,10 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             id={fieldId}
             value={value || ''}
             onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.value)}
+            onBlur={handleTextareaBlur}
             placeholder={fieldSchema.description}
             rows={4}
-            className={`resize-none ${isRequired && !value ? 'border-red-300' : ''}`}
+            className={`resize-none ${isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}`}
           />
         </div>
       );
@@ -914,6 +938,18 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     }
 
     // Default string input
+    const handleStringBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      
+      // Check for whitespace-only values for required fields
+      if (isRequired && typeof inputValue === 'string' && inputValue.trim() === '') {
+        toast.error(`${fieldSchema.title || fieldKey} cannot be empty or contain only spaces`);
+        e.target.classList.add('border-red-300');
+      } else {
+        e.target.classList.remove('border-red-300');
+      }
+    };
+
     return (
       <div key={fieldKey} className="space-y-2">
         <Label htmlFor={fieldId}>{fieldLabel}</Label>
@@ -921,8 +957,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           id={fieldId}
           value={value || ''}
           onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.value)}
+          onBlur={handleStringBlur}
           placeholder={fieldSchema.description}
-          className={isRequired && !value ? 'border-red-300' : ''}
+          className={isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}
         />
       </div>
     );
