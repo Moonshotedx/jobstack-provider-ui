@@ -3,21 +3,14 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Search, ZoomIn, ZoomOut, MapPin, Users } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTakeApplicationAction, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import { Badge } from '@/components/ui/badge';
 
-// Extend Leaflet types for marker cluster
-declare module 'leaflet' {
-  namespace L {
-    function markerClusterGroup(options?: any): any;
-  }
-}
 
-// Fix for default markers in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
@@ -33,7 +26,7 @@ interface ApplicantLocation {
   lng: number;
   status: string;
   age: number;
-  skills: string[];
+  skills: (string | { name: string; code?: string })[];
   email: string;
   phone: string;
   experience?: string;
@@ -47,7 +40,7 @@ interface LatLng {
 
 interface ApplicantMapViewProps {
   applicants: ApplicantLocation[];
-  onApplicantClick?: (applicant: ApplicantLocation) => void;
+  onApplicantClick?: (applicant: ApplicantLocation | null) => void;
   selectedApplicant?: ApplicantLocation | null;
   className?: string;
   mapCenter?: LatLng;
@@ -69,7 +62,7 @@ const createCustomIcon = (status: string) => {
       case 'hired':
         return '#2563eb'; // blue
       default:
-        return '#6b7280'; // gray
+        return '#3b82f6'; // blue for all other statuses (including 'open', 'applied', etc.)
     }
   };
 
@@ -93,9 +86,7 @@ const createCustomIcon = (status: string) => {
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         cursor: pointer;
       ">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-        </svg>
+        1
       </div>
     `,
     iconSize: [24, 24],
@@ -157,26 +148,60 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const clusterGroupRef = useRef<any>(null);
+  const currentLocationMarkerRef = useRef<L.Marker | null>(null);
+  const takeApplicationAction = useTakeApplicationAction();
+  const activeOrganizationId = useActiveOrganizationId();
+
+  const handleAccept = () => {
+    if (selectedApplicant && activeOrganizationId) {
+      takeApplicationAction.mutate({
+        organizationId: activeOrganizationId,
+        actionData: {
+          applicationId: selectedApplicant.id,
+          action: 'accept',
+          applicationStatus: 'Shortlisted',
+        },
+      });
+    }
+  };
+
+  const handleReject = () => {
+    if (selectedApplicant && activeOrganizationId) {
+      takeApplicationAction.mutate({
+        organizationId: activeOrganizationId,
+        actionData: {
+          applicationId: selectedApplicant.id,
+          action: 'reject',
+          applicationStatus: 'Rejected',
+        },
+      });
+    }
+  };
   
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   // const [currentZoom, setCurrentZoom] = useState(zoom); // Removed unused
   // const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null); // Removed unused
 
-  // Filter applicants based on search and status
+  // Filter applicants based on search only
   const filteredApplicants = useMemo(() => {
     return applicants.filter(applicant => {
       const matchesSearch = !searchQuery || 
         applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
+        applicant.skills.some(skill => {
+          // Handle both string and object skills
+          if (typeof skill === 'string') {
+            return skill.toLowerCase().includes(searchQuery.toLowerCase());
+          } else if (skill && typeof skill === 'object' && 'name' in skill) {
+            return skill.name.toLowerCase().includes(searchQuery.toLowerCase());
+          }
+          return false;
+        });
       
-      const matchesStatus = statusFilter === 'all' || applicant.status === statusFilter;
-      
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [applicants, searchQuery, statusFilter]);
+  }, [applicants, searchQuery]);
 
   // Initialize map
   useEffect(() => {
@@ -251,7 +276,18 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       // Add popup
       const popupContent = `
         <div style="padding: 8px; min-width: 200px; max-width: 280px;">
-          <h3 style="font-weight: bold; font-size: 14px; margin-bottom: 4px;">${applicant.name}</h3>
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+            <h3 style="font-weight: bold; font-size: 14px; margin: 0;">${applicant.name}</h3>
+            <button style="
+              background: none;
+              border: none;
+              color: #666;
+              cursor: pointer;
+              font-size: 16px;
+              padding: 0;
+              line-height: 1;
+            " onclick="this.closest('.leaflet-popup').remove()">×</button>
+          </div>
           <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${applicant.location}</p>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
             <span style="font-size: 14px; font-weight: 500;">${applicant.age} years</span>
@@ -269,7 +305,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
             <div style="font-weight: 500; margin-bottom: 4px;">Skills:</div>
             <div style="display: flex; flex-wrap: wrap; gap: 2px;">
               ${applicant.skills.slice(0, 3).map(skill => 
-                `<span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${skill}</span>`
+                `<span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${typeof skill === 'string' ? skill : skill.name}</span>`
               ).join('')}
               ${applicant.skills.length > 3 ? `<span style="font-size: 10px; color: #9ca3af;">+${applicant.skills.length - 3} more</span>` : ''}
             </div>
@@ -287,6 +323,12 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       // Add click handler
       marker.on('click', () => {
         onApplicantClick?.(applicant);
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo([applicant.lat, applicant.lng], 15, { // Zoom to level 15
+            animate: true,
+            duration: 1,
+          });
+        }
       });
 
       clusterGroupRef.current.addLayer(marker);
@@ -307,23 +349,39 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     }
   };
 
-  const handleFitBounds = () => {
-    if (mapInstanceRef.current && filteredApplicants.length > 0) {
-      const bounds = L.latLngBounds(
-        filteredApplicants.map(applicant => [applicant.lat, applicant.lng])
+  const handleFindLocation = () => {
+    if (mapInstanceRef.current && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const latLng = { lat: latitude, lng: longitude };
+
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.flyTo(latLng, 15);
+
+            // Add or move the current location marker
+            if (currentLocationMarkerRef.current) {
+              currentLocationMarkerRef.current.setLatLng(latLng);
+            } else {
+              const customIcon = L.divIcon({
+                className: 'current-location-marker',
+                html: `<div style="background-color: #ff4b4b; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px #ff4b4b;"></div>`,
+                iconSize: [20, 20],
+                iconAnchor: [10, 10],
+              });
+              currentLocationMarkerRef.current = L.marker(latLng, { icon: customIcon }).addTo(mapInstanceRef.current);
+            }
+          }
+        },
+        (error) => {
+          console.error("Error getting current location:", error);
+          // Optionally, show an error message to the user
+        }
       );
-      mapInstanceRef.current.fitBounds(bounds, { padding: [20, 20] });
     }
   };
 
-  // Get status counts for legend
-  const statusCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    filteredApplicants.forEach(applicant => {
-      counts[applicant.status] = (counts[applicant.status] || 0) + 1;
-    });
-    return counts;
-  }, [filteredApplicants]);
+  
 
   return (
     <div className={`relative ${className}`}>
@@ -349,22 +407,6 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                 className="pl-10"
               />
             </div>
-            
-            {/* Status Filter */}
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status ({filteredApplicants.length})</SelectItem>
-                <SelectItem value="open">Open</SelectItem>
-                <SelectItem value="shortlisted">Shortlisted</SelectItem>
-                <SelectItem value="interview">Interview</SelectItem>
-                <SelectItem value="hired">Hired</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-                <SelectItem value="archived">Archived</SelectItem>
-              </SelectContent>
-            </Select>
 
             {/* Stats */}
             <div className="text-xs text-muted-foreground">
@@ -396,44 +438,12 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
           variant="outline"
           size="icon"
           className="bg-white shadow-lg"
-          onClick={handleFitBounds}
-          disabled={filteredApplicants.length === 0}
+          onClick={handleFindLocation}
         >
-          <Users className="h-4 w-4" />
+          <Crosshair className="h-4 w-4" />
         </Button>
       </div>
       
-      {/* Legend */}
-      <div className="absolute z-[1000] bottom-4 left-4">
-        <Card className="shadow-lg">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm">Status Legend</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-green-600"></div>
-              <span className="text-xs">Shortlisted ({statusCounts.shortlisted || 0})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-orange-600"></div>
-              <span className="text-xs">Interview ({statusCounts.interview || 0})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-              <span className="text-xs">Hired ({statusCounts.hired || 0})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-red-600"></div>
-              <span className="text-xs">Rejected ({statusCounts.rejected || 0})</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full bg-gray-600"></div>
-              <span className="text-xs">Open ({statusCounts.open || 0})</span>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Selected Applicant Info */}
       {selectedApplicant && (
         <div className="absolute z-[1000] top-4 left-96 w-80">
@@ -441,15 +451,25 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>Selected Applicant</span>
-                <Badge variant={
-                  selectedApplicant.status === 'shortlisted' || selectedApplicant.status === 'closed' ? 'default' :
-                  selectedApplicant.status === 'rejected' || selectedApplicant.status === 'archived' ? 'destructive' :
-                  selectedApplicant.status === 'interview' ? 'secondary' :
-                  selectedApplicant.status === 'hired' ? 'default' :
-                  'outline'
-                }>
-                  {selectedApplicant.status}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  <Badge variant={
+                    selectedApplicant.status === 'shortlisted' || selectedApplicant.status === 'closed' ? 'default' :
+                    selectedApplicant.status === 'rejected' || selectedApplicant.status === 'archived' ? 'destructive' :
+                    selectedApplicant.status === 'interview' ? 'secondary' :
+                    selectedApplicant.status === 'hired' ? 'default' :
+                    'outline'
+                  }>
+                    {selectedApplicant.status}
+                  </Badge>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onApplicantClick?.(null)}
+                    className="h-6 w-6 p-0 hover:bg-muted"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
@@ -470,7 +490,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                 <div className="flex flex-wrap gap-1">
                   {selectedApplicant.skills.slice(0, 5).map((skill, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
-                      {skill}
+                      {typeof skill === 'string' ? skill : skill.name}
                     </Badge>
                   ))}
                   {selectedApplicant.skills.length > 5 && (
@@ -480,6 +500,26 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   )}
                 </div>
               </div>
+              {/* Only show Accept/Reject if status is open or applied */}
+              {(selectedApplicant.status === 'open' || selectedApplicant.status === 'applied') && (
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleReject}
+                    disabled={false}
+                  >
+                    Reject
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleAccept}
+                    disabled={false}
+                  >
+                    Accept
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>
@@ -488,4 +528,4 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   );
 };
 
-export default ApplicantMapView; 
+export default ApplicantMapView;
