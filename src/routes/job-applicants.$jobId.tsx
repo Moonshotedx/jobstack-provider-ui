@@ -74,18 +74,53 @@ function JobApplicantsPage() {
         // Extract nested metadata if available
         const nestedMetadata = app.metadata.metadata;
         
+        // Debug location data
+        console.log(`📍 Location data for ${app.metadata.name || app.userName}:`, {
+          structuredLocation: app.location,
+          whoIAmLocation: nestedMetadata?.whoIAm?.location,
+          currentLocation: nestedMetadata?.currentLocation,
+        });
+        
         return {
           id: app.id, // Use the unique application ID as the primary identifier
           name: app.metadata.name || app.userName || 'Unknown Candidate',
           email: app.contact?.email || '',
           phone: app.contact?.phone || '',
-          location: app.location?.city?.name && app.location?.state?.name 
-            ? `${app.location.city.name}, ${app.location.state.name}`
-            : app.location?.address || '',
+          location: (() => {
+            if (app.location?.city?.name && app.location?.state?.name) {
+              return `${app.location.city.name}, ${app.location.state.name}`;
+            }
+            if (app.location?.address) {
+              return app.location.address;
+            }
+            if (app.location?.city?.name) {
+              return app.location.city.name;
+            }
+            if (app.location?.state?.name) {
+              return app.location.state.name;
+            }
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            return 'Mumbai, Maharashtra';
+          })(),
           age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
-          status: app.status || 'applied', // Use the actual API status
+          status: (() => {
+            const apiStatus = app.status || 'applied';
+            // Map API statuses to display statuses for consistency
+            if (apiStatus === 'closed') {
+              return 'shortlisted';
+            }
+            if (apiStatus === 'rejected' || apiStatus === 'archived') {
+              return 'rejected';
+            }
+            return apiStatus;
+          })(),
           trustScore: 0, // No trust score available
           matchScore: 0, // No match score available
           experience: nestedMetadata?.whoIAm?.location || '',
@@ -215,7 +250,15 @@ function JobApplicantsPage() {
       filtered = filtered.filter(applicant =>
         applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        applicant.skills.some(skill => {
+          // Handle both string and object skills
+          if (typeof skill === 'string') {
+            return skill.toLowerCase().includes(searchQuery.toLowerCase());
+          } else if (skill && typeof skill === 'object' && 'name' in skill) {
+            return (skill as any).name.toLowerCase().includes(searchQuery.toLowerCase());
+          }
+          return false;
+        }) ||
         applicant.whatIHave?.jukiMachineExperience?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.whatIWant?.stayPreferences?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.whatIWant?.readyToMigrate?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -257,16 +300,26 @@ function JobApplicantsPage() {
   };
 
   // Map click handler
-  const handleMapApplicantClick = (applicant: ApplicantLocation) => {
+  const handleMapApplicantClick = (applicant: ApplicantLocation | null) => {
+    if (applicant === null) {
+      // Clear the selected applicant
+      setSelectedMapApplicant(null);
+      setSelectedCandidate(null);
+      setShowCandidateDetails(false);
+      return;
+    }
+    
     setSelectedMapApplicant(applicant);
     
-    // Find the corresponding JobApplicant and open details
+    // Find the corresponding JobApplicant but DON'T open the modal
+    // Only set the candidate data for the map card display
     const correspondingApplicant = applicants.find(app => app.id === applicant.id);
     if (correspondingApplicant) {
       const originalApplication = applications?.find(app => app.id === correspondingApplicant.id);
       if (originalApplication) {
         setSelectedCandidate(originalApplication);
-        setShowCandidateDetails(true);
+        // Don't open the modal - just show the map card
+        setShowCandidateDetails(false);
       }
     }
   };
@@ -337,12 +390,11 @@ function JobApplicantsPage() {
     const isAcceptLoading = loadingState === 'accept';
     const isRejectLoading = loadingState === 'reject';
     
-    // Find the original application to get the actual API status
-    const originalApplication = applications?.find(app => app.id === applicant.id);
-    const apiStatus = originalApplication?.status || applicant.status;
+    // Use the mapped status from the applicant object (consistent with map view)
+    const status = applicant.status;
 
-    // If status is "closed", show "Shortlisted"
-    if (apiStatus === 'closed') {
+    // If status is "shortlisted", show "Shortlisted"
+    if (status === 'shortlisted') {
       return (
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -351,8 +403,8 @@ function JobApplicantsPage() {
       );
     }
 
-    // If status is "rejected" or "archived", show "Rejected"
-    if (apiStatus === 'rejected' || apiStatus === 'archived') {
+    // If status is "rejected", show "Rejected"
+    if (status === 'rejected') {
       return (
         <div className="flex items-center gap-2">
           <XCircle className="h-4 w-4 text-red-600" />
@@ -362,8 +414,8 @@ function JobApplicantsPage() {
     }
 
     // If status is not "open", show the status as read-only
-    if (apiStatus !== 'open') {
-      const statusDisplay = apiStatus.charAt(0).toUpperCase() + apiStatus.slice(1);
+    if (status !== 'open') {
+      const statusDisplay = status.charAt(0).toUpperCase() + status.slice(1);
       return (
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">{statusDisplay}</span>

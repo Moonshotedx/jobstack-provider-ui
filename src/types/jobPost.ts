@@ -203,7 +203,7 @@ export interface JobApplicant {
   trustScore: number;
   matchScore: number;
   experience: string;
-  skills: string[];
+  skills: (string | { name: string; code?: string })[];
   avatar?: string;
   resume?: string;
   coverLetter?: string;
