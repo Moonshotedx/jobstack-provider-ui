@@ -13,7 +13,8 @@
             "type": "string",
             "title": "Job Provider Name",
             "description": "Enter job provider/company name",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
           },
           "jobProviderRegistration": {
             "type": "string",
@@ -26,7 +27,8 @@
             "type": "string",
             "title": "Job Provider Location",
             "description": "Enter job provider location",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
           },
           "jobProviderLogo": {
             "type": "string",
@@ -46,7 +48,8 @@
             "type": "string",
             "title": "Job Title",
             "description": "Job title (editable)",
-            "minLength": 1
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
           },
           "positions": {
             "type": "integer",

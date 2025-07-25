@@ -12,7 +12,6 @@ import {
   Clock, 
   FileText,
   Target,
-  Award,
   Phone,
   Mail,
   Video,
@@ -62,25 +61,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
     );
   };
 
-  const renderArrayField = (label: string, values: string[], icon?: React.ReactNode) => {
-    if (!values || values.length === 0) return null;
-    
-    return (
-      <div className="flex items-start gap-3 py-2">
-        {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
-        <div className="flex-1">
-          <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <div className="flex flex-wrap gap-1 mt-1">
-            {values.map((value, index) => (
-              <Badge key={index} variant="secondary" className="text-xs">
-                {value}
-              </Badge>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  };
+
 
   const renderMediaField = (label: string, mediaUrl: string, type: 'video' | 'image', icon?: React.ReactNode) => {
     if (!mediaUrl) return null;
@@ -146,6 +127,92 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
     );
   };
 
+  // Dynamic rendering function for job needs
+  const renderJobNeeds = (jobNeeds: any) => {
+    if (!jobNeeds || typeof jobNeeds !== 'object') return null;
+
+    const details: React.ReactElement[] = [];
+
+    const processObject = (obj: any, prefix = '', isSubsection = false): React.ReactElement[] => {
+      const subsectionDetails: React.ReactElement[] = [];
+      
+      Object.entries(obj).forEach(([key, value]) => {
+        const fullKey = prefix ? `${prefix}.${key}` : key;
+        
+        if (value !== null && value !== undefined && value !== '') {
+          if (typeof value === 'object' && !Array.isArray(value)) {
+            // Check if this is a subsection (contains multiple fields)
+            const hasMultipleFields = Object.keys(value).length > 1;
+            
+            if (hasMultipleFields && !isSubsection) {
+              // Render as subsection
+              const subsectionElements = processObject(value, fullKey, true);
+              details.push(
+                <div key={fullKey} className="border rounded-lg p-4">
+                  <h4 className="font-medium mb-3">{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}</h4>
+                  <div className="space-y-2">
+                    {subsectionElements}
+                  </div>
+                </div>
+              );
+            } else {
+              // Recursively process nested objects
+              const nestedElements = processObject(value, fullKey, isSubsection);
+              if (isSubsection) {
+                subsectionDetails.push(...nestedElements);
+              } else {
+                details.push(...nestedElements);
+              }
+            }
+          } else if (Array.isArray(value)) {
+            // Handle arrays
+            const displayValue = value.length > 0 ? value.join(', ') : 'None';
+            const element = (
+              <div key={fullKey} className="text-sm text-muted-foreground">
+                <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:</span> {displayValue}
+              </div>
+            );
+            if (isSubsection) {
+              subsectionDetails.push(element);
+            } else {
+              details.push(element);
+            }
+          } else {
+            // Handle primitive values
+            let displayValue = String(value);
+            
+            // Format specific fields
+            if (typeof value === 'number' && (key.includes('speed') || key.includes('error') || key.includes('limit'))) {
+              displayValue = `${value}`;
+            } else if (key.includes('date') || key.includes('Date')) {
+              try {
+                displayValue = new Date(String(value)).toLocaleDateString();
+              } catch {
+                // Keep original value if date parsing fails
+              }
+            }
+            
+            const element = (
+              <div key={fullKey} className="text-sm text-muted-foreground">
+                <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:</span> {displayValue}
+              </div>
+            );
+            if (isSubsection) {
+              subsectionDetails.push(element);
+            } else {
+              details.push(element);
+            }
+          }
+        }
+      });
+      
+      return isSubsection ? subsectionDetails : details;
+    };
+
+    processObject(jobNeeds);
+    return details;
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -167,7 +234,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="outline">
-                    {job.metadata?.status || 'Active'}
+                    {job.metadata?.status === 'open' ? 'Active' : (job.metadata?.status || 'Active')}
                   </Badge>
                 </div>
               </div>
@@ -256,52 +323,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderField('Age Lower Limit', job.metadata?.jobNeeds?.ageAllowedLowerLimit, <Users className="h-4 w-4" />)}
-                  {renderField('Age Upper Limit', job.metadata?.jobNeeds?.ageAllowedUpperLimit, <Users className="h-4 w-4" />)}
-                  {renderField('Proofs for Intent to Join', job.metadata?.jobNeeds?.proofsAcceptableForIntentToJoin, <FileText className="h-4 w-4" />)}
-                  
-                  {/* Media files */}
-                  {renderMediaField('Sample Task Video', job.metadata?.jobNeeds?.sampleTaskVideo, 'video', <Video className="h-4 w-4" />)}
-                  {renderMediaField('Sample Task Image', job.metadata?.jobNeeds?.sampleTaskImage, 'image', <ImageIcon className="h-4 w-4" />)}
-                  
-                  {/* Juki Speed Subsection (for Industrial Tailor) */}
-                  {job.metadata?.jobNeeds?.jukiSpeedSubsection && (
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">Juki Machine Speed Requirements</h4>
-                      <div className="space-y-2">
-                        {renderField('Min Acceptable Speed', job.metadata.jobNeeds.jukiSpeedSubsection.minAcceptableSpeed, <Target className="h-4 w-4" />)}
-                        {renderArrayField('Acceptable Proofs', job.metadata.jobNeeds.jukiSpeedSubsection.acceptableSpeedProofs, <Award className="h-4 w-4" />)}
-                        {renderField('Other Proof Type', job.metadata.jobNeeds.jukiSpeedSubsection.speedProofOther, <FileText className="h-4 w-4" />)}
-                        {renderMediaArray('Speed Proof Documents', job.metadata.jobNeeds.jukiSpeedSubsection.uploadSpeedProof, 'image', <FileText className="h-4 w-4" />)}
-                        {renderMediaArray('Speed Sample Media', job.metadata.jobNeeds.jukiSpeedSubsection.uploadSpeedSampleMedia, 'image', <Video className="h-4 w-4" />)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Juki Error Subsection (for Industrial Tailor) */}
-                  {job.metadata?.jobNeeds?.jukiErrorSubsection && (
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">Juki Machine Error Rate Requirements</h4>
-                      <div className="space-y-2">
-                        {renderField('Max Acceptable Error', job.metadata.jobNeeds.jukiErrorSubsection.maxAcceptableError, <Target className="h-4 w-4" />)}
-                        {renderArrayField('Acceptable Proofs', job.metadata.jobNeeds.jukiErrorSubsection.acceptableErrorProofs, <Award className="h-4 w-4" />)}
-                        {renderField('Other Proof Type', job.metadata.jobNeeds.jukiErrorSubsection.errorProofOther, <FileText className="h-4 w-4" />)}
-                        {renderMediaArray('Error Proof Documents', job.metadata.jobNeeds.jukiErrorSubsection.uploadErrorProof, 'image', <FileText className="h-4 w-4" />)}
-                        {renderMediaArray('Error Sample Media', job.metadata.jobNeeds.jukiErrorSubsection.uploadErrorSampleMedia, 'image', <Video className="h-4 w-4" />)}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Relocation Proofs Subsection (for Industrial Tailor) */}
-                  {job.metadata?.jobNeeds?.relocationProofsSubsection && (
-                    <div className="border rounded-lg p-4">
-                      <h4 className="font-medium mb-3">Relocation Requirements</h4>
-                      <div className="space-y-2">
-                        {renderArrayField('Acceptable Relocation Proofs', job.metadata.jobNeeds.relocationProofsSubsection.acceptableRelocationProofs, <Award className="h-4 w-4" />)}
-                        {renderField('Other Proof Type', job.metadata.jobNeeds.relocationProofsSubsection.relocationProofOther, <FileText className="h-4 w-4" />)}
-                      </div>
-                    </div>
-                  )}
+                  {renderJobNeeds(job.metadata?.jobNeeds)}
                 </CardContent>
               </Card>
             </TabsContent>

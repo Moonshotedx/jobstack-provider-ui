@@ -11,12 +11,16 @@
         "title": {
           "type": "string",
           "title": "Job Title",
-          "default": "Field Sales Executive"
+          "default": "Field Sales Executive",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
         },
         "location": {
           "type": "string",
           "title": "Location",
-          "description": "Provide the specific location or territory"
+          "description": "Provide the specific location or territory",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
         },
       
         "salary": {
@@ -179,7 +183,9 @@
       "properties": {
         "jobProviderName": {
           "type": "string",
-          "title": "Job Provider Name"
+          "title": "Job Provider Name",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
         },
         "jobProviderRegistration": {
           "type": "string",
