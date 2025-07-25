@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Edit, MoreHorizontal, MapPin, Calendar, Loader2, Users, Copy, Trash2, AlertTriangle } from 'lucide-react';
+import { Eye, Edit, MoreHorizontal, MapPin, Calendar, Loader2, Users, Copy, Trash2, AlertTriangle, Building2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -79,9 +79,6 @@ const MyJobs = () => {
     if (details.monthlyInHand) {
       parts.push(`₹${details.monthlyInHand.toLocaleString()} in-hand`);
     }
-    if (details.monthlyPfEsicBenefits) {
-      parts.push(`₹${details.monthlyPfEsicBenefits.toLocaleString()} benefits`);
-    }
 
     return parts.length > 0 ? parts.join(' + ') : 'Salary not specified';
   };
@@ -103,16 +100,15 @@ const MyJobs = () => {
     return job.applicationsCount ? parseInt(job.applicationsCount) : (job.metadata?.applicationsCount || 0);
   };
 
-  const getPayFrequency = (job: JobPosting) => {
-    if (job.metadata?.jobDetails?.payFrequency) {
-      return job.metadata.jobDetails.payFrequency.charAt(0).toUpperCase() + 
-           job.metadata.jobDetails.payFrequency.slice(1);
-    }
-    return 'Monthly';
-  };
+
 
   const getPositions = (job: JobPosting) => {
     return job.metadata?.jobDetails?.positions || 1;
+  };
+
+  // Helper function to get job provider name
+  const getJobProviderName = (job: JobPosting) => {
+    return job.metadata?.basicInfo?.jobProviderName || 'Unknown Provider';
   };
 
   // Handler functions for dialogs
@@ -196,7 +192,7 @@ const MyJobs = () => {
   const renderJobDetails = (jobDetails: any) => {
     if (!jobDetails || typeof jobDetails !== 'object') return null;
 
-    const excludeFields = ['title', 'positions', 'salaryCTC'];
+    const excludeFields = ['title', 'positions', 'salaryCTC', 'monthlyInHand'];
     const details: React.ReactElement[] = [];
 
     const processObject = (obj: any, prefix = '') => {
@@ -297,7 +293,6 @@ const MyJobs = () => {
       <div className="grid gap-4">
         {jobs?.map((job) => {
           const jobStatus = getJobStatus(job);
-          const payFrequency = getPayFrequency(job);
           const positions = getPositions(job);
           
           return (
@@ -317,6 +312,10 @@ const MyJobs = () => {
                           <Badge variant="outline" className="text-xs">
                             <Users className="h-3 w-3 mr-1" />
                             {getApplicationsCount(job)}
+                          </Badge>
+                          <Badge variant="outline" className="text-xs">
+                            <Building2 className="h-3 w-3 mr-1" />
+                            {getJobProviderName(job)}
                           </Badge>
                         </div>
                       </div>
@@ -410,6 +409,10 @@ const MyJobs = () => {
                           <Users className="h-3 w-3 mr-1" />
                           {getApplicationsCount(job)} applications
                         </Badge>
+                        <Badge variant="outline" className="text-xs">
+                          <Building2 className="h-3 w-3 mr-1" />
+                          {getJobProviderName(job)}
+                        </Badge>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground mb-4">
@@ -423,12 +426,12 @@ const MyJobs = () => {
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex flex-col">
-                            <span>{getJobSalary(job)}</span>
-                            {payFrequency && (
+                            {/* <span>{getJobSalary(job)}</span> */}
+                            {/* {getJobSalary(job) !== 'Salary not specified' && payFrequency && (
                               <span className="text-xs text-muted-foreground">
                                 {payFrequency}
                               </span>
-                            )}
+                            )} */}
                           </div>
                         </div>
                       </div>

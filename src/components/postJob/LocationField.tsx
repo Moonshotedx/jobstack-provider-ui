@@ -538,7 +538,15 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                 setShowSuggestions(true);
               }
             }}
-            onBlur={() => {
+            onBlur={(e) => {
+              // Check for whitespace-only values for required fields
+              if (required && typeof inputValue === 'string' && inputValue.trim() === '') {
+                toast.error(`${label} cannot be empty or contain only spaces`);
+                e.target.classList.add('border-red-300');
+              } else {
+                e.target.classList.remove('border-red-300');
+              }
+              
               // Delay hiding suggestions to allow clicking on them
               setTimeout(() => {
                 if (!suggestionsRef.current?.contains(document.activeElement)) {
@@ -553,7 +561,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
               }
             }}
             placeholder={placeholder || "Type to search for locations or click map pin for current location"}
-            className={`pr-10 ${getInputBorderClass()}`}
+            className={`pr-10 ${getInputBorderClass()} ${required && (!inputValue || (typeof inputValue === 'string' && inputValue.trim() === '')) ? 'border-red-300' : ''}`}
           />
           
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">

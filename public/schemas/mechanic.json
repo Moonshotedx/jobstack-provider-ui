@@ -1,0 +1,355 @@
+{
+    "$schema": "https://json-schema.org/draft/2019-09/schema",
+    "type": "object",
+    "title": "Mechanic Job Posting",
+    "description": "Complete job posting form for Mechanic positions",
+    "properties": {
+      "basicInfo": {
+        "type": "object",
+        "title": "Basic Information",
+        "x-section": "basic-info",
+        "properties": {
+          "jobProviderName": {
+            "type": "string",
+            "title": "Job Provider Name",
+            "description": "Enter job provider/company name",
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
+          },
+          "jobProviderRegistration": {
+            "type": "string",
+            "title": "Job Provider Registration Details",
+            "description": "GST, CIN, TAN, PAN or other registration number",
+            "minLength": 1,
+            "pattern": "^.+$"
+          },
+          "jobProviderLocation": {
+            "type": "string",
+            "title": "Job Provider Location",
+            "description": "Enter job provider location",
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
+          },
+          "jobProviderLogo": {
+            "type": "string",
+            "title": "Job Provider Logo",
+            "description": "Upload company logo (PNG, JPG, max 5MB)",
+            "format": "data-url"
+          }
+        },
+        "required": ["jobProviderName", "jobProviderLocation"]
+      },
+      "jobDetails": {
+        "type": "object",
+        "title": "Job Details",
+        "x-section": "job-details",
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Job Title",
+            "description": "Job title (editable)",
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
+          },
+          "positions": {
+            "type": "integer",
+            "title": "Number of Openings",
+            "description": "How many positions are available?",
+            "minimum": 1,
+            "default": 1
+          },
+          "jobDetailsVideo": {
+            "type": "string",
+            "title": "Job Details Video",
+            "format": "data-url",
+            "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+          },
+          "jobLocationPhotos": {
+            "type": "array",
+            "title": "Job Location Photos",
+            "items": {
+              "type": "string",
+              "format": "data-url"
+            },
+            "description": "Upload photos of the job location (PNG, JPEG, JPG, max 5MB each)"
+          },
+          "workingHoursPerDay": {
+            "type": "number",
+            "title": "Working Hours Per Day",
+            "description": "Enter working hours per day",
+            "minimum": 1,
+            "maximum": 24
+          },
+          "modeOfWork": {
+            "type": "array",
+            "title": "Mode of Work",
+            "description": "Select mode of work (multiple selections allowed)",
+            "items": {
+              "type": "string",
+              "enum": ["on-site-no-shift", "on-site-shifts", "remote", "hybrid", "travelling"],
+              "enumNames": ["On-site-no shift - standard work timings every working day", "On-site-shifts - work timings can change as per the shift one is assigned to", "Remote - work from home, no office space provide", "Hybrid - option to work from home, but presence expected on-site as per a prescribed schedule","Travelling - on the road job, requires travel"]
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "minMonthlyInHand": {
+            "type": "number",
+            "title": "Monthly minimum in-hand salary (INR)",
+            "description": "Enter minimum monthly in-hand salary amount",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "maxMonthlyInHand": {
+            "type": "number",
+            "title": "Monthly maximum in-hand salary (INR)",
+            "description": "Enter maximum monthly in-hand salary amount",
+            "minimum": 0,
+            "maximum": 1000000
+          },
+          "monthlyPfEsicBenefits": {
+            "type": "number",
+            "title": "Monthly PF & ESIC Benefits (INR)",
+            "description": "Enter monthly PF & ESIC benefits amount",
+            "minimum": 0
+          },
+          "monthlyAverageOT": {
+            "type": "string",
+            "title": "Monthly Average OT (Overtime) (INR)",
+            "description": "Enter monthly average overtime amount"
+          }
+        },
+        "required": ["title", "positions"]
+      },
+      "jobNeeds": {
+        "type": "object",
+        "title": "Job Needs",
+        "x-section": "job-needs",
+        "properties": {
+          "ageAllowedLowerLimit": {
+            "type": "integer",
+            "title": "Age Allowed - Lower Limit",
+            "description": "Enter minimum age",
+            "minimum": 18,
+            "maximum": 100
+          },
+          "educationSubsection": {
+            "type": "object",
+            "title": "Education Qualification",
+            "x-subsection": "education-subsection",
+            "x-ui-subsection": "border",
+            "properties": {
+              "minEducationLevel": {
+                "type": "array",
+                "title": "Min. Highest Qualification Preferred",
+                "description": "Minimum highest qualification preferred (multiple selections allowed)",
+                "items": {
+                  "type": "string",
+                  "enum": ["10th Pass", "12th Pass", "ITI Diploma", "Graduate", "Other"],
+                  "enumNames": ["10th Pass", "12th Pass", "ITI Diploma", "Graduate", "Other"]
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              },
+              "itiSpecialtyPreference": {
+                "type": "array",
+                "title": "ITI Specialty Preference",
+                "description": "ITI specialty preference (multiple selections allowed)",
+                "items": {
+                  "type": "string",
+                  "enum": ["Additive Manufacturing Technician Three D Painting", "Additive Manufacturing Technician Three D Printing (NSQF)", "ADVANCED CNC MACHINING TECHNICIAN (NSQF)",
+                  "Aeronautical Structure and Equipment Fitter (NSQF)",
+                  "Agro Processing (NSQF)",
+                  "Architectural Draughtsman (NSQF)",
+                  "Artificial Intelligence Programming Assistant (NSQF)",
+                  "ARTISAN USING ADVANCED TOOL (NSQF)",
+                  "Attendant Operator (Chemical Plant) (NSQF)",
+                  "Baker and Confectioner (NSQF)",
+                  "Bamboo Works (NSQF)",
+                  "BASIC DESIGNER AND VIRTUAL VERIFIER (MECHANICAL) (NSQF)",
+                  "Catering & Hospitality Assistant (NSQF)",
+                  "CENTRAL AIRCONDITION PLANT MECHANIC(NSQF)",
+                  "Civil Engineer Assistant (NSQF)",
+                  "Computer Aided Embroidery And Designing (NSQF)",
+                  "Computer Aided Manufacturing (CAM) Programmer (NSQF)",
+                  "Computer Hardware & Network Maintenance (NSQF)",
+                  "Computer Operator & Programming Assistant (VI & OD) (NSQF)",
+                  "Computer Operator and Programming Assistant",
+                  "Computer Operator and Programming Assistant (NSQF)",
+                  "Cosmetology (NSQF)",
+                  "Cutting & Sewing (VI & OD) (NSQF)",
+                  "Dairying",
+                  "Dairying(NSQF)",
+                  "Data Base System Assistant (NSQF)",
+                  "Data Entry Operator (NSQF)",
+                  "Dental Laboratory Equipment Technician (NSQF)",
+                  "Desk Top Publishing Operator (NSQF)",
+                  "Desktop Publishing Operator (VI & OD) (NSQF)",
+                  "Desktop Publishing Operator (VI) (NSQF)",
+                  "Digital Photographer (NSQF)",
+                  "Domestic Painter (NSQF)",
+                  "Draftsman Civil (NSQF)",
+                  "Draughtsman (Civil) (NSQF)",
+                  "Draughtsman (Mechanical) (NSQF)",
+                  "Dress Making (NSQF)",
+                  "Driver Cum Mechanic (NSQF)",
+                  "Drone Pilot ( Junior) (NSQF)",
+                  "Drone Technician(NSQF)",
+                  "Early Childhood Educator",
+                  "Early Childhood Educator(NSQF)",
+                  "Electrician",
+                  "Electrician (NSQF)",
+                  "Electrician Power Distribution (NSQF)",
+                  "Electronics Mechanic (NSQF)",
+                  "Electroplater",
+                  "Electroplater (NSQF)",
+                  "Event Management Assitant (NSQF)",
+                  "Fashion Design & Technology (NSQF)",
+                  "Fibre to Home Technician (NSQF)",
+                  "Finance Executive (NSQF)",
+                  "Fire Technology and Industrial Safety Management (NSQF)",
+                  "Firemen (NSQF)",
+                  "Fitter",
+                  "Fitter (NSQF)",
+                  "Floriculture & Landscaping (NSQF)",
+                  "Food & Beverages Services Assistant (NSQF)",
+                  "Food Beverage (NSQF)",
+                  "Food Production (General) (NSQF)",
+                  "Footwear maker (NSQF)",
+                  "Foundryman",
+                  "Foundryman (NSQF)",
+                  "Front Office Assistant (NSQF)",
+                  "Fruit and Vegetable Processor (NSQF)",
+                  "Geo Informatics Assitant (NSQF)",
+                  "Geriatric (Old Age) Care (NSQF)",
+                  "Hair & Skin Care (VI & OD) (NSQF)",
+                  "Health Safety & Environment (NSQF)",
+                  "Health Sanitary Inspector (NSQF)",
+                  "Horticulture (NSQF)",
+                  "Horticulture (P)",
+                  "Hospital House Keeping (NSQF)",
+                  "House Keeper (NSQF)",
+                  "Human Resource Executive (NSQF)",
+                  "In Plant Logistics Assistant (NSQF)",
+                  "Industrial Painter (NSQF)",
+                  "INDUSTRIAL ROBOTICS AND DIGITAL MANUFACTURING TECHNICIAN (NSQF)",
+                  "Information Communication Technology System Maintenance (NSQF)",
+                  "Information Technology (NSQF)",
+                  "Instrument Mechanic (Chemical Plant) (NSQF)",
+                  "Instrument Mechanic (NSQF)",
+                  "Interior Decoration and Designing (P)",
+                  "Interior Design & Decoration (NSQF)",
+                  "IoT Technician (Smart Agriculture)(NSQF)",
+                  "IoT Technician (Smart City)(NSQF)",
+                  "IoT Technician (Smart healthcare)(NSQF)",
+                  "Laboratory Assistant (Chemical Plant) (NSQF)",
+                  "Leather Goods Maker (NSQF)",
+                  "Lift and Escalator Mechanic (NSQF)",
+                  "Lift Mechanic (P)",
+                  "Machinist (Grinder) (NSQF)",
+                  "Machinist (NSQF)",
+                  "Maintenance Mechanic (Chemical Plant) (NSQF)",
+                  "MANUFACTURING PROCESS CONTROL AND AUTOMATION (NSQF)",
+                  "Marine Engine Fitter (NSQF)",
+                  "Marine Fitter (NSQF)",
+                  "Marketing Executive (NSQF)",
+                  "Mason (Building Constructor) (NSQF)",
+                  "Mechanic (Motor Vehicle) (NSQF)",
+                  "Mechanic (Tractor) (NSQF)",
+                  "Mechanic Agriculture Machinery (NSQF)",
+                  "Mechanic Auto Body Painting (NSQF)",
+                  "Mechanic Auto Body Repair (NSQF)",
+                  "Mechanic Auto Electrical and Electronics (NSQF)",
+                  "Mechanic Consumer Electronics Appliances (NSQF)",
+                  "Mechanic Diesel (NSQF)",
+                  "MECHANIC ELECTRIC VEHICLE (NSQF)",
+                  "Mechanic Lens/Prism Grinding (NSQF)",
+                  "Mechanic Machine Tool Maintenance (NSQF)",
+                  "Mechanic Mechatronics (NSQF)",
+                  "Mechanic Mining Machinery (NSQF)",
+                  "Mechanic Two & Three Wheeler (NSQF)",
+                  "Metal Cutting Attendant (VI) (NSQF)",
+                  "Milk & Milk Product Technician (NSQF)",
+                  "Multimedia Animation & Special Effects (NSQF)",
+                  "Operator Advanced Machine Tools (NSQF)",
+                  "Painter General (NSQF)",
+                  "Photographer (NSQF)",
+                  "Physiotherapy Technician (NSQF)",
+                  "Plastic Processing Operator (NSQF)",
+                  "Plumber (NSQF)",
+                  "Pump Operator-Cum-Mechanic (NSQF)",
+                  "Radiology - Technician (NSQF)",
+                  "Radiology Technician (NSQF)",
+                  "REFRIGERATION AND AIR CONDITIONING TECHNICIAN(NSQF)",
+                  "Secretarial Practice (English) (NSQF)",
+                  "Sewing Technology (NSQF)",
+                  "Sheet Metal Worker (NSQF)",
+                  "Smartphone Technician Cum App Tester (NSQF)",
+                  "Software Testing Assistant (NSQF)",
+                  "Soil Testing and Crop Technician (NSQF)",
+                  "Solar Technician (Electrical) (NSQF)",
+                  "Solar Technician (NSQF)",
+                  "Spa Therapy (NSQF)",
+                  "Spinning Technician (NSQF)",
+                  "Stenographer & Secretarial Assistant (English) (NSQF)",
+                  "Stenographer & Secretarial Assistant (Hindi) (NSQF)",
+                  "Stone Mining Machine Operator (NSQF)",
+                  "Stone Processing Machine Operator (NSQF)",
+                  "Surface Ornamentation Techniques (Embroidery) (NSQF)",
+                  "Surveyor",
+                  "Surveyor (NSQF)",
+                  "Surveyor (Two Years)",
+                  "Technician Electronics System Design and Repair (NSQF)",
+                  "Technician Mechatronics (NSQF)",
+                  "TECHNICIAN MEDICAL ELECTRONICS(NSQF)",
+                  "Technician Power Electronics System (NSQF)",
+                  "Textile Mechatronics (NSQF)",
+                  "Textile Wet Processing Technician (NSQF)",
+                  "Tool & Die Maker (Dies & Moulds) (NSQF)",
+                  "Tool & Die Maker (Press Tools, Jigs & Fixtures)",
+                  "Tool & Die Maker (Press Tools, Jigs & Fixtures) (NSQF)",
+                  "Tourist Guide (NSQF)",
+                  "Travel & Tour Assistant (NSQF)",
+                  "Turner (NSQF)",
+                  "Vessel Navigator (NSQF)",
+                  "Warehouse Technician (NSQF)",
+                  "Weaving Technician (NSQF)",
+                  "Weaving Technician for Silk & Woolen Fabrics (NSQF)",
+                  "Welder",
+                  "Welder (Fabrication & Fitting) (NSQF)",
+                  "Welder (GMAW & GTAW) (NSQF)",
+                  "Welder (NSQF)",
+                  "Welder (Pipe) (NSQF)",
+                  "Welder (Structural) (NSQF)",
+                  "Welder (Welding & Inspection) (NSQF)",
+                  "Wireman (NSQF)",
+                  "Wood Work Technician (NSQF)"]
+                },
+                "uniqueItems": true,
+                "minItems": 1
+              }
+            }
+          },
+          "domainKnowledgeSubsection": {
+            "type": "object",
+            "title": "Domain Knowledge",
+            "x-subsection": "domain-knowledge-subsection",
+            "x-ui-subsection": "border",
+            "properties": {
+              "mechanicAssessmentScore": {
+                "type": "number",
+                "title": "Mechanic Assessment Score - Benchmark",
+                "description": "Minimum acceptable score for mechanic assessment tasks",
+                "minimum": 0
+              },
+              "intentAssessmentScore": {
+                "type": "number",
+                "title": "Intent Assessment Score - Benchmark",
+                "description": "Minimum acceptable score for intent assessment tasks",
+                "minimum": 0
+              }
+            }
+          }
+        }
+      }
+    }
+  }

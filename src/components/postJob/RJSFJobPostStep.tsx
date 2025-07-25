@@ -56,6 +56,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roleDisplayInfo, setRoleDisplayInfo] = useState<JobRoleConfig | null>(null);
+  
+  // Add search state at component level
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
 
   // Reset form state when selectedJobRole changes to prevent caching issues
   useEffect(() => {
@@ -66,6 +69,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       setLoading(true);
       setError(null);
       setRoleDisplayInfo(null);
+      setSearchQueries({}); // Reset search queries
     }
   }, [selectedJobRole]);
 
@@ -78,6 +82,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       setLoading(true);
       setError(null);
       setRoleDisplayInfo(null);
+      setSearchQueries({}); // Reset search queries
     }
   }, [isOpen]);
 
@@ -109,14 +114,6 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             ...editJobData.metadata
           };
         }
-        
-        // Debug logging
-        console.log('📋 Loading schema for:', selectedJobRole);
-        console.log('📊 Schema loaded:', roleSchema);
-        console.log('📝 Schema sections:', Object.keys(roleSchema.properties || {}));
-        console.log('🎯 Initial data:', initialData);
-        console.log('🎨 Display info:', displayInfo);
-        console.log('✏️ Edit job data:', editJobData);
         
         setSchema(roleSchema);
         setFormData(initialData);
@@ -150,40 +147,81 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       });
     }
 
-    // Check section-level required fields
+    // Check section-level required fields and numeric constraints
     if (schema.properties) {
       Object.entries(schema.properties).forEach(([sectionKey, property]) => {
         const sectionSchema = property as any;
         
-        if (sectionSchema.type === 'object' && sectionSchema.required && sectionSchema.properties) {
+        if (sectionSchema.type === 'object' && sectionSchema.properties) {
           // Only validate if the section exists in formData
           if (formData[sectionKey]) {
-            sectionSchema.required.forEach((requiredField: string) => {
-              const fieldValue = formData[sectionKey][requiredField];
-              
-              // Check if field is empty, null, undefined, or empty array
-              const isEmpty = fieldValue === null || 
-                             fieldValue === undefined || 
-                             fieldValue === '' || 
-                             (Array.isArray(fieldValue) && fieldValue.length === 0);
-              
-              if (isEmpty) {
-                const fieldSchema = sectionSchema.properties[requiredField];
-                const fieldTitle = fieldSchema?.title || requiredField;
-                const sectionTitle = sectionSchema.title || sectionKey;
-                errors.push(`${sectionTitle}: ${fieldTitle} is required`);
-              } else {
-                // Custom validation for registration fields
-                if (requiredField.toLowerCase().includes('registration') || 
-                    requiredField.toLowerCase() === 'gstNumber' ||
-                    requiredField.toLowerCase() === 'jobProviderRegistration') {
-                  const validation = validateRegistrationNumber(fieldValue);
-                  if (!validation.isValid && fieldValue.trim() !== '') {
-                    const fieldSchema = sectionSchema.properties[requiredField];
-                    const fieldTitle = fieldSchema?.title || requiredField;
-                    const sectionTitle = sectionSchema.title || sectionKey;
-                    errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+            // Check required fields
+            if (sectionSchema.required) {
+              sectionSchema.required.forEach((requiredField: string) => {
+                const fieldValue = formData[sectionKey][requiredField];
+                
+                // Check if field is empty, null, undefined, whitespace-only, or empty array
+                const isEmpty = fieldValue === null || 
+                               fieldValue === undefined || 
+                               fieldValue === '' || 
+                               (typeof fieldValue === 'string' && fieldValue.trim() === '') ||
+                               (Array.isArray(fieldValue) && fieldValue.length === 0);
+                
+                if (isEmpty) {
+                  const fieldSchema = sectionSchema.properties[requiredField];
+                  const fieldTitle = fieldSchema?.title || requiredField;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} is required`);
+                } else {
+                  // Custom validation for registration fields
+                  if (requiredField.toLowerCase().includes('registration') || 
+                      requiredField.toLowerCase() === 'gstNumber' ||
+                      requiredField.toLowerCase() === 'jobProviderRegistration') {
+                    const validation = validateRegistrationNumber(fieldValue);
+                    if (!validation.isValid && fieldValue.trim() !== '') {
+                      const fieldSchema = sectionSchema.properties[requiredField];
+                      const fieldTitle = fieldSchema?.title || requiredField;
+                      const sectionTitle = sectionSchema.title || sectionKey;
+                      errors.push(`${sectionTitle}: ${fieldTitle} - ${validation.description}`);
+                    }
                   }
+                  
+                  // Additional validation for job provider name, job title, and job provider location to prevent whitespace-only values
+                  if (requiredField === 'jobProviderName' || requiredField === 'title' || requiredField === 'jobProviderLocation') {
+                    if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
+                      const fieldSchema = sectionSchema.properties[requiredField];
+                      const fieldTitle = fieldSchema?.title || requiredField;
+                      const sectionTitle = sectionSchema.title || sectionKey;
+                      errors.push(`${sectionTitle}: ${fieldTitle} cannot be empty or contain only spaces`);
+                    }
+                  }
+                }
+              });
+            }
+
+            // Check numeric constraints for all fields (not just required ones)
+            Object.entries(sectionSchema.properties).forEach(([fieldKey, fieldSchema]) => {
+              const fieldValue = formData[sectionKey][fieldKey];
+              const field = fieldSchema as any;
+              
+              // Only validate if field has a value and is a number type
+              if (fieldValue !== null && fieldValue !== undefined && fieldValue !== '' && 
+                  (field.type === 'number' || field.type === 'integer')) {
+                
+                const numValue = Number(fieldValue);
+                
+                // Check minimum constraint
+                if (field.minimum !== undefined && numValue < field.minimum) {
+                  const fieldTitle = field.title || fieldKey;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} must be at least ${field.minimum}`);
+                }
+                
+                // Check maximum constraint
+                if (field.maximum !== undefined && numValue > field.maximum) {
+                  const fieldTitle = field.title || fieldKey;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} must be no more than ${field.maximum.toLocaleString()}`);
                 }
               }
             });
@@ -416,6 +454,18 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       fieldKey.toLowerCase().includes('terms') ||
       fieldKey.toLowerCase().includes('proof')
     )) {
+      const handleTextareaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
+        const inputValue = e.target.value;
+        
+        // Check for whitespace-only values for required fields
+        if (isRequired && typeof inputValue === 'string' && inputValue.trim() === '') {
+          toast.error(`${fieldSchema.title || fieldKey} cannot be empty or contain only spaces`);
+          e.target.classList.add('border-red-300');
+        } else {
+          e.target.classList.remove('border-red-300');
+        }
+      };
+
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>{fieldLabel}</Label>
@@ -423,9 +473,10 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             id={fieldId}
             value={value || ''}
             onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.value)}
+            onBlur={handleTextareaBlur}
             placeholder={fieldSchema.description}
             rows={4}
-            className={`resize-none ${isRequired && !value ? 'border-red-300' : ''}`}
+            className={`resize-none ${isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}`}
           />
         </div>
       );
@@ -558,6 +609,23 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         const selectedItems = items || [];
         const hasOther = selectedItems.includes('other');
         
+        // Add search state for education fields
+        const isEducationField = fieldKey === 'minEducationLevel' || fieldKey.endsWith('.minEducationLevel');
+        const isItiSpecialtyField = fieldKey === 'itiSpecialtyPreference' || fieldKey.endsWith('.itiSpecialtyPreference');
+        const needsSearch = isEducationField || isItiSpecialtyField;
+        
+        // Use the base field key for search queries (remove subsection prefix if present)
+        const searchKey = fieldKey.includes('.') ? fieldKey.split('.').pop() || fieldKey : fieldKey;
+        
+        // Filter options based on search query for education fields
+        const filteredOptions = needsSearch 
+          ? fieldSchema.items.enum.filter((option: string, index: number) => {
+              const optionName = fieldSchema.items.enumNames?.[index] || option;
+              const searchQuery = searchQueries[searchKey] || '';
+              return optionName.toLowerCase().includes(searchQuery.toLowerCase());
+            })
+          : fieldSchema.items.enum;
+        
         const handleOptionToggle = (option: string) => {
           let newItems: string[];
           if (selectedItems.includes(option)) {
@@ -594,7 +662,23 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                 <DropdownMenuLabel>{fieldSchema.title}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                {fieldSchema.items.enum.map((option: string, index: number) => (
+                
+                {/* Search input for education fields */}
+                {needsSearch && (
+                  <>
+                    <div className="px-2 py-1">
+                      <Input
+                        placeholder={`Search ${isEducationField ? 'education' : 'ITI specialty'} options...`}
+                        value={searchQueries[searchKey] || ''}
+                        onChange={(e) => setSearchQueries({ ...searchQueries, [searchKey]: e.target.value })}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
+                
+                {filteredOptions.map((option: string, index: number) => (
                   <DropdownMenuCheckboxItem
                     key={option}
                     checked={selectedItems.includes(option)}
@@ -606,6 +690,13 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                     {fieldSchema.items.enumNames?.[index] || option}
                   </DropdownMenuCheckboxItem>
                 ))}
+                
+                {/* Show message if no options match search */}
+                {needsSearch && filteredOptions.length === 0 && searchQueries[searchKey] && (
+                  <div className="px-2 py-1 text-sm text-muted-foreground">
+                    No options match your search.
+                  </div>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
             
@@ -683,26 +774,125 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
 
     // Handle number fields
     if (fieldSchema.type === 'number' || fieldSchema.type === 'integer') {
+      const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const inputValue = e.target.value;
+        
+        // Allow empty values
+        if (inputValue === '') {
+          updateFormData(sectionKey, fieldKey, null);
+          return;
+        }
+        
+        // For integer fields (like age), be more lenient during typing
+        const isIntegerField = fieldSchema.type === 'integer';
+        
+        // Allow partial input for integers (like typing "2" when going to "25")
+        if (isIntegerField && /^\d*$/.test(inputValue)) {
+          const numValue = parseInt(inputValue, 10);
+          if (!isNaN(numValue)) {
+            // Only validate constraints if we have a complete number that seems intentional
+            // Don't validate single digits as they might be part of a larger number
+            if (inputValue.length > 1 || numValue >= 10) {
+              if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+                toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+                return;
+              }
+              
+              if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+                toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum}`);
+                return;
+              }
+            }
+            
+            updateFormData(sectionKey, fieldKey, numValue);
+            return;
+          }
+        }
+        
+        // For number fields (not integers), parse as float
+        const numValue = Number(inputValue);
+        
+        // Check if it's a valid number
+        if (isNaN(numValue)) {
+          toast.error(`${fieldSchema.title || fieldKey} must be a valid number`);
+          return; // Don't update the form data with invalid number
+        }
+        
+        // Check constraints while typing for non-integer fields
+        if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+          return; // Don't update the form data with value below minimum
+        }
+        
+        if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum.toLocaleString()}`);
+          return; // Don't update the form data with value above maximum
+        }
+        
+        // Update the form data only if validation passes
+        updateFormData(sectionKey, fieldKey, numValue);
+      };
+
+      const handleNumberBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        // More thorough validation when user leaves the field
+        const inputValue = e.target.value;
+        
+        if (inputValue === '') {
+          return;
+        }
+        
+        const isIntegerField = fieldSchema.type === 'integer';
+        const numValue = isIntegerField ? parseInt(inputValue, 10) : Number(inputValue);
+        
+        // If invalid number, clear the field
+        if (isNaN(numValue)) {
+          toast.error(`${fieldSchema.title || fieldKey} must be a valid ${isIntegerField ? 'whole number' : 'number'}`);
+          e.target.value = '';
+          updateFormData(sectionKey, fieldKey, null);
+          return;
+        }
+        
+        // Validate constraints on blur (when user is done typing)
+        if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
+          e.target.value = fieldSchema.minimum.toString();
+          updateFormData(sectionKey, fieldKey, fieldSchema.minimum);
+          return;
+        }
+        
+        if (fieldSchema.maximum !== undefined && numValue > fieldSchema.maximum) {
+          toast.error(`${fieldSchema.title || fieldKey} must be no more than ${fieldSchema.maximum}`);
+          e.target.value = fieldSchema.maximum.toString();
+          updateFormData(sectionKey, fieldKey, fieldSchema.maximum);
+          return;
+        }
+        
+        // Ensure the input shows the correct value from form data
+        const currentFormValue = formData[sectionKey]?.[fieldKey];
+        if (currentFormValue !== null && currentFormValue !== undefined) {
+          e.target.value = currentFormValue.toString();
+        }
+      };
+
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>
             {fieldLabel}
-            {fieldSchema.minimum !== undefined && fieldSchema.maximum !== undefined && (
-              <span className="text-sm font-normal text-muted-foreground ml-1">
-                ({fieldSchema.minimum} - {fieldSchema.maximum})
-              </span>
-            )}
           </Label>
           <Input
             id={fieldId}
             type="number"
             value={value || ''}
-            onChange={(e) => updateFormData(sectionKey, fieldKey, Number(e.target.value))}
+            onChange={handleNumberChange}
+            onBlur={handleNumberBlur}
             placeholder={fieldSchema.description}
             min={fieldSchema.minimum}
             max={fieldSchema.maximum}
             className={`[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${isRequired && !value ? 'border-red-300' : ''}`}
           />
+          {/* {fieldSchema.description && (
+            <p className="text-sm text-muted-foreground">{fieldSchema.description}</p>
+          )} */}
         </div>
       );
     }
@@ -748,6 +938,18 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     }
 
     // Default string input
+    const handleStringBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      const inputValue = e.target.value;
+      
+      // Check for whitespace-only values for required fields
+      if (isRequired && typeof inputValue === 'string' && inputValue.trim() === '') {
+        toast.error(`${fieldSchema.title || fieldKey} cannot be empty or contain only spaces`);
+        e.target.classList.add('border-red-300');
+      } else {
+        e.target.classList.remove('border-red-300');
+      }
+    };
+
     return (
       <div key={fieldKey} className="space-y-2">
         <Label htmlFor={fieldId}>{fieldLabel}</Label>
@@ -755,8 +957,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           id={fieldId}
           value={value || ''}
           onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.value)}
+          onBlur={handleStringBlur}
           placeholder={fieldSchema.description}
-          className={isRequired && !value ? 'border-red-300' : ''}
+          className={isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}
         />
       </div>
     );

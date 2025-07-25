@@ -114,5 +114,17 @@ export const JOB_ROLES_BY_INDUSTRY = {
   ],
   'Recruitment Associate': [
     'Recruitment Associate'
+  ],
+  'Electrician': [
+    'Electrician'
+  ],
+  'Fitter': [
+    'Fitter'
+  ],
+  'Mechanic': [
+    'Mechanic'
+  ],
+  'Machine Operator': [
+    'Machine Operator'
   ]
 }; 
