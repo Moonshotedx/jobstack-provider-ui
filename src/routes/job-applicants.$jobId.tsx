@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
   MapPin,
@@ -17,11 +18,13 @@ import {
   ArrowDown,
   Loader2,
   CheckCircle,
-  XCircle
+  XCircle,
+  Map
 } from 'lucide-react';
 import ExportButton from '@/components/ExportButton';
 import type { JobApplicant } from '@/types/jobPost';
 import CandidateDetails from '@/components/CandidateDetails';
+import ApplicantMapView from '@/components/map/ApplicantMapView';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import React from 'react';
@@ -29,6 +32,7 @@ import Header from '@/components/Header';
 import { useGetJobApplications, useActiveOrganizationId, useGetJobs, useTakeApplicationAction } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
 import { toast } from 'sonner';
+import { convertApplicantsToMapLocations, calculateMapCenter, type ApplicantLocation } from '@/lib/map-utils';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
@@ -120,6 +124,12 @@ function JobApplicantsPage() {
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
   const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  
+  // Map-related state
+  const [applicantLocations, setApplicantLocations] = useState<ApplicantLocation[]>([]);
+  const [mapCenter, setMapCenter] = useState({ lat: 20.5937, lng: 78.9629 });
+  const [selectedMapApplicant, setSelectedMapApplicant] = useState<ApplicantLocation | null>(null);
+  const [isLoadingMap, setIsLoadingMap] = useState(false);
   // --- DYNAMIC TABLE COLUMN LOGIC START ---
   // Helper to format any cell value for safe rendering
   const formatValue = (value: any) => {
@@ -158,6 +168,34 @@ function JobApplicantsPage() {
   // Update filtered applicants when applicants data changes
   React.useEffect(() => {
     setFilteredApplicants(applicants);
+  }, [applicants]);
+
+  // Convert applicants to map locations
+  useEffect(() => {
+    const convertToMapLocations = async () => {
+      if (applicants.length === 0) {
+        setApplicantLocations([]);
+        return;
+      }
+
+      setIsLoadingMap(true);
+      try {
+        const locations = await convertApplicantsToMapLocations(applicants);
+        setApplicantLocations(locations);
+        
+        // Update map center based on locations
+        if (locations.length > 0) {
+          const center = calculateMapCenter(locations);
+          setMapCenter(center);
+        }
+      } catch (error) {
+        console.error('Error converting applicants to map locations:', error);
+      } finally {
+        setIsLoadingMap(false);
+      }
+    };
+
+    convertToMapLocations();
   }, [applicants]);
   // Sorting handler
   const handleSort = (column: 'trustScore' | 'matchScore') => {
@@ -216,6 +254,21 @@ function JobApplicantsPage() {
   const handleCloseCandidateDetails = () => {
     setShowCandidateDetails(false);
     setSelectedCandidate(null);
+  };
+
+  // Map click handler
+  const handleMapApplicantClick = (applicant: ApplicantLocation) => {
+    setSelectedMapApplicant(applicant);
+    
+    // Find the corresponding JobApplicant and open details
+    const correspondingApplicant = applicants.find(app => app.id === applicant.id);
+    if (correspondingApplicant) {
+      const originalApplication = applications?.find(app => app.id === correspondingApplicant.id);
+      if (originalApplication) {
+        setSelectedCandidate(originalApplication);
+        setShowCandidateDetails(true);
+      }
+    }
   };
 
   // Handle application actions (accept/reject)
@@ -567,118 +620,164 @@ function JobApplicantsPage() {
           </CardContent>
         </Card>
 
-        {/* Applicants Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Applicants</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-4 font-medium">Name</th>
-                    <th className="text-left p-4 font-medium">Location</th>
-                    <th className="text-left p-4 font-medium">Age</th>
-                    {/* Dynamically render whatIWant columns */}
-                    {allWhatIWantKeys.map(key => (
-                      <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
-                    ))}
-                    <th className="text-left p-4 font-medium">
-                      <div className="flex items-center gap-1">
-                        Trust Score
-                        <button
-                          type="button"
-                          className={sortBy === 'trustScore' ? 'text-blue-600' : 'text-gray-400'}
-                          onClick={e => { e.stopPropagation(); handleSort('trustScore'); }}
-                        >
-                          {sortBy === 'trustScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
-                        </button>
-                      </div>
-                    </th>
-                    <th className="text-left p-4 font-medium">
-                      <div className="flex items-center gap-1">
-                        Match Score
-                        <button
-                          type="button"
-                          className={sortBy === 'matchScore' ? 'text-green-600' : 'text-gray-400'}
-                          onClick={e => { e.stopPropagation(); handleSort('matchScore'); }}
-                        >
-                          {sortBy === 'matchScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
-                        </button>
-                      </div>
-                    </th>
-                    <th className="text-left p-4 font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredApplicants.length > 0 ? (
-                    filteredApplicants.map((applicant) => (
-                      <tr 
-                        key={applicant.id} 
-                        className="border-b hover:bg-muted/50 cursor-pointer"
-                        onClick={() => handleViewCandidate(applicant)}
-                      >
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-8 w-8">
-                              <AvatarImage src={applicant.avatar} alt={applicant.name} />
-                              <AvatarFallback>{getInitials(applicant.name)}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{applicant.name}</p>
-                              <p className="text-sm text-muted-foreground">{applicant.experience}</p>
-                            </div>
-                          </div>
-                        </td>
-                        {/* Use whoIAm.location for location */}
-                        <td className="p-4">
-                          <div className="flex items-center gap-1 text-sm">
-                            <MapPin className="h-3 w-3" />
-                            {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
-                          </div>
-                        </td>
-                        <td className="p-4">
-                          <span className="text-sm font-medium">{applicant.age} years</span>
-                        </td>
-                        {/* Render all whatIWant fields */}
+        {/* Tabs for Table and Map Views */}
+        <Tabs defaultValue="table" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="table" className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Table View
+            </TabsTrigger>
+            <TabsTrigger value="map" className="flex items-center gap-2">
+              <Map className="h-4 w-4" />
+              Map View
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="table" className="mt-6">
+            {/* Applicants Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Applicants</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-4 font-medium">Name</th>
+                        <th className="text-left p-4 font-medium">Location</th>
+                        <th className="text-left p-4 font-medium">Age</th>
+                        {/* Dynamically render whatIWant columns */}
                         {allWhatIWantKeys.map(key => (
-                          <td key={key} className="p-4">
-                            <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
-                          </td>
+                          <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
                         ))}
-                        <td className="p-4">
+                        <th className="text-left p-4 font-medium">
                           <div className="flex items-center gap-1">
-                            <Star className="h-3 w-3 text-blue-600" />
-                            <span className="text-sm font-medium">{applicant.trustScore}%</span>
+                            Trust Score
+                            <button
+                              type="button"
+                              className={sortBy === 'trustScore' ? 'text-blue-600' : 'text-gray-400'}
+                              onClick={e => { e.stopPropagation(); handleSort('trustScore'); }}
+                            >
+                              {sortBy === 'trustScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
+                            </button>
                           </div>
-                        </td>
-                        <td className="p-4">
+                        </th>
+                        <th className="text-left p-4 font-medium">
                           <div className="flex items-center gap-1">
-                            <TrendingUp className="h-3 w-3 text-green-600" />
-                            <span className="text-sm font-medium">{applicant.matchScore}%</span>
+                            Match Score
+                            <button
+                              type="button"
+                              className={sortBy === 'matchScore' ? 'text-green-600' : 'text-gray-400'}
+                              onClick={e => { e.stopPropagation(); handleSort('matchScore'); }}
+                            >
+                              {sortBy === 'matchScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
+                            </button>
                           </div>
-                        </td>
-                        <td className="p-4">
-                          {renderActionButtons(applicant)}
-                        </td>
+                        </th>
+                        <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
-                    ))
+                    </thead>
+                    <tbody>
+                      {filteredApplicants.length > 0 ? (
+                        filteredApplicants.map((applicant) => (
+                          <tr 
+                            key={applicant.id} 
+                            className="border-b hover:bg-muted/50 cursor-pointer"
+                            onClick={() => handleViewCandidate(applicant)}
+                          >
+                            <td className="p-4">
+                              <div className="flex items-center gap-3">
+                                <Avatar className="h-8 w-8">
+                                  <AvatarImage src={applicant.avatar} alt={applicant.name} />
+                                  <AvatarFallback>{getInitials(applicant.name)}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <p className="font-medium">{applicant.name}</p>
+                                  <p className="text-sm text-muted-foreground">{applicant.experience}</p>
+                                </div>
+                              </div>
+                            </td>
+                            {/* Use whoIAm.location for location */}
+                            <td className="p-4">
+                              <div className="flex items-center gap-1 text-sm">
+                                <MapPin className="h-3 w-3" />
+                                {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <span className="text-sm font-medium">{applicant.age} years</span>
+                            </td>
+                            {/* Render all whatIWant fields */}
+                            {allWhatIWantKeys.map(key => (
+                              <td key={key} className="p-4">
+                                <span className="text-sm text-muted-foreground">{formatValue(applicant.whatIWant ? (applicant.whatIWant as any)[key] : undefined)}</span>
+                              </td>
+                            ))}
+                            <td className="p-4">
+                              <div className="flex items-center gap-1">
+                                <Star className="h-3 w-3 text-blue-600" />
+                                <span className="text-sm font-medium">{applicant.trustScore}%</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              <div className="flex items-center gap-1">
+                                <TrendingUp className="h-3 w-3 text-green-600" />
+                                <span className="text-sm font-medium">{applicant.matchScore}%</span>
+                              </div>
+                            </td>
+                            <td className="p-4">
+                              {renderActionButtons(applicant)}
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={11} className="p-8 text-center">
+                            <h3 className="text-lg font-medium mb-2">{t('search.noResults')}</h3>
+                            <p className="text-muted-foreground">
+                              No applicants found matching your criteria.
+                            </p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="map" className="mt-6">
+            {/* Map View */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Map className="h-5 w-5" />
+                  Applicant Locations
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-0">
+                <div className="h-[600px] w-full">
+                  {isLoadingMap ? (
+                    <div className="flex items-center justify-center h-full">
+                      <Loader2 className="h-8 w-8 animate-spin" />
+                      <span className="ml-2">Loading map...</span>
+                    </div>
                   ) : (
-                    <tr>
-                      <td colSpan={11} className="p-8 text-center">
-                        <h3 className="text-lg font-medium mb-2">{t('search.noResults')}</h3>
-                        <p className="text-muted-foreground">
-                          No applicants found matching your criteria.
-                        </p>
-                      </td>
-                    </tr>
+                    <ApplicantMapView
+                      applicants={applicantLocations}
+                      onApplicantClick={handleMapApplicantClick}
+                      selectedApplicant={selectedMapApplicant}
+                      mapCenter={mapCenter}
+                      zoom={5}
+                    />
                   )}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Candidate Details Dialog */}
