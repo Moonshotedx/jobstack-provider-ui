@@ -78,8 +78,40 @@ function JobApplicantsPage() {
         console.log(`📍 Location data for ${app.metadata.name || app.userName}:`, {
           structuredLocation: app.location,
           whoIAmLocation: nestedMetadata?.whoIAm?.location,
+          whoIAmLocationData: nestedMetadata?.whoIAm?.locationData,
           currentLocation: nestedMetadata?.currentLocation,
           extractedLocation: (() => {
+            // Use the same location data that's displayed in the table view
+            // This comes from metadata.whoIAm.location and locationData
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.whoIAm?.locationData) {
+              // If locationData is an object, extract the address
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'object') {
+                const locationData = app.metadata.metadata.whoIAm.locationData;
+                if (locationData.address) {
+                  return locationData.address;
+                }
+                if (locationData.city && locationData.state) {
+                  return `${locationData.city}, ${locationData.state}`;
+                }
+                if (locationData.city) {
+                  return locationData.city;
+                }
+                if (locationData.state) {
+                  return locationData.state;
+                }
+              }
+              // If it's a string, use it directly
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'string') {
+                return app.metadata.metadata.whoIAm.locationData;
+              }
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            // Fallback to structured location data if whoIAm data is not available
             if (app.location?.city?.name && app.location?.state?.name) {
               return `${app.location.city.name}, ${app.location.state.name}`;
             }
@@ -91,12 +123,6 @@ function JobApplicantsPage() {
             }
             if (app.location?.state?.name) {
               return app.location.state.name;
-            }
-            if (app.metadata?.metadata?.whoIAm?.location) {
-              return app.metadata.metadata.whoIAm.location;
-            }
-            if (app.metadata?.metadata?.currentLocation) {
-              return app.metadata.metadata.currentLocation;
             }
             return null;
           })(),
@@ -108,7 +134,37 @@ function JobApplicantsPage() {
           email: app.contact?.email || '',
           phone: app.contact?.phone || '',
           location: (() => {
-            // Try to get the most specific location information available
+            // Use the same location data that's displayed in the table view
+            // This comes from metadata.whoIAm.location and locationData
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.whoIAm?.locationData) {
+              // If locationData is an object, extract the address
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'object') {
+                const locationData = app.metadata.metadata.whoIAm.locationData;
+                if (locationData.address) {
+                  return locationData.address;
+                }
+                if (locationData.city && locationData.state) {
+                  return `${locationData.city}, ${locationData.state}`;
+                }
+                if (locationData.city) {
+                  return locationData.city;
+                }
+                if (locationData.state) {
+                  return locationData.state;
+                }
+              }
+              // If it's a string, use it directly
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'string') {
+                return app.metadata.metadata.whoIAm.locationData;
+              }
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            // Fallback to structured location data if whoIAm data is not available
             if (app.location?.city?.name && app.location?.state?.name) {
               return `${app.location.city.name}, ${app.location.state.name}`;
             }
@@ -120,12 +176,6 @@ function JobApplicantsPage() {
             }
             if (app.location?.state?.name) {
               return app.location.state.name;
-            }
-            if (app.metadata?.metadata?.whoIAm?.location) {
-              return app.metadata.metadata.whoIAm.location;
-            }
-            if (app.metadata?.metadata?.currentLocation) {
-              return app.metadata.metadata.currentLocation;
             }
             // If no location data is available, return null instead of a hardcoded fallback
             return null;
@@ -824,11 +874,11 @@ function JobApplicantsPage() {
                                 </div>
                               </div>
                             </td>
-                            {/* Use whoIAm.location for location */}
+                            {/* Use the location field from the applicant object */}
                             <td className="p-4">
                               <div className="flex items-center gap-1 text-sm">
                                 <MapPin className="h-3 w-3" />
-                                {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
+                                {applicant.location || applicant.experience || 'N/A'}
                               </div>
                             </td>
                             <td className="p-4">
