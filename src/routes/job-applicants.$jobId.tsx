@@ -32,7 +32,7 @@ import Header from '@/components/Header';
 import { useGetJobApplications, useActiveOrganizationId, useGetJobs, useTakeApplicationAction } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { convertApplicantsToMapLocations, calculateMapCenter, geocodeLocation, type ApplicantLocation } from '@/lib/map-utils';
+import { convertApplicantsToMapLocations, calculateMapCenter, testGeocoding, geocodeLocation, type ApplicantLocation } from '@/lib/map-utils';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
@@ -79,14 +79,7 @@ function JobApplicantsPage() {
           structuredLocation: app.location,
           whoIAmLocation: nestedMetadata?.whoIAm?.location,
           currentLocation: nestedMetadata?.currentLocation,
-        });
-        
-        return {
-          id: app.id, // Use the unique application ID as the primary identifier
-          name: app.metadata.name || app.userName || 'Unknown Candidate',
-          email: app.contact?.email || '',
-          phone: app.contact?.phone || '',
-          location: (() => {
+          extractedLocation: (() => {
             if (app.location?.city?.name && app.location?.state?.name) {
               return `${app.location.city.name}, ${app.location.state.name}`;
             }
@@ -105,7 +98,37 @@ function JobApplicantsPage() {
             if (app.metadata?.metadata?.currentLocation) {
               return app.metadata.metadata.currentLocation;
             }
-            return 'Mumbai, Maharashtra';
+            return null;
+          })(),
+        });
+        
+        return {
+          id: app.id, // Use the unique application ID as the primary identifier
+          name: app.metadata.name || app.userName || 'Unknown Candidate',
+          email: app.contact?.email || '',
+          phone: app.contact?.phone || '',
+          location: (() => {
+            // Try to get the most specific location information available
+            if (app.location?.city?.name && app.location?.state?.name) {
+              return `${app.location.city.name}, ${app.location.state.name}`;
+            }
+            if (app.location?.address) {
+              return app.location.address;
+            }
+            if (app.location?.city?.name) {
+              return app.location.city.name;
+            }
+            if (app.location?.state?.name) {
+              return app.location.state.name;
+            }
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            // If no location data is available, return null instead of a hardcoded fallback
+            return null;
           })(),
           age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
@@ -243,7 +266,29 @@ function JobApplicantsPage() {
 
       setIsLoadingMap(true);
       try {
+        console.log('🗺️ Starting map conversion for applicants:', applicants.map(a => ({
+          name: a.name,
+          location: a.location
+        })));
+        
+        // Temporary debugging: test geocoding for first 3 applicants
+        if (applicants.length > 0) {
+          console.log('🧪 Testing geocoding for first few applicants...');
+          for (let i = 0; i < Math.min(3, applicants.length); i++) {
+            const applicant = applicants[i];
+            if (applicant.location) {
+              await testGeocoding(applicant.location);
+            }
+          }
+        }
+        
         const locations = await convertApplicantsToMapLocations(applicants);
+        console.log('🗺️ Map conversion result:', locations.map(l => ({
+          name: l.name,
+          location: l.location,
+          coordinates: { lat: l.lat, lng: l.lng }
+        })));
+        
         setApplicantLocations(locations);
         
         // Only update map center based on applicant locations if no job location was set

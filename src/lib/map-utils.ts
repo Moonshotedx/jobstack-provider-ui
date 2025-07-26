@@ -20,14 +20,15 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
   if (!location) return null;
 
   try {
-    // Add "India" to the search query to improve accuracy for Indian locations
-    const searchQuery = location.includes('India') ? location : `${location}, India`;
+    // Clean and validate the location string
+    const cleanLocation = location.trim();
+    if (!cleanLocation) return null;
+
+    console.log(`🔍 Searching for coordinates: "${cleanLocation}"`);
     
-    console.log(`🔍 Searching for coordinates: "${searchQuery}"`);
-    
-    // Construct the API URL with better parameters for Indian locations
+    // First, try with the exact location string
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1&countrycodes=in&addressdetails=1`
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanLocation)}&format=json&limit=5&addressdetails=1&countrycodes=in&bounded=1&viewbox=68.1766451,8.0883064,97.4025619,37.09024`
     );
 
     if (!response.ok) {
@@ -37,40 +38,112 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
 
     const data = await response.json();
 
-    // If we get a result, return the coordinates
+    // If we get results, find the best match
     if (data && data.length > 0) {
-      const result = data[0];
-      console.log(`📍 Found location: "${result.display_name}"`);
-      return {
-        lat: parseFloat(result.lat),
-        lng: parseFloat(result.lon),
-      };
+      // Look for an exact or close match
+      const bestMatch = data.find((result: any) => {
+        const displayName = result.display_name.toLowerCase();
+        const searchTerms = cleanLocation.toLowerCase().split(',').map(term => term.trim());
+        
+        // Check if the location string appears in the result
+        return searchTerms.some(term => displayName.includes(term));
+      }) || data[0]; // Fallback to first result if no exact match
+
+      console.log(`📍 Found location: "${bestMatch.display_name}"`);
+      
+      // Validate that we're not getting a generic Indian location
+      const displayName = bestMatch.display_name.toLowerCase();
+      if (displayName.includes('bangalore') && !cleanLocation.toLowerCase().includes('bangalore')) {
+        console.warn(`⚠️ Got Bangalore coordinates for non-Bangalore location: "${cleanLocation}"`);
+        return null;
+      }
+      
+      // Additional validation: check if coordinates are within India bounds
+      const lat = parseFloat(bestMatch.lat);
+      const lng = parseFloat(bestMatch.lon);
+      
+      // India bounds: approximately 8°N to 37°N and 68°E to 97°E
+      if (lat < 8 || lat > 37 || lng < 68 || lng > 97) {
+        console.warn(`⚠️ Coordinates outside India bounds: ${lat}, ${lng} for location: "${cleanLocation}"`);
+        return null;
+      }
+      
+      return { lat, lng };
     }
 
-    // If no result with "India", try without it
-    if (!location.includes('India')) {
-      console.log(`🔄 Retrying without "India" suffix: "${location}"`);
+    // If no result, try with "India" suffix
+    if (!cleanLocation.includes('India')) {
+      console.log(`🔄 Retrying with "India" suffix: "${cleanLocation}, India"`);
       const retryResponse = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1&countrycodes=in&addressdetails=1`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(cleanLocation + ', India')}&format=json&limit=5&addressdetails=1&countrycodes=in&bounded=1&viewbox=68.1766451,8.0883064,97.4025619,37.09024`
       );
 
       if (retryResponse.ok) {
         const retryData = await retryResponse.json();
         if (retryData && retryData.length > 0) {
-          const result = retryData[0];
-          console.log(`📍 Found location (retry): "${result.display_name}"`);
-          return {
-            lat: parseFloat(result.lat),
-            lng: parseFloat(result.lon),
-          };
+          const bestMatch = retryData.find((result: any) => {
+            const displayName = result.display_name.toLowerCase();
+            const searchTerms = cleanLocation.toLowerCase().split(',').map(term => term.trim());
+            return searchTerms.some(term => displayName.includes(term));
+          }) || retryData[0];
+
+          console.log(`📍 Found location (retry): "${bestMatch.display_name}"`);
+          
+          // Validate that we're not getting a generic Indian location
+          const displayName = bestMatch.display_name.toLowerCase();
+          if (displayName.includes('bangalore') && !cleanLocation.toLowerCase().includes('bangalore')) {
+            console.warn(`⚠️ Got Bangalore coordinates for non-Bangalore location: "${cleanLocation}"`);
+            return null;
+          }
+          
+          // Additional validation: check if coordinates are within India bounds
+          const lat = parseFloat(bestMatch.lat);
+          const lng = parseFloat(bestMatch.lon);
+          
+          // India bounds: approximately 8°N to 37°N and 68°E to 97°E
+          if (lat < 8 || lat > 37 || lng < 68 || lng > 97) {
+            console.warn(`⚠️ Coordinates outside India bounds: ${lat}, ${lng} for location: "${cleanLocation}"`);
+            return null;
+          }
+          
+          return { lat, lng };
         }
       }
     }
 
-    console.warn(`❌ No coordinates found for location: "${location}"`);
+    console.warn(`❌ No coordinates found for location: "${cleanLocation}"`);
     return null;
   } catch (error) {
     console.error('Error during geocoding:', error);
+    return null;
+  }
+};
+
+// Test function to debug geocoding issues
+export const testGeocoding = async (location: string) => {
+  console.log(`🧪 Testing geocoding for: "${location}"`);
+  
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=5&addressdetails=1&countrycodes=in&bounded=1&viewbox=68.1766451,8.0883064,97.4025619,37.09024`
+    );
+
+    if (!response.ok) {
+      console.error('API request failed:', response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    console.log('API Response:', data);
+    
+    if (data && data.length > 0) {
+      console.log('First result:', data[0]);
+      return data[0];
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('Test geocoding error:', error);
     return null;
   }
 };
@@ -83,7 +156,13 @@ export const convertApplicantsToMapLocations = async (
 
   for (const applicant of applicants) {
     // Use the location field that's already set in the applicants mapping
-    const locationString = applicant.location || 'Mumbai'; // Default fallback
+    const locationString = applicant.location;
+
+    // Skip if no location is available
+    if (!locationString) {
+      console.warn(`⚠️ No location available for ${applicant.name}, skipping map location`);
+      continue;
+    }
 
     console.log(`📍 Geocoding location for ${applicant.name}: "${locationString}"`);
 
@@ -107,7 +186,7 @@ export const convertApplicantsToMapLocations = async (
         expectedSalary: applicant.expectedSalary,
       });
     } else {
-      console.warn(`❌ No coordinates found for ${applicant.name} at location: "${locationString}"`);
+      console.warn(`❌ No coordinates found for ${applicant.name} at location: "${locationString}" - skipping map location`);
     }
   }
 
