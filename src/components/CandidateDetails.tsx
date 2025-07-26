@@ -392,9 +392,19 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
   };
 
   const getCandidateSkills = () => {
-    return candidate.metadata?.skills || 
-           candidate.metadata?.metadata?.skills || 
-           [];
+    const skills = candidate.metadata?.skills || 
+                   candidate.metadata?.metadata?.skills || 
+                   [];
+    
+    // Handle skills that might be objects with name property
+    return skills.map(skill => {
+      if (typeof skill === 'string') {
+        return skill;
+      } else if (skill && typeof skill === 'object' && 'name' in skill) {
+        return (skill as any).name;
+      }
+      return String(skill);
+    });
   };
 
   const getCandidateLanguages = () => {

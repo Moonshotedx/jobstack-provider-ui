@@ -32,7 +32,7 @@ import Header from '@/components/Header';
 import { useGetJobApplications, useActiveOrganizationId, useGetJobs, useTakeApplicationAction } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { convertApplicantsToMapLocations, calculateMapCenter, type ApplicantLocation } from '@/lib/map-utils';
+import { convertApplicantsToMapLocations, calculateMapCenter, testGeocoding, geocodeLocation, type ApplicantLocation } from '@/lib/map-utils';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
@@ -74,18 +74,126 @@ function JobApplicantsPage() {
         // Extract nested metadata if available
         const nestedMetadata = app.metadata.metadata;
         
+        // Debug location data
+        console.log(`📍 Location data for ${app.metadata.name || app.userName}:`, {
+          structuredLocation: app.location,
+          whoIAmLocation: nestedMetadata?.whoIAm?.location,
+          whoIAmLocationData: nestedMetadata?.whoIAm?.locationData,
+          currentLocation: nestedMetadata?.currentLocation,
+          extractedLocation: (() => {
+            // Use the same location data that's displayed in the table view
+            // This comes from metadata.whoIAm.location and locationData
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.whoIAm?.locationData) {
+              // If locationData is an object, extract the address
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'object') {
+                const locationData = app.metadata.metadata.whoIAm.locationData;
+                if (locationData.address) {
+                  return locationData.address;
+                }
+                if (locationData.city && locationData.state) {
+                  return `${locationData.city}, ${locationData.state}`;
+                }
+                if (locationData.city) {
+                  return locationData.city;
+                }
+                if (locationData.state) {
+                  return locationData.state;
+                }
+              }
+              // If it's a string, use it directly
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'string') {
+                return app.metadata.metadata.whoIAm.locationData;
+              }
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            // Fallback to structured location data if whoIAm data is not available
+            if (app.location?.city?.name && app.location?.state?.name) {
+              return `${app.location.city.name}, ${app.location.state.name}`;
+            }
+            if (app.location?.address) {
+              return app.location.address;
+            }
+            if (app.location?.city?.name) {
+              return app.location.city.name;
+            }
+            if (app.location?.state?.name) {
+              return app.location.state.name;
+            }
+            return null;
+          })(),
+        });
+        
         return {
           id: app.id, // Use the unique application ID as the primary identifier
           name: app.metadata.name || app.userName || 'Unknown Candidate',
           email: app.contact?.email || '',
           phone: app.contact?.phone || '',
-          location: app.location?.city?.name && app.location?.state?.name 
-            ? `${app.location.city.name}, ${app.location.state.name}`
-            : app.location?.address || '',
+          location: (() => {
+            // Use the same location data that's displayed in the table view
+            // This comes from metadata.whoIAm.location and locationData
+            if (app.metadata?.metadata?.whoIAm?.location) {
+              return app.metadata.metadata.whoIAm.location;
+            }
+            if (app.metadata?.metadata?.whoIAm?.locationData) {
+              // If locationData is an object, extract the address
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'object') {
+                const locationData = app.metadata.metadata.whoIAm.locationData;
+                if (locationData.address) {
+                  return locationData.address;
+                }
+                if (locationData.city && locationData.state) {
+                  return `${locationData.city}, ${locationData.state}`;
+                }
+                if (locationData.city) {
+                  return locationData.city;
+                }
+                if (locationData.state) {
+                  return locationData.state;
+                }
+              }
+              // If it's a string, use it directly
+              if (typeof app.metadata.metadata.whoIAm.locationData === 'string') {
+                return app.metadata.metadata.whoIAm.locationData;
+              }
+            }
+            if (app.metadata?.metadata?.currentLocation) {
+              return app.metadata.metadata.currentLocation;
+            }
+            // Fallback to structured location data if whoIAm data is not available
+            if (app.location?.city?.name && app.location?.state?.name) {
+              return `${app.location.city.name}, ${app.location.state.name}`;
+            }
+            if (app.location?.address) {
+              return app.location.address;
+            }
+            if (app.location?.city?.name) {
+              return app.location.city.name;
+            }
+            if (app.location?.state?.name) {
+              return app.location.state.name;
+            }
+            // If no location data is available, return null instead of a hardcoded fallback
+            return null;
+          })(),
           age: parseInt(app.metadata.age) || 0,
           appliedFor: jobDetails?.title || `Job ${jobId}`, // Use job title from API
           applicationDate: app.appliedAt || new Date().toISOString(),
-          status: app.status || 'applied', // Use the actual API status
+          status: (() => {
+            const apiStatus = app.status || 'applied';
+            // Map API statuses to display statuses for consistency
+            if (apiStatus === 'closed') {
+              return 'shortlisted';
+            }
+            if (apiStatus === 'rejected' || apiStatus === 'archived') {
+              return 'rejected';
+            }
+            return apiStatus;
+          })(),
           trustScore: 0, // No trust score available
           matchScore: 0, // No match score available
           experience: nestedMetadata?.whoIAm?.location || '',
@@ -170,6 +278,34 @@ function JobApplicantsPage() {
     setFilteredApplicants(applicants);
   }, [applicants]);
 
+  // Helper function to get job location (same logic as MyJobs component)
+  const getJobLocation = (job: any) => {
+    return job?.location?.city && job?.location?.state 
+      ? `${job.location.city}, ${job.location.state}`
+      : 'Location not specified';
+  };
+
+  // Set map center based on job location
+  useEffect(() => {
+    const setJobLocationCenter = async () => {
+      if (jobDetails) {
+        const jobLocation = getJobLocation(jobDetails);
+        if (jobLocation && jobLocation !== 'Location not specified') {
+          console.log(`🗺️ Setting map center based on job location: "${jobLocation}"`);
+          const coordinates = await geocodeLocation(jobLocation);
+          if (coordinates) {
+            console.log(`✅ Found coordinates for job location:`, coordinates);
+            setMapCenter(coordinates);
+          } else {
+            console.warn(`❌ Could not geocode job location: "${jobLocation}"`);
+          }
+        }
+      }
+    };
+
+    setJobLocationCenter();
+  }, [jobDetails]);
+
   // Convert applicants to map locations
   useEffect(() => {
     const convertToMapLocations = async () => {
@@ -180,11 +316,34 @@ function JobApplicantsPage() {
 
       setIsLoadingMap(true);
       try {
+        console.log('🗺️ Starting map conversion for applicants:', applicants.map(a => ({
+          name: a.name,
+          location: a.location
+        })));
+        
+        // Temporary debugging: test geocoding for first 3 applicants
+        if (applicants.length > 0) {
+          console.log('🧪 Testing geocoding for first few applicants...');
+          for (let i = 0; i < Math.min(3, applicants.length); i++) {
+            const applicant = applicants[i];
+            if (applicant.location) {
+              await testGeocoding(applicant.location);
+            }
+          }
+        }
+        
         const locations = await convertApplicantsToMapLocations(applicants);
+        console.log('🗺️ Map conversion result:', locations.map(l => ({
+          name: l.name,
+          location: l.location,
+          coordinates: { lat: l.lat, lng: l.lng }
+        })));
+        
         setApplicantLocations(locations);
         
-        // Update map center based on locations
-        if (locations.length > 0) {
+        // Only update map center based on applicant locations if no job location was set
+        // This preserves the job location as the primary center point
+        if (locations.length > 0 && mapCenter.lat === 20.5937 && mapCenter.lng === 78.9629) {
           const center = calculateMapCenter(locations);
           setMapCenter(center);
         }
@@ -196,7 +355,7 @@ function JobApplicantsPage() {
     };
 
     convertToMapLocations();
-  }, [applicants]);
+  }, [applicants, mapCenter]);
   // Sorting handler
   const handleSort = (column: 'trustScore' | 'matchScore') => {
     if (sortBy === column) {
@@ -215,7 +374,15 @@ function JobApplicantsPage() {
       filtered = filtered.filter(applicant =>
         applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.skills.some(skill => skill.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        applicant.skills.some(skill => {
+          // Handle both string and object skills
+          if (typeof skill === 'string') {
+            return skill.toLowerCase().includes(searchQuery.toLowerCase());
+          } else if (skill && typeof skill === 'object' && 'name' in skill) {
+            return (skill as any).name.toLowerCase().includes(searchQuery.toLowerCase());
+          }
+          return false;
+        }) ||
         applicant.whatIHave?.jukiMachineExperience?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.whatIWant?.stayPreferences?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.whatIWant?.readyToMigrate?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -257,16 +424,26 @@ function JobApplicantsPage() {
   };
 
   // Map click handler
-  const handleMapApplicantClick = (applicant: ApplicantLocation) => {
+  const handleMapApplicantClick = (applicant: ApplicantLocation | null) => {
+    if (applicant === null) {
+      // Clear the selected applicant
+      setSelectedMapApplicant(null);
+      setSelectedCandidate(null);
+      setShowCandidateDetails(false);
+      return;
+    }
+    
     setSelectedMapApplicant(applicant);
     
-    // Find the corresponding JobApplicant and open details
+    // Find the corresponding JobApplicant but DON'T open the modal
+    // Only set the candidate data for the map card display
     const correspondingApplicant = applicants.find(app => app.id === applicant.id);
     if (correspondingApplicant) {
       const originalApplication = applications?.find(app => app.id === correspondingApplicant.id);
       if (originalApplication) {
         setSelectedCandidate(originalApplication);
-        setShowCandidateDetails(true);
+        // Don't open the modal - just show the map card
+        setShowCandidateDetails(false);
       }
     }
   };
@@ -337,12 +514,11 @@ function JobApplicantsPage() {
     const isAcceptLoading = loadingState === 'accept';
     const isRejectLoading = loadingState === 'reject';
     
-    // Find the original application to get the actual API status
-    const originalApplication = applications?.find(app => app.id === applicant.id);
-    const apiStatus = originalApplication?.status || applicant.status;
+    // Use the mapped status from the applicant object (consistent with map view)
+    const status = applicant.status;
 
-    // If status is "closed", show "Shortlisted"
-    if (apiStatus === 'closed') {
+    // If status is "shortlisted", show "Shortlisted"
+    if (status === 'shortlisted') {
       return (
         <div className="flex items-center gap-2">
           <CheckCircle className="h-4 w-4 text-green-600" />
@@ -351,8 +527,8 @@ function JobApplicantsPage() {
       );
     }
 
-    // If status is "rejected" or "archived", show "Rejected"
-    if (apiStatus === 'rejected' || apiStatus === 'archived') {
+    // If status is "rejected", show "Rejected"
+    if (status === 'rejected') {
       return (
         <div className="flex items-center gap-2">
           <XCircle className="h-4 w-4 text-red-600" />
@@ -362,8 +538,8 @@ function JobApplicantsPage() {
     }
 
     // If status is not "open", show the status as read-only
-    if (apiStatus !== 'open') {
-      const statusDisplay = apiStatus.charAt(0).toUpperCase() + apiStatus.slice(1);
+    if (status !== 'open') {
+      const statusDisplay = status.charAt(0).toUpperCase() + status.slice(1);
       return (
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-muted-foreground">{statusDisplay}</span>
@@ -698,11 +874,11 @@ function JobApplicantsPage() {
                                 </div>
                               </div>
                             </td>
-                            {/* Use whoIAm.location for location */}
+                            {/* Use the location field from the applicant object */}
                             <td className="p-4">
                               <div className="flex items-center gap-1 text-sm">
                                 <MapPin className="h-3 w-3" />
-                                {(applicant.whatIHave && (applicant.whatIHave as any).whoIAm?.location) || applicant.experience || applicant.location || 'N/A'}
+                                {applicant.location || applicant.experience || 'N/A'}
                               </div>
                             </td>
                             <td className="p-4">
