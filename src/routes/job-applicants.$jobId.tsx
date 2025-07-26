@@ -32,7 +32,7 @@ import Header from '@/components/Header';
 import { useGetJobApplications, useActiveOrganizationId, useGetJobs, useTakeApplicationAction } from '@/hooks/useJobsApi';
 import type { JobApplication } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { convertApplicantsToMapLocations, calculateMapCenter, type ApplicantLocation } from '@/lib/map-utils';
+import { convertApplicantsToMapLocations, calculateMapCenter, geocodeLocation, type ApplicantLocation } from '@/lib/map-utils';
 
 export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
@@ -205,6 +205,34 @@ function JobApplicantsPage() {
     setFilteredApplicants(applicants);
   }, [applicants]);
 
+  // Helper function to get job location (same logic as MyJobs component)
+  const getJobLocation = (job: any) => {
+    return job?.location?.city && job?.location?.state 
+      ? `${job.location.city}, ${job.location.state}`
+      : 'Location not specified';
+  };
+
+  // Set map center based on job location
+  useEffect(() => {
+    const setJobLocationCenter = async () => {
+      if (jobDetails) {
+        const jobLocation = getJobLocation(jobDetails);
+        if (jobLocation && jobLocation !== 'Location not specified') {
+          console.log(`🗺️ Setting map center based on job location: "${jobLocation}"`);
+          const coordinates = await geocodeLocation(jobLocation);
+          if (coordinates) {
+            console.log(`✅ Found coordinates for job location:`, coordinates);
+            setMapCenter(coordinates);
+          } else {
+            console.warn(`❌ Could not geocode job location: "${jobLocation}"`);
+          }
+        }
+      }
+    };
+
+    setJobLocationCenter();
+  }, [jobDetails]);
+
   // Convert applicants to map locations
   useEffect(() => {
     const convertToMapLocations = async () => {
@@ -218,8 +246,9 @@ function JobApplicantsPage() {
         const locations = await convertApplicantsToMapLocations(applicants);
         setApplicantLocations(locations);
         
-        // Update map center based on locations
-        if (locations.length > 0) {
+        // Only update map center based on applicant locations if no job location was set
+        // This preserves the job location as the primary center point
+        if (locations.length > 0 && mapCenter.lat === 20.5937 && mapCenter.lng === 78.9629) {
           const center = calculateMapCenter(locations);
           setMapCenter(center);
         }
@@ -231,7 +260,7 @@ function JobApplicantsPage() {
     };
 
     convertToMapLocations();
-  }, [applicants]);
+  }, [applicants, mapCenter]);
   // Sorting handler
   const handleSort = (column: 'trustScore' | 'matchScore') => {
     if (sortBy === column) {
