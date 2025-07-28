@@ -247,8 +247,9 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       const { city, state, address } = candidate.location;
       const parts = [];
       if (address) parts.push(address);
-      if (city?.name) parts.push(city.name);
-      if (state?.name) parts.push(state.name);
+      // Only add city and state if they're different from the address
+      if (city?.name && !address?.includes(city.name)) parts.push(city.name);
+      if (state?.name && !address?.includes(state.name)) parts.push(state.name);
       return parts.join(', ');
     }
     return candidate.metadata?.metadata?.whoIAm?.location || 
@@ -426,7 +427,9 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       // Skip null/undefined/empty values
       if (isEmptyValue(value)) return false;
       // Skip verification fields
-      if (typeof value === 'boolean' && (key === 'isNameVerified' || key === 'isAgeVerified')) return false;
+      if (key === 'isNameVerified' || key === 'isAgeVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified') return false;
+      // Skip any field that contains 'verified' in the name
+      if (key.toLowerCase().includes('verified')) return false;
       return true;
     });
 
@@ -612,6 +615,10 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   {Object.entries(candidate.metadata.metadata).map(([key, value]) => {
                     if (isEmptyValue(value) || typeof value === 'object') return null;
+                    // Skip verification fields
+                    if (key === 'isNameVerified' || key === 'isAgeVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified') return null;
+                    // Skip any field that contains 'verified' in the name
+                    if (key.toLowerCase().includes('verified')) return null;
                     return (
                       <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <div className="flex items-center gap-2">
