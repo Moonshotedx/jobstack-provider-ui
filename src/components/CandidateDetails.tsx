@@ -407,7 +407,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
   const renderSection = (title: string, data: any, icon: React.ReactNode) => {
     if (!data || typeof data !== 'object') return null;
 
-    const fields = Object.entries(data).filter(([key, value]) => {
+    const fields = Object.entries(data).filter(([, value]) => {
       // Skip media URLs (handled separately)
       if (typeof value === 'string' && isMediaUrl(value)) return false;
       // Skip null/undefined values
