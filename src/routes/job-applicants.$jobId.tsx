@@ -783,13 +783,8 @@ function JobApplicantsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="closed">Shortlisted</SelectItem>
-                  <SelectItem value="applied">Applied</SelectItem>
-                  <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                  <SelectItem value="hired">Hired</SelectItem>
+                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="archived">Archived/Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
