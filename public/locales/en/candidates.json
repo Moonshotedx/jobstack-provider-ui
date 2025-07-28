@@ -48,12 +48,15 @@
     "moreSkills": "+{{count}} more"
   },
   "status": {
+    "open": "Open",
+    "closed": "Closed",
     "applied": "Applied",
     "reviewed": "Reviewed", 
     "shortlisted": "Shortlisted",
     "interview": "Interview",
     "hired": "Hired",
-    "rejected": "Rejected"
+    "rejected": "Rejected",
+    "archived": "Archived"
   },
   "search": {
     "placeholder": "Search candidates by name, email, or skills...",

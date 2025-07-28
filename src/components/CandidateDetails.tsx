@@ -30,8 +30,7 @@ import {
   Award,
   GraduationCap,
   Globe,
-  MapPinIcon,
-  X
+  MapPinIcon
 } from 'lucide-react';
 import type { JobApplication } from '@/lib/api-client';
 import { useTranslation } from 'react-i18next';
@@ -289,24 +288,30 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status) {
+      case 'open': return 'bg-green-100 text-green-800';
+      case 'closed': return 'bg-gray-100 text-gray-800';
       case 'applied': return 'bg-blue-100 text-blue-800';
       case 'reviewed': return 'bg-yellow-100 text-yellow-800';
       case 'shortlisted': return 'bg-purple-100 text-purple-800';
       case 'interview': return 'bg-orange-100 text-orange-800';
       case 'hired': return 'bg-green-100 text-green-800';
       case 'rejected': return 'bg-red-100 text-red-800';
+      case 'archived': return 'bg-gray-100 text-gray-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
+      case 'open': return '🟢';
+      case 'closed': return '🔒';
       case 'applied': return '📝';
       case 'reviewed': return '👀';
       case 'shortlisted': return '⭐';
       case 'interview': return '🤝';
       case 'hired': return '✅';
       case 'rejected': return '❌';
+      case 'archived': return '📁';
       default: return '📋';
     }
   };
@@ -320,7 +325,12 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
 
   // Helper function to format field names
   const formatFieldName = (fieldName: string) => {
-    return fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    let formatted = fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    // Special case for taskVideo to show as "Task Media"
+    if (fieldName === 'taskVideo') {
+      formatted = 'Task Media';
+    }
+    return formatted;
   };
 
   // Helper function to get appropriate icon for a field
@@ -477,23 +487,13 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
         <DialogHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <User className="h-4 w-4 sm:h-5 sm:w-5" />
-              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
-                <span>{getCandidateName()}</span>
-                <span className="text-sm sm:text-base text-muted-foreground">- {jobTitle}</span>
-              </div>
-            </DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              className="h-8 w-8 p-0 sm:h-10 sm:w-10"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
+          <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+            <User className="h-4 w-4 sm:h-5 sm:w-5" />
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span>{getCandidateName()}</span>
+              <span className="text-sm sm:text-base text-muted-foreground">- {jobTitle}</span>
+            </div>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 sm:space-y-6">
@@ -510,7 +510,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                   <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-2">
                     <h2 className="text-xl sm:text-2xl font-bold">{getCandidateName()}</h2>
                     <Badge className={`${getStatusColor(candidate.status)} text-xs sm:text-sm`}>
-                      {getStatusIcon(candidate.status)} {t(`status.${candidate.status}`)}
+                      {getStatusIcon(candidate.status)} {t(`status.${candidate.status}`, candidate.status)}
                     </Badge>
                   </div>
                   

@@ -157,6 +157,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   const markersRef = useRef<L.Marker[]>([]);
   const clusterGroupRef = useRef<any>(null);
   const currentLocationMarkerRef = useRef<L.Marker | null>(null);
+  const previousSelectedApplicantRef = useRef<ApplicantLocation | null>(null);
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
 
@@ -385,7 +386,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         closeButton: false,
         autoClose: false,
         className: 'custom-popup',
-        offset: [0, -15], // Position popup above the marker
+        offset: [0, -35], // Position popup further above the marker to avoid covering it
         maxWidth: 300,
         minWidth: 200,
         maxHeight: 400,
@@ -409,6 +410,31 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       markersRef.current.push(marker);
     });
   }, [filteredApplicants, onApplicantClick]);
+
+  // Refresh cluster group when selectedApplicant changes to null (modal closed)
+  useEffect(() => {
+    // Check if we just closed the modal (had a selected applicant, now null)
+    if (previousSelectedApplicantRef.current && selectedApplicant === null && clusterGroupRef.current && mapInstanceRef.current) {
+      // Add a small delay to ensure the modal is fully closed before refreshing clusters
+      setTimeout(() => {
+        if (clusterGroupRef.current && mapInstanceRef.current) {
+          // Force refresh the cluster group to regain proper clustering
+          const currentCenter = mapInstanceRef.current.getCenter();
+          const currentZoom = mapInstanceRef.current.getZoom();
+          
+          // Temporarily remove and re-add the cluster group to force refresh
+          mapInstanceRef.current.removeLayer(clusterGroupRef.current);
+          mapInstanceRef.current.addLayer(clusterGroupRef.current);
+          
+          // Restore the view
+          mapInstanceRef.current.setView(currentCenter, currentZoom);
+        }
+      }, 100); // Small delay to ensure modal animation is complete
+    }
+    
+    // Update the previous selected applicant ref
+    previousSelectedApplicantRef.current = selectedApplicant || null;
+  }, [selectedApplicant]);
 
   // Map control handlers
   const handleZoomIn = () => {
