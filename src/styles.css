@@ -7,6 +7,153 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom popup styling for better mobile experience */
+.leaflet-popup {
+  margin-bottom: 15px !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 12px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  background: white !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 12px !important;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+}
+
+.leaflet-popup-tip-container {
+  margin-top: -1px !important;
+}
+
+.leaflet-popup-tip {
+  background: white !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom popup class for additional styling */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%) !important;
+}
+
+.custom-popup .leaflet-popup-content {
+  background: transparent !important;
+}
+
+/* Mobile-specific popup improvements */
+@media (max-width: 768px) {
+  .leaflet-popup {
+    margin-bottom: 20px !important;
+  }
+  
+  .leaflet-popup-content-wrapper {
+    max-width: 280px !important;
+    min-width: 240px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
+  }
+  
+  .leaflet-popup-content {
+    font-size: 14px !important;
+    line-height: 1.5 !important;
+  }
+  
+  /* Ensure popup doesn't get cut off on mobile */
+  .leaflet-popup {
+    z-index: 10000 !important;
+  }
+  
+  /* Better touch targets for close buttons */
+  .leaflet-popup-content button {
+    min-width: 32px !important;
+    min-height: 32px !important;
+    font-size: 18px !important;
+  }
+  
+  /* Improve marker touch targets */
+  .custom-marker {
+    min-width: 32px !important;
+    min-height: 32px !important;
+  }
+  
+  /* Better cluster touch targets */
+  .custom-cluster {
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+  
+  /* Ensure popups are properly positioned on mobile */
+  .leaflet-popup-tip {
+    width: 16px !important;
+    height: 8px !important;
+  }
+  
+  /* Improve popup positioning */
+  .leaflet-popup-content-wrapper {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  
+  /* Better scrolling for long popup content */
+  .leaflet-popup-content {
+    max-height: 60vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+}
+
+/* Additional mobile improvements for very small screens */
+@media (max-width: 480px) {
+  .leaflet-popup-content-wrapper {
+    max-width: 260px !important;
+    min-width: 220px !important;
+  }
+  
+  .leaflet-popup-content {
+    font-size: 13px !important;
+    padding: 8px !important;
+  }
+  
+  /* Smaller but still touchable buttons */
+  .leaflet-popup-content button {
+    min-width: 28px !important;
+    min-height: 28px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* Ensure popups are always visible and properly positioned */
+.leaflet-popup {
+  z-index: 1000 !important;
+}
+
+.leaflet-popup-close-button {
+  display: none !important; /* We're using custom close buttons */
+}
+
+/* Animation for popup appearance */
+.leaflet-popup {
+  animation: popupFadeIn 0.3s ease-out;
+}
+
+@keyframes popupFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
 
 @layer base {
