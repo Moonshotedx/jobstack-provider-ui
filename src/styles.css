@@ -47,6 +47,26 @@
   background: transparent !important;
 }
 
+/* Ensure markers are always visible above popups */
+.custom-marker {
+  z-index: 1001 !important;
+}
+
+/* Custom popup styling to ensure it doesn't cover markers */
+.custom-popup .leaflet-popup-content-wrapper {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+}
+
+.custom-popup .leaflet-popup-tip {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-top: none;
+  border-left: none;
+}
+
 /* Mobile-specific popup improvements */
 @media (max-width: 768px) {
   .leaflet-popup {
