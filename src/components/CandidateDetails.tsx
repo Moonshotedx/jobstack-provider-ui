@@ -15,8 +15,6 @@ import {
   User,
   Target,
   MessageCircle,
-  CheckCircle,
-  XCircle,
   Info,
   Briefcase,
   Heart,
@@ -29,11 +27,11 @@ import {
   AlertCircle,
   Play,
   Maximize2,
-  Eye,
   Award,
   GraduationCap,
   Globe,
-  MapPinIcon
+  MapPinIcon,
+  X
 } from 'lucide-react';
 import type { JobApplication } from '@/lib/api-client';
 import { useTranslation } from 'react-i18next';
@@ -96,7 +94,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     return 'unknown';
   };
 
-  // Enhanced media content renderer
+  // Enhanced media content renderer with mobile optimization
   const renderMediaContent = (url: string, title: string, className: string = '', fieldName?: string) => {
     if (!isMediaUrl(url)) return null;
 
@@ -114,20 +112,21 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {mediaType === 'video' ? (
-              <FileVideo className="h-5 w-5 text-blue-600" />
+              <FileVideo className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
             ) : (
-              <Image className="h-5 w-5 text-green-600" />
+              <Image className="h-4 w-4 sm:h-5 sm:w-5 text-green-600" />
             )}
-            <span className="font-semibold text-lg">{title}</span>
+            <span className="font-semibold text-base sm:text-lg">{title}</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => window.open(url, '_blank')}
-            className="flex items-center gap-1"
+            className="flex items-center gap-1 text-xs sm:text-sm"
           >
-            <Maximize2 className="h-4 w-4" />
-            Open in new tab
+            <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Open in new tab</span>
+            <span className="sm:hidden">Open</span>
           </Button>
         </div>
         
@@ -136,7 +135,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             <div className="relative">
               <video 
                 controls 
-                className="w-full max-h-80 object-contain bg-black"
+                className="w-full max-h-60 sm:max-h-80 object-contain bg-black"
                 preload="metadata"
                 onError={(e) => {
                   const target = e.target as HTMLVideoElement;
@@ -160,7 +159,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
               <img 
                 src={url} 
                 alt={title}
-                className="w-full max-h-80 object-contain"
+                className="w-full max-h-60 sm:max-h-80 object-contain"
                 loading="lazy"
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
@@ -177,8 +176,8 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
           )}
           
           <div className="media-error hidden absolute inset-0 flex items-center justify-center bg-gray-100">
-            <div className="text-center text-gray-500">
-              <AlertCircle className="h-8 w-8 mx-auto mb-2" />
+            <div className="text-center text-gray-500 p-4">
+              <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2" />
               <p className="text-sm">Failed to load media</p>
               <Button 
                 variant="outline"
@@ -276,10 +275,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     });
   };
 
-  const getCandidateLanguages = () => {
-    return candidate.metadata?.languages?.map(lang => lang.name) || [];
-  };
-
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -354,7 +349,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       interestedRole: <Briefcase className="h-4 w-4 text-muted-foreground" />,
       interestedIndustry: <Building2 className="h-4 w-4 text-muted-foreground" />,
       skills: <Award className="h-4 w-4 text-muted-foreground" />,
-      languages: <Globe className="h-4 w-4 text-muted-foreground" />,
       education: <GraduationCap className="h-4 w-4 text-muted-foreground" />,
       experience: <Briefcase className="h-4 w-4 text-muted-foreground" />,
       certificates: <Award className="h-4 w-4 text-muted-foreground" />
@@ -403,17 +397,26 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     return String(value);
   };
 
+  // Helper function to check if a value is empty or null
+  const isEmptyValue = (value: any): boolean => {
+    if (value === null || value === undefined) return true;
+    if (typeof value === 'string' && value.trim() === '') return true;
+    if (Array.isArray(value) && value.length === 0) return true;
+    if (typeof value === 'object' && Object.keys(value).length === 0) return true;
+    return false;
+  };
+
   // Render a section with dynamic fields
   const renderSection = (title: string, data: any, icon: React.ReactNode) => {
     if (!data || typeof data !== 'object') return null;
 
-    const fields = Object.entries(data).filter(([, value]) => {
+    const fields = Object.entries(data).filter(([key, value]) => {
       // Skip media URLs (handled separately)
       if (typeof value === 'string' && isMediaUrl(value)) return false;
-      // Skip null/undefined values
-      if (value === null || value === undefined) return false;
-      // Skip empty arrays
-      if (Array.isArray(value) && value.length === 0) return false;
+      // Skip null/undefined/empty values
+      if (isEmptyValue(value)) return false;
+      // Skip verification fields
+      if (typeof value === 'boolean' && (key === 'isNameVerified' || key === 'isAgeVerified')) return false;
       return true;
     });
 
@@ -421,19 +424,21 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
 
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
             {icon}
             {title}
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="space-y-3 sm:space-y-4">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {fields.map(([key, value]) => (
-              <div key={key} className="flex items-center gap-2">
-                {getFieldIcon(key)}
-                <span className="font-medium">{formatFieldName(key)}:</span>
-                <span>{formatFieldValue(value, key)}</span>
+              <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                <div className="flex items-center gap-2">
+                  {getFieldIcon(key)}
+                  <span className="font-medium text-sm sm:text-base">{formatFieldName(key)}:</span>
+                </div>
+                <span className="text-sm sm:text-base text-muted-foreground sm:ml-6">{formatFieldValue(value, key)}</span>
               </div>
             ))}
           </div>
@@ -442,23 +447,24 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     );
   };
 
-  // Render skills, languages, and other array fields
-  const renderArraySection = (title: string, data: any[], icon: React.ReactNode) => {
-    if (!data || data.length === 0) return null;
+  // Render skills array field
+  const renderSkillsSection = () => {
+    const skills = getCandidateSkills();
+    if (!skills || skills.length === 0) return null;
 
     return (
       <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            {icon}
-            {title}
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+            <Award className="h-4 w-4 sm:h-5 sm:w-5" />
+            Skills
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {data.map((item, index) => (
-              <Badge key={index} variant="secondary">
-                {typeof item === 'string' ? item : item.name || item.value || String(item)}
+            {skills.map((skill, index) => (
+              <Badge key={index} variant="secondary" className="text-xs sm:text-sm">
+                {typeof skill === 'string' ? skill : skill.name || skill.value || String(skill)}
               </Badge>
             ))}
           </div>
@@ -467,107 +473,85 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     );
   };
 
-  // Render verification status
-  const renderVerificationStatus = () => {
-    const whoIAm = candidate.metadata?.metadata?.whoIAm;
-    if (!whoIAm) return null;
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Eye className="h-5 w-5" />
-            Verification Status
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-6">
-            <div className="flex items-center gap-2">
-              {whoIAm.isNameVerified ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
-              )}
-              <span className="text-sm">Name Verified</span>
-            </div>
-            <div className="flex items-center gap-2">
-              {whoIAm.isAgeVerified ? (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              ) : (
-                <XCircle className="h-4 w-4 text-red-600" />
-              )}
-              <span className="text-sm">Age Verified</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            {getCandidateName()} - {jobTitle}
-          </DialogTitle>
+      <DialogContent className="max-w-6xl max-h-[95vh] overflow-y-auto p-4 sm:p-6">
+        <DialogHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <DialogTitle className="flex items-center gap-2 text-lg sm:text-xl">
+              <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+                <span>{getCandidateName()}</span>
+                <span className="text-sm sm:text-base text-muted-foreground">- {jobTitle}</span>
+              </div>
+            </DialogTitle>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClose}
+              className="h-8 w-8 p-0 sm:h-10 sm:w-10"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Header Section */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-start gap-6">
-                <Avatar className="h-20 w-20">
+            <CardContent className="p-4 sm:p-6">
+              <div className="flex flex-col sm:flex-row sm:items-start gap-4 sm:gap-6">
+                <Avatar className="h-16 w-16 sm:h-20 sm:w-20 mx-auto sm:mx-0">
                   <AvatarImage src="" alt={getCandidateName()} />
-                  <AvatarFallback className="text-lg">{getInitials(getCandidateName())}</AvatarFallback>
+                  <AvatarFallback className="text-base sm:text-lg">{getInitials(getCandidateName())}</AvatarFallback>
                 </Avatar>
                 
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h2 className="text-2xl font-bold">{getCandidateName()}</h2>
-                    <Badge className={getStatusColor(candidate.status)}>
+                <div className="flex-1 text-center sm:text-left">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-3 sm:mb-2">
+                    <h2 className="text-xl sm:text-2xl font-bold">{getCandidateName()}</h2>
+                    <Badge className={`${getStatusColor(candidate.status)} text-xs sm:text-sm`}>
                       {getStatusIcon(candidate.status)} {t(`status.${candidate.status}`)}
                     </Badge>
                   </div>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-muted-foreground mb-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                     {getCandidateEmail() && (
-                      <div className="flex items-center gap-2">
-                        <Mail className="h-4 w-4" />
-                        {getCandidateEmail()}
+                      <div className="flex items-center justify-center sm:justify-start gap-2">
+                        <Mail className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="truncate">{getCandidateEmail()}</span>
                       </div>
                     )}
                     {getCandidatePhone() && (
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-4 w-4" />
-                        {getCandidatePhone()}
+                      <div className="flex items-center justify-center sm:justify-start gap-2">
+                        <Phone className="h-3 w-3 sm:h-4 sm:w-4" />
+                        <span className="truncate">{getCandidatePhone()}</span>
                       </div>
                     )}
-                    <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4" />
-                      {getCandidateLocation()}
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="truncate">{getCandidateLocation()}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4" />
-                      Applied: {formatDate(candidate.appliedAt)}
+                    <div className="flex items-center justify-center sm:justify-start gap-2">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4" />
+                      <span className="truncate">Applied: {formatDate(candidate.appliedAt)}</span>
                     </div>
                   </div>
 
                   {getCandidateAge() && (
-                    <div className="flex items-center gap-6">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="h-4 w-4 text-blue-600" />
-                        <span className="font-medium">{getCandidateAge()} years old</span>
-                      </div>
+                    <div className="flex items-center justify-center sm:justify-start gap-2 mb-3 sm:mb-0">
+                      <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
+                      <span className="font-medium text-sm sm:text-base">{getCandidateAge()} years old</span>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-2">
-                  <Button onClick={handleContactCandidate} className="w-full">
-                    <MessageCircle className="h-4 w-4 mr-2" />
+                <div className="flex justify-center sm:justify-end">
+                  <Button 
+                    onClick={handleContactCandidate} 
+                    className="w-full sm:w-auto text-sm"
+                    size="sm"
+                  >
+                    <MessageCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
                     Contact
                   </Button>
                 </div>
@@ -581,13 +565,13 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             if (mediaUrls.length > 0) {
               return (
                 <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
-                      <FileVideo className="h-5 w-5" />
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                      <FileVideo className="h-4 w-4 sm:h-5 sm:w-5" />
                       Media Content
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-6">
+                  <CardContent className="space-y-4 sm:space-y-6">
                     {mediaUrls.map((media, index) => (
                       <div key={`media-${index}`} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
                         {renderMediaContent(media.url, media.title, '', media.fieldName)}
@@ -600,51 +584,41 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             return null;
           })()}
 
-          {/* Verification Status */}
-          {renderVerificationStatus()}
-
           {/* Who I Am Section */}
           {candidate.metadata?.metadata?.whoIAm && 
-           renderSection('Who I Am', candidate.metadata.metadata.whoIAm, <User className="h-5 w-5" />)}
+           renderSection('Who I Am', candidate.metadata.metadata.whoIAm, <User className="h-4 w-4 sm:h-5 sm:w-5" />)}
 
           {/* What I Have Section */}
           {candidate.metadata?.metadata?.whatIHave && 
-           renderSection('What I Have', candidate.metadata.metadata.whatIHave, <Briefcase className="h-5 w-5" />)}
+           renderSection('What I Have', candidate.metadata.metadata.whatIHave, <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />)}
 
           {/* What I Want Section */}
           {candidate.metadata?.metadata?.whatIWant && 
-           renderSection('What I Want', candidate.metadata.metadata.whatIWant, <Heart className="h-5 w-5" />)}
+           renderSection('What I Want', candidate.metadata.metadata.whatIWant, <Heart className="h-4 w-4 sm:h-5 sm:w-5" />)}
 
           {/* Skills Section */}
-          {getCandidateSkills().length > 0 && 
-           renderArraySection('Skills', getCandidateSkills(), <Award className="h-5 w-5" />)}
-
-          {/* Languages Section */}
-          {getCandidateLanguages().length > 0 && 
-           renderArraySection('Languages', getCandidateLanguages(), <Globe className="h-5 w-5" />)}
-
-          {/* Tags Section */}
-          {candidate.metadata?.tags && candidate.metadata.tags.length > 0 && 
-           renderArraySection('Tags', candidate.metadata.tags.map(tag => tag.descriptor?.name || tag.list?.[0]?.value || 'Tag'), <Info className="h-5 w-5" />)}
+          {renderSkillsSection()}
 
           {/* Additional Information for candidates without detailed metadata */}
           {!candidate.metadata?.metadata?.whoIAm && candidate.metadata?.metadata && (
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <Info className="h-5 w-5" />
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base sm:text-lg flex items-center gap-2">
+                  <Info className="h-4 w-4 sm:h-5 sm:w-5" />
                   Additional Information
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-1 gap-3 sm:gap-4">
                   {Object.entries(candidate.metadata.metadata).map(([key, value]) => {
-                    if (value === null || value === undefined || typeof value === 'object') return null;
+                    if (isEmptyValue(value) || typeof value === 'object') return null;
                     return (
-                      <div key={key} className="flex items-center gap-2">
-                        {getFieldIcon(key)}
-                        <span className="font-medium">{formatFieldName(key)}:</span>
-                        <span>{formatFieldValue(value, key)}</span>
+                      <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                        <div className="flex items-center gap-2">
+                          {getFieldIcon(key)}
+                          <span className="font-medium text-sm sm:text-base">{formatFieldName(key)}:</span>
+                        </div>
+                        <span className="text-sm sm:text-base text-muted-foreground sm:ml-6">{formatFieldValue(value, key)}</span>
                       </div>
                     );
                   })}
