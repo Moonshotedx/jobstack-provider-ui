@@ -3,7 +3,7 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -397,6 +397,8 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
 
       // Add click handler
       marker.on('click', () => {
+        // Set flag to maintain individual markers when user clicks on a marker
+        setMaintainIndividualMarkers(true);
         onApplicantClick?.(applicant);
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([applicant.lat, applicant.lng], 15, { // Zoom to level 15
@@ -411,30 +413,36 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     });
   }, [filteredApplicants, onApplicantClick]);
 
+  // Track if we should maintain individual markers (when user clicks on a marker)
+  const [maintainIndividualMarkers, setMaintainIndividualMarkers] = useState(false);
+
   // Refresh cluster group when selectedApplicant changes to null (modal closed)
   useEffect(() => {
     // Check if we just closed the modal (had a selected applicant, now null)
     if (previousSelectedApplicantRef.current && selectedApplicant === null && clusterGroupRef.current && mapInstanceRef.current) {
-      // Add a small delay to ensure the modal is fully closed before refreshing clusters
-      setTimeout(() => {
-        if (clusterGroupRef.current && mapInstanceRef.current) {
-          // Force refresh the cluster group to regain proper clustering
-          const currentCenter = mapInstanceRef.current.getCenter();
-          const currentZoom = mapInstanceRef.current.getZoom();
-          
-          // Temporarily remove and re-add the cluster group to force refresh
-          mapInstanceRef.current.removeLayer(clusterGroupRef.current);
-          mapInstanceRef.current.addLayer(clusterGroupRef.current);
-          
-          // Restore the view
-          mapInstanceRef.current.setView(currentCenter, currentZoom);
-        }
-      }, 100); // Small delay to ensure modal animation is complete
+      // Only refresh clusters if we're not maintaining individual markers
+      if (!maintainIndividualMarkers) {
+        // Add a small delay to ensure the modal is fully closed before refreshing clusters
+        setTimeout(() => {
+          if (clusterGroupRef.current && mapInstanceRef.current) {
+            // Force refresh the cluster group to regain proper clustering
+            const currentCenter = mapInstanceRef.current.getCenter();
+            const currentZoom = mapInstanceRef.current.getZoom();
+            
+            // Temporarily remove and re-add the cluster group to force refresh
+            mapInstanceRef.current.removeLayer(clusterGroupRef.current);
+            mapInstanceRef.current.addLayer(clusterGroupRef.current);
+            
+            // Restore the view
+            mapInstanceRef.current.setView(currentCenter, currentZoom);
+          }
+        }, 100); // Small delay to ensure modal animation is complete
+      }
     }
     
     // Update the previous selected applicant ref
     previousSelectedApplicantRef.current = selectedApplicant || null;
-  }, [selectedApplicant]);
+  }, [selectedApplicant, maintainIndividualMarkers]);
 
   // Map control handlers
   const handleZoomIn = () => {
@@ -481,6 +489,20 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     }
   };
 
+  const handleResetClustering = () => {
+    setMaintainIndividualMarkers(false);
+    if (clusterGroupRef.current && mapInstanceRef.current) {
+      // Force refresh the cluster group
+      const currentCenter = mapInstanceRef.current.getCenter();
+      const currentZoom = mapInstanceRef.current.getZoom();
+      
+      mapInstanceRef.current.removeLayer(clusterGroupRef.current);
+      mapInstanceRef.current.addLayer(clusterGroupRef.current);
+      
+      mapInstanceRef.current.setView(currentCenter, currentZoom);
+    }
+  };
+
   
 
   return (
@@ -511,6 +533,11 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
             {/* Stats */}
             <div className="text-xs text-muted-foreground">
               Showing {filteredApplicants.length} of {applicants.length} applicants
+              {maintainIndividualMarkers && (
+                <div className="mt-1 text-blue-600 font-medium">
+                  Individual markers active
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -542,6 +569,17 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         >
           <Crosshair className="h-4 w-4" />
         </Button>
+        {maintainIndividualMarkers && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
+            onClick={handleResetClustering}
+            title="Reset clustering"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       
       {/* Selected Applicant Info - Mobile Responsive */}
@@ -564,7 +602,10 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onApplicantClick?.(null)}
+                    onClick={() => {
+                      onApplicantClick?.(null);
+                      // Don't reset maintainIndividualMarkers here - let user decide
+                    }}
                     className="h-8 w-8 p-0 hover:bg-muted"
                   >
                     <X className="h-4 w-4" />
