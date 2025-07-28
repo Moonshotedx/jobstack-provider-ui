@@ -934,7 +934,7 @@ function JobApplicantsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[600px] w-full">
+                <div className="h-[600px] w-full map-container">
                   {isLoadingMap ? (
                     <div className="flex items-center justify-center h-full">
                       <Loader2 className="h-8 w-8 animate-spin" />
@@ -947,6 +947,14 @@ function JobApplicantsPage() {
                       selectedApplicant={selectedMapApplicant}
                       mapCenter={mapCenter}
                       zoom={5}
+                      onTakeAction={async (applicantId: string, action: 'accept' | 'reject') => {
+                        // Find the corresponding JobApplicant
+                        const correspondingApplicant = applicants.find(app => app.id === applicantId);
+                        if (correspondingApplicant) {
+                          await handleTakeAction(correspondingApplicant, action);
+                        }
+                      }}
+                      loadingStates={loadingStates}
                     />
                   )}
                 </div>
