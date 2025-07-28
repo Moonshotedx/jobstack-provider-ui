@@ -3,12 +3,13 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTakeApplicationAction, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -45,6 +46,8 @@ interface ApplicantMapViewProps {
   className?: string;
   mapCenter?: LatLng;
   zoom?: number;
+  onTakeAction?: (applicantId: string, action: 'accept' | 'reject') => Promise<void>;
+  loadingStates?: Record<string, 'accept' | 'reject' | null>;
 }
 
 // Create custom icons for different applicant statuses
@@ -142,7 +145,9 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   selectedApplicant,
   className = "w-full h-full",
   mapCenter = { lat: 20.5937, lng: 78.9629 }, // Center of India
-  zoom = 5
+  zoom = 5,
+  onTakeAction,
+  loadingStates = {}
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -152,29 +157,57 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
 
-  const handleAccept = () => {
-    if (selectedApplicant && activeOrganizationId) {
-      takeApplicationAction.mutate({
-        organizationId: activeOrganizationId,
-        actionData: {
-          applicationId: selectedApplicant.id,
-          action: 'accept',
-          applicationStatus: 'Shortlisted',
-        },
-      });
+  const handleAccept = async () => {
+    if (selectedApplicant) {
+      if (onTakeAction) {
+        try {
+          await onTakeAction(selectedApplicant.id, 'accept');
+          toast.success('Applicant accepted successfully');
+        } catch (error) {
+          toast.error('Failed to accept applicant');
+        }
+      } else if (activeOrganizationId) {
+        try {
+          await takeApplicationAction.mutateAsync({
+            organizationId: activeOrganizationId,
+            actionData: {
+              applicationId: selectedApplicant.id,
+              action: 'accept',
+              applicationStatus: 'Shortlisted',
+            },
+          });
+          toast.success('Applicant accepted successfully');
+        } catch (error) {
+          toast.error('Failed to accept applicant');
+        }
+      }
     }
   };
 
-  const handleReject = () => {
-    if (selectedApplicant && activeOrganizationId) {
-      takeApplicationAction.mutate({
-        organizationId: activeOrganizationId,
-        actionData: {
-          applicationId: selectedApplicant.id,
-          action: 'reject',
-          applicationStatus: 'Rejected',
-        },
-      });
+  const handleReject = async () => {
+    if (selectedApplicant) {
+      if (onTakeAction) {
+        try {
+          await onTakeAction(selectedApplicant.id, 'reject');
+          toast.success('Applicant rejected successfully');
+        } catch (error) {
+          toast.error('Failed to reject applicant');
+        }
+      } else if (activeOrganizationId) {
+        try {
+          await takeApplicationAction.mutateAsync({
+            organizationId: activeOrganizationId,
+            actionData: {
+              applicationId: selectedApplicant.id,
+              action: 'reject',
+              applicationStatus: 'Rejected',
+            },
+          });
+          toast.success('Applicant rejected successfully');
+        } catch (error) {
+          toast.error('Failed to reject applicant');
+        }
+      }
     }
   };
   
@@ -387,8 +420,8 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     <div className={`relative ${className}`}>
       <div ref={mapRef} className="w-full h-full" />
       
-      {/* Map Search and Filter Controls */}
-      <div className="absolute z-[1000] top-4 left-4 w-80">
+      {/* Map Search and Filter Controls - Mobile Responsive */}
+      <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
         <Card className="shadow-lg">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -416,8 +449,8 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         </Card>
       </div>
 
-      {/* Map Controls */}
-      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2">
+      {/* Map Controls - Mobile Responsive */}
+      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2 map-controls">
         <Button
           variant="outline"
           size="icon"
@@ -444,9 +477,9 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         </Button>
       </div>
       
-      {/* Selected Applicant Info */}
+      {/* Selected Applicant Info - Mobile Responsive */}
       {selectedApplicant && (
-        <div className="absolute z-[1000] top-4 left-96 w-80">
+        <div className="absolute z-[1000] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto map-applicant-card">
           <Card className="shadow-lg">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center justify-between">
@@ -472,7 +505,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-2 map-applicant-info">
               <div>
                 <h4 className="font-medium text-sm">{selectedApplicant.name}</h4>
                 <p className="text-xs text-muted-foreground">{selectedApplicant.location}</p>
@@ -487,7 +520,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
               </div>
               <div>
                 <div className="text-xs font-medium mb-1">Skills:</div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 map-skills">
                   {selectedApplicant.skills.slice(0, 5).map((skill, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {typeof skill === 'string' ? skill : skill.name}
@@ -500,24 +533,64 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   )}
                 </div>
               </div>
-              {/* Only show Accept/Reject if status is open or applied */}
+              
+              {/* Action Buttons - Show for open/applied status */}
               {(selectedApplicant.status === 'open' || selectedApplicant.status === 'applied') && (
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex gap-2 mt-4 map-action-buttons">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleReject}
-                    disabled={false}
+                    disabled={loadingStates[selectedApplicant.id] === 'reject' || loadingStates[selectedApplicant.id] === 'accept'}
+                    className="flex-1"
                   >
-                    Reject
+                    {loadingStates[selectedApplicant.id] === 'reject' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Rejecting...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </>
+                    )}
                   </Button>
                   <Button
                     size="sm"
                     onClick={handleAccept}
-                    disabled={false}
+                    disabled={loadingStates[selectedApplicant.id] === 'accept' || loadingStates[selectedApplicant.id] === 'reject'}
+                    className="flex-1"
                   >
-                    Accept
+                    {loadingStates[selectedApplicant.id] === 'accept' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Accepting...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Accept
+                      </>
+                    )}
                   </Button>
+                </div>
+              )}
+              
+              {/* Show status for other statuses */}
+              {(selectedApplicant.status === 'shortlisted' || selectedApplicant.status === 'rejected') && (
+                <div className="flex items-center gap-2 mt-4 p-2 bg-muted rounded">
+                  {selectedApplicant.status === 'shortlisted' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-600">Shortlisted</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-sm font-medium text-red-600">Rejected</span>
+                    </>
+                  )}
                 </div>
               )}
             </CardContent>
