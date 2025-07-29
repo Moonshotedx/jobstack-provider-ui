@@ -24,12 +24,19 @@ apiClient.interceptors.request.use(
         return config;
       }
       
-      await authClient.getSession(undefined, { credentials: 'include' });
-      // Don't add Authorization header - let cookies handle auth
+      // Check for auth token in localStorage/sessionStorage
+      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      
+      if (authToken) {
+        // Add Authorization header with the token
+        config.headers.Authorization = `Bearer ${authToken}`;
+      } else {
+        // Fallback to session check for cookie-based auth
+        await authClient.getSession(undefined, { credentials: 'include' });
+      }
     } catch (error) {
       // Silently handle session check errors in production
       // This prevents errors during logout when session is being cleared
-      console.debug('Session check failed (this is normal during logout):', error);
     }
     return config;
   },
@@ -381,30 +388,10 @@ export const getPresignedUrl = async (request: PresignedUrlRequest): Promise<Pre
   console.log('🚀 Getting presigned URL:', request);
   
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/api/v1/storage/presigned-url`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(request),
-      credentials: 'include'
-    });
-
-    console.log('📡 Presigned URL response status:', response.status, response.statusText);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Failed to get presigned URL:', {
-        status: response.status,
-        statusText: response.statusText,
-        errorText
-      });
-      throw new Error(`Failed to get presigned URL: ${response.status} ${response.statusText} - ${errorText}`);
-    }
-
-    const data = await response.json();
-    console.log('✅ Presigned URL response:', data);
-    return data;
+    const response = await apiClient.post('/storage/presigned-url', request);
+    
+    console.log('✅ Presigned URL response:', response.data);
+    return response.data;
   } catch (error) {
     console.error('❌ Presigned URL error:', error);
     throw error;
@@ -427,6 +414,7 @@ export const uploadFileToPresignedUrl = async (uploadUrl: string, file: File): P
         'Content-Type': file.type,
       },
       body: file,
+      credentials: 'include', // Include credentials for authenticated uploads
     });
 
     console.log('📡 Upload response status:', response.status, response.statusText);
@@ -468,16 +456,11 @@ const uploadFileThroughServer = async (file: File): Promise<void> => {
     const formData = new FormData();
     formData.append('file', file);
     
-    const response = await fetch(`${import.meta.env.VITE_API_ENDPOINT}/api/v1/storage/upload`, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include'
+    await apiClient.post('/storage/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Server upload failed: ${response.status} ${response.statusText} - ${errorText}`);
-    }
 
     console.log('✅ File uploaded successfully through server');
   } catch (error) {
@@ -513,3 +496,98 @@ export const getOrganizationList = async (): Promise<Organization[]> => {
 
 // Organization update functionality has been moved to use the new auth client API
 // in src/hooks/useJobsApi.ts - useUpdateOrganization hook
+
+// OTP Authentication Types
+export interface CheckUserRequest {
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface CheckUserResponse {
+  userExists: boolean;
+}
+
+export interface RequestOtpRequest {
+  email?: string;
+  phoneNumber?: string;
+}
+
+export interface RequestOtpResponse {
+  ok: boolean;
+}
+
+export interface VerifyOtpRequest {
+  email?: string;
+  phoneNumber?: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  redirect: string;
+  token: string;
+  user: {
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image: string;
+    createdAt: string;
+    updatedAt: string;
+    role: string;
+    banned: boolean;
+    banReason: string;
+    banExpires: string | null;
+    phoneNumber: string;
+    phoneNumberVerified: boolean;
+    id: string;
+  };
+}
+
+// Custom Session API Types
+export interface CustomSessionResponse {
+  session: {
+    ipAddress: string;
+    userAgent: string;
+    expiresAt: string;
+    userId: string;
+    token: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+  user: {
+    name: string;
+    email: string;
+    emailVerified: boolean;
+    image: string;
+    createdAt: string;
+    updatedAt: string;
+    role: string;
+    banned: boolean;
+    banReason: string;
+    banExpires: string | null;
+    phoneNumber: string;
+    phoneNumberVerified: boolean;
+    id: string;
+  };
+}
+
+// Custom Session API function
+export const getCustomSession = async (): Promise<CustomSessionResponse> => {
+  const response = await apiClient.get('/auth/get-session');
+  return response.data;
+};
+
+// OTP Authentication API functions
+export const checkUser = async (request: CheckUserRequest): Promise<CheckUserResponse> => {
+  const response = await apiClient.post('/auth/unified-otp/check-user', request);
+  return response.data;
+};
+
+export const requestOtp = async (request: RequestOtpRequest): Promise<RequestOtpResponse> => {
+  const response = await apiClient.post('/auth/unified-otp/request', request);
+  return response.data;
+};
+
+export const verifyOtp = async (request: VerifyOtpRequest): Promise<VerifyOtpResponse> => {
+  const response = await apiClient.post('/auth/unified-otp/verify', request);
+  return response.data;
+};

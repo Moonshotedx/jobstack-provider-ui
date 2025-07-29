@@ -46,6 +46,19 @@ export async function logout() {
 // Separate function for logout with redirect (for manual logout)
 export async function logoutAndRedirect() {
   const success = await logout();
+  
+  // Clear user state from the store before redirecting
+  if (typeof window !== 'undefined') {
+    // Import and clear user store
+    const { useUserStore } = await import('@/stores/authStore');
+    useUserStore.getState().clearUser();
+    
+    // Clear all storage
+    sessionStorage.clear();
+    localStorage.removeItem('user-storage');
+    localStorage.removeItem('auth-token');
+  }
+  
   if (success) {
     window.location.href = '/';
   } else {

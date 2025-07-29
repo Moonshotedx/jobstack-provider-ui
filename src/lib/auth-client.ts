@@ -33,47 +33,35 @@ export const createOrganisation = async (orgInfo: {
   logo?: string;
   metadata?: any;
 }) => {
-  const slugCheckResult = await authClient.organization.checkSlug({
-    slug: orgInfo.slug,
-  }, { credentials: 'include' });
+  try {
+    // Import the API client dynamically to avoid circular dependencies
+    const { default: apiClient } = await import('./api-client');
+    
+    // Create organization using the authenticated API client
+    const createResponse = await apiClient.post('/auth/organization/create', {
+      name: orgInfo.name,
+      slug: orgInfo.slug,
+      logo: orgInfo.logo,
+      metadata: orgInfo.metadata,
+    });
 
-  // Check if the API call failed
-  if (slugCheckResult.error) {
-    const error = new Error(`Slug check failed: ${slugCheckResult.error.message}`);
-    // Preserve the error code if it exists
-    if (slugCheckResult.error.code) {
-      (error as any).code = slugCheckResult.error.code;
+    return createResponse.data;
+  } catch (error: any) {
+    // If it's a slug taken error (409 or specific error message)
+    if (error.response?.status === 409 || 
+        error.response?.data?.message?.includes('already exists') ||
+        error.response?.data?.message?.includes('slug')) {
+      const error = new Error('Organization Identifier Already Exists');
+      (error as any).code = 'SLUG_IS_TAKEN';
+      throw error;
     }
-    throw error;
-  }
-
-  // The response should be {"status": true} if slug is available
-  // {"status": false} or falsy if slug is taken
-  const isSlugAvailable = slugCheckResult.data?.status === true;
-
-  if (!isSlugAvailable) {
-    // Slug is taken, throw error with code
-    const error = new Error('Organization Identifier Already Exists');
-    (error as any).code = 'SLUG_IS_TAKEN';
-    throw error;
-  }
-
-  // Slug is available, create organization
-  const org = await authClient.organization.create({
-    name: orgInfo.name,
-    slug: orgInfo.slug,
-    logo: orgInfo.logo,
-    metadata: orgInfo.metadata,
-  }, { credentials: 'include' });
-
-  if (org.error) {
-    const error = new Error(org.error.message);
-    // Preserve the error code if it exists
-    if (org.error.code) {
-      (error as any).code = org.error.code;
+    
+    // If it's a 401 error, it means the user is not authenticated
+    if (error.response?.status === 401) {
+      throw new Error('Authentication required. Please log in again.');
     }
+    
+    // Re-throw other errors
     throw error;
   }
-
-  return org.data;
 };

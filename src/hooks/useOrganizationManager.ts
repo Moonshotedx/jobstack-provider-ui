@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { authClient } from '@/lib/auth-client';
+
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
 
@@ -42,15 +42,12 @@ export const useOrganizationManager = () => {
   // Get organizations with metadata
   const getOrganizationsWithMetadata = useCallback(async (): Promise<OrganizationWithMetadata[]> => {
     try {
-      const orgList = await authClient.organization.list({}, { credentials: 'include' });
-      if (orgList.error) {
-        throw new Error(orgList.error.message);
-      }
-
-      const organizations = orgList.data || [];
+      const { getOrganizationList } = await import('@/lib/api-client');
+      const organizations = await getOrganizationList();
+      
       return organizations.map(org => ({
         ...org,
-        ...loadOrganizationMetadata(org) // Load from better-auth metadata
+        ...loadOrganizationMetadata(org) // Load from API metadata
       }));
     } catch (error) {
       return [];
@@ -61,18 +58,19 @@ export const useOrganizationManager = () => {
   const setActiveOrganization = useCallback(async (orgId: string) => {
     setIsLoading(true);
     try {
-      const result = await authClient.organization.setActive({ organizationId: orgId }, { credentials: 'include' });
-      if (result.error) {
-        throw new Error(result.error.message);
+      // Use API client for setting active organization
+      const { default: apiClient } = await import('@/lib/api-client');
+      const setActiveResponse = await apiClient.post('/auth/organization/set-active', { 
+        organizationId: orgId 
+      });
+      
+      if (setActiveResponse.status !== 200) {
+        throw new Error('Failed to set active organization');
       }
 
-      // Get organization data from the list instead of non-existent getFullOrganization
-      const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
-      if (orgListResponse.error) {
-        throw new Error(orgListResponse.error.message);
-      }
-      
-      const organizations = orgListResponse.data || [];
+      // Get organization data from the list
+      const { getOrganizationList } = await import('@/lib/api-client');
+      const organizations = await getOrganizationList();
       const selectedOrg = organizations.find(org => org.id === orgId);
       
       if (selectedOrg) {
