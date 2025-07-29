@@ -3,12 +3,13 @@ import L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTakeApplicationAction, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -45,6 +46,8 @@ interface ApplicantMapViewProps {
   className?: string;
   mapCenter?: LatLng;
   zoom?: number;
+  onTakeAction?: (applicantId: string, action: 'accept' | 'reject') => Promise<void>;
+  loadingStates?: Record<string, 'accept' | 'reject' | null>;
 }
 
 // Create custom icons for different applicant statuses
@@ -73,8 +76,8 @@ const createCustomIcon = (status: string) => {
     html: `
       <div style="
         background-color: ${color};
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         border: 3px solid white;
         display: flex;
@@ -82,32 +85,33 @@ const createCustomIcon = (status: string) => {
         justify-content: center;
         font-weight: bold;
         color: white;
-        font-size: 10px;
+        font-size: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         cursor: pointer;
-      ">
+        transition: transform 0.2s ease;
+      " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
         1
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   });
 };
 
 // Custom cluster icon function
 const createClusterIcon = (cluster: any) => {
   const count = cluster.getChildCount();
-  let size = 40;
+  let size = 44;
   let color = '#3b82f6';
   
   if (count >= 20) {
-    size = 50;
+    size = 52;
     color = '#1e3a8a';
   } else if (count >= 10) {
-    size = 45;
+    size = 48;
     color = '#2563eb';
   } else if (count >= 5) {
-    size = 42;
+    size = 46;
     color = '#1d4ed8';
   }
   
@@ -124,9 +128,11 @@ const createClusterIcon = (cluster: any) => {
         justify-content: center;
         font-weight: bold;
         color: white;
-        font-size: ${size > 45 ? '14px' : '12px'};
+        font-size: ${size > 48 ? '16px' : '14px'};
         box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      ">
+        cursor: pointer;
+        transition: transform 0.2s ease;
+      " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
         ${count}
       </div>
     `,
@@ -142,39 +148,70 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   selectedApplicant,
   className = "w-full h-full",
   mapCenter = { lat: 20.5937, lng: 78.9629 }, // Center of India
-  zoom = 5
+  zoom = 5,
+  onTakeAction,
+  loadingStates = {}
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
   const clusterGroupRef = useRef<any>(null);
   const currentLocationMarkerRef = useRef<L.Marker | null>(null);
+  const previousSelectedApplicantRef = useRef<ApplicantLocation | null>(null);
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
 
-  const handleAccept = () => {
-    if (selectedApplicant && activeOrganizationId) {
-      takeApplicationAction.mutate({
-        organizationId: activeOrganizationId,
-        actionData: {
-          applicationId: selectedApplicant.id,
-          action: 'accept',
-          applicationStatus: 'Shortlisted',
-        },
-      });
+  const handleAccept = async () => {
+    if (selectedApplicant) {
+      if (onTakeAction) {
+        try {
+          await onTakeAction(selectedApplicant.id, 'accept');
+          toast.success('Applicant accepted successfully');
+        } catch (error) {
+          toast.error('Failed to accept applicant');
+        }
+      } else if (activeOrganizationId) {
+        try {
+          await takeApplicationAction.mutateAsync({
+            organizationId: activeOrganizationId,
+            actionData: {
+              applicationId: selectedApplicant.id,
+              action: 'accept',
+              applicationStatus: 'Shortlisted',
+            },
+          });
+          toast.success('Applicant accepted successfully');
+        } catch (error) {
+          toast.error('Failed to accept applicant');
+        }
+      }
     }
   };
 
-  const handleReject = () => {
-    if (selectedApplicant && activeOrganizationId) {
-      takeApplicationAction.mutate({
-        organizationId: activeOrganizationId,
-        actionData: {
-          applicationId: selectedApplicant.id,
-          action: 'reject',
-          applicationStatus: 'Rejected',
-        },
-      });
+  const handleReject = async () => {
+    if (selectedApplicant) {
+      if (onTakeAction) {
+        try {
+          await onTakeAction(selectedApplicant.id, 'reject');
+          toast.success('Applicant rejected successfully');
+        } catch (error) {
+          toast.error('Failed to reject applicant');
+        }
+      } else if (activeOrganizationId) {
+        try {
+          await takeApplicationAction.mutateAsync({
+            organizationId: activeOrganizationId,
+            actionData: {
+              applicationId: selectedApplicant.id,
+              action: 'reject',
+              applicationStatus: 'Rejected',
+            },
+          });
+          toast.success('Applicant rejected successfully');
+        } catch (error) {
+          toast.error('Failed to reject applicant');
+        }
+      }
     }
   };
   
@@ -209,7 +246,14 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
 
     // Create map instance
     const map = L.map(mapRef.current, {
-      zoomControl: false
+      zoomControl: false,
+      doubleClickZoom: false, // Disable double-click zoom on mobile
+      dragging: true,
+      touchZoom: true,
+      scrollWheelZoom: true,
+      boxZoom: false,
+      keyboard: false,
+      bounceAtZoomLimits: false
     }).setView([mapCenter.lat, mapCenter.lng], zoom);
 
     // Add OpenStreetMap tiles
@@ -228,6 +272,8 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       iconCreateFunction: createClusterIcon,
       animate: true,
       animateAddingMarkers: true,
+      disableClusteringAtZoom: 16, // Disable clustering at high zoom levels for better mobile experience
+      spiderfyDistanceMultiplier: 1.5, // Increase distance for better touch targets
     });
 
     clusterGroupRef.current = clusterGroup;
@@ -240,6 +286,12 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
 
     map.on('moveend', () => {
       // setMapBounds(map.getBounds()); // Removed unused
+    });
+
+    // Add touch-friendly interactions
+    map.on('click', () => {
+      // Close any open popups when clicking on the map
+      map.closePopup();
     });
 
     mapInstanceRef.current = map;
@@ -275,53 +327,78 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
 
       // Add popup
       const popupContent = `
-        <div style="padding: 8px; min-width: 200px; max-width: 280px;">
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
-            <h3 style="font-weight: bold; font-size: 14px; margin: 0;">${applicant.name}</h3>
+        <div style="
+          padding: 12px; 
+          min-width: 200px; 
+          max-width: 280px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        ">
+          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
+            <h3 style="font-weight: 600; font-size: 14px; margin: 0; color: #1f2937;">${applicant.name}</h3>
             <button style="
               background: none;
               border: none;
-              color: #666;
+              color: #6b7280;
               cursor: pointer;
-              font-size: 16px;
+              font-size: 18px;
               padding: 0;
               line-height: 1;
-            " onclick="this.closest('.leaflet-popup').remove()">×</button>
+              width: 20px;
+              height: 20px;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border-radius: 4px;
+              transition: background-color 0.2s;
+            " onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='transparent'" onclick="this.closest('.leaflet-popup').remove()">×</button>
           </div>
-          <p style="font-size: 12px; color: #666; margin-bottom: 8px;">${applicant.location}</p>
+          <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px; line-height: 1.4;">${applicant.location}</p>
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 14px; font-weight: 500;">${applicant.age} years</span>
-            <span style="font-size: 12px; padding: 2px 8px; border-radius: 4px; background-color: ${
-              applicant.status === 'shortlisted' || applicant.status === 'closed' ? '#dbeafe; color: #16a34a' :
-              applicant.status === 'rejected' || applicant.status === 'archived' ? '#fef2f2; color: #dc2626' :
-              applicant.status === 'interview' ? '#fff7ed; color: #ea580c' :
-              applicant.status === 'hired' ? '#eff6ff; color: #2563eb' :
-              '#f3f4f6; color: #6b7280'
+            <span style="font-size: 13px; font-weight: 500; color: #374151;">${applicant.age} years</span>
+            <span style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 500; ${
+              applicant.status === 'shortlisted' || applicant.status === 'closed' ? 'background-color: #dcfce7; color: #166534' :
+              applicant.status === 'rejected' || applicant.status === 'archived' ? 'background-color: #fef2f2; color: #dc2626' :
+              applicant.status === 'interview' ? 'background-color: #fff7ed; color: #c2410c' :
+              applicant.status === 'hired' ? 'background-color: #dbeafe; color: #1e40af' :
+              'background-color: #f3f4f6; color: #374151'
             };">
               ${applicant.status}
             </span>
           </div>
-          <div style="font-size: 12px; color: #666; margin-bottom: 8px;">
-            <div style="font-weight: 500; margin-bottom: 4px;">Skills:</div>
-            <div style="display: flex; flex-wrap: wrap; gap: 2px;">
+          <div style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">
+            <div style="font-weight: 500; margin-bottom: 4px; color: #374151;">Skills:</div>
+            <div style="display: flex; flex-wrap: wrap; gap: 3px;">
               ${applicant.skills.slice(0, 3).map(skill => 
-                `<span style="background: #f3f4f6; padding: 2px 6px; border-radius: 4px; font-size: 10px;">${typeof skill === 'string' ? skill : skill.name}</span>`
+                `<span style="background: #f9fafb; padding: 2px 6px; border-radius: 8px; font-size: 10px; color: #374151; border: 1px solid #e5e7eb;">${typeof skill === 'string' ? skill : skill.name}</span>`
               ).join('')}
               ${applicant.skills.length > 3 ? `<span style="font-size: 10px; color: #9ca3af;">+${applicant.skills.length - 3} more</span>` : ''}
             </div>
           </div>
-          <div style="font-size: 11px; color: #666;">
-            <div>📧 ${applicant.email}</div>
-            <div>📞 ${applicant.phone}</div>
+          <div style="font-size: 11px; color: #6b7280; line-height: 1.4;">
+            <div style="margin-bottom: 2px;">📧 ${applicant.email}</div>
+            <div style="margin-bottom: 2px;">📞 ${applicant.phone}</div>
             ${applicant.expectedSalary ? `<div>💰 Expected: ${applicant.expectedSalary}</div>` : ''}
           </div>
         </div>
       `;
 
-      marker.bindPopup(popupContent);
+      marker.bindPopup(popupContent, {
+        closeButton: false,
+        autoClose: false,
+        className: 'custom-popup',
+        offset: [0, -35], // Position popup further above the marker to avoid covering it
+        maxWidth: 300,
+        minWidth: 200,
+        maxHeight: 400,
+        keepInView: true,
+        autoPan: true,
+        autoPanPadding: [50, 50]
+      });
 
       // Add click handler
       marker.on('click', () => {
+        // Set flag to maintain individual markers when user clicks on a marker
+        setMaintainIndividualMarkers(true);
         onApplicantClick?.(applicant);
         if (mapInstanceRef.current) {
           mapInstanceRef.current.flyTo([applicant.lat, applicant.lng], 15, { // Zoom to level 15
@@ -335,6 +412,37 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       markersRef.current.push(marker);
     });
   }, [filteredApplicants, onApplicantClick]);
+
+  // Track if we should maintain individual markers (when user clicks on a marker)
+  const [maintainIndividualMarkers, setMaintainIndividualMarkers] = useState(false);
+
+  // Refresh cluster group when selectedApplicant changes to null (modal closed)
+  useEffect(() => {
+    // Check if we just closed the modal (had a selected applicant, now null)
+    if (previousSelectedApplicantRef.current && selectedApplicant === null && clusterGroupRef.current && mapInstanceRef.current) {
+      // Only refresh clusters if we're not maintaining individual markers
+      if (!maintainIndividualMarkers) {
+        // Add a small delay to ensure the modal is fully closed before refreshing clusters
+        setTimeout(() => {
+          if (clusterGroupRef.current && mapInstanceRef.current) {
+            // Force refresh the cluster group to regain proper clustering
+            const currentCenter = mapInstanceRef.current.getCenter();
+            const currentZoom = mapInstanceRef.current.getZoom();
+            
+            // Temporarily remove and re-add the cluster group to force refresh
+            mapInstanceRef.current.removeLayer(clusterGroupRef.current);
+            mapInstanceRef.current.addLayer(clusterGroupRef.current);
+            
+            // Restore the view
+            mapInstanceRef.current.setView(currentCenter, currentZoom);
+          }
+        }, 100); // Small delay to ensure modal animation is complete
+      }
+    }
+    
+    // Update the previous selected applicant ref
+    previousSelectedApplicantRef.current = selectedApplicant || null;
+  }, [selectedApplicant, maintainIndividualMarkers]);
 
   // Map control handlers
   const handleZoomIn = () => {
@@ -381,15 +489,29 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     }
   };
 
+  const handleResetClustering = () => {
+    setMaintainIndividualMarkers(false);
+    if (clusterGroupRef.current && mapInstanceRef.current) {
+      // Force refresh the cluster group
+      const currentCenter = mapInstanceRef.current.getCenter();
+      const currentZoom = mapInstanceRef.current.getZoom();
+      
+      mapInstanceRef.current.removeLayer(clusterGroupRef.current);
+      mapInstanceRef.current.addLayer(clusterGroupRef.current);
+      
+      mapInstanceRef.current.setView(currentCenter, currentZoom);
+    }
+  };
+
   
 
   return (
     <div className={`relative ${className}`}>
       <div ref={mapRef} className="w-full h-full" />
       
-      {/* Map Search and Filter Controls */}
-      <div className="absolute z-[1000] top-4 left-4 w-80">
-        <Card className="shadow-lg">
+      {/* Map Search and Filter Controls - Mobile Responsive */}
+      <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
+        <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <MapPin className="h-4 w-4" />
@@ -404,24 +526,29 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                 placeholder="Search applicants..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-10 md:h-9"
               />
             </div>
 
             {/* Stats */}
             <div className="text-xs text-muted-foreground">
               Showing {filteredApplicants.length} of {applicants.length} applicants
+              {maintainIndividualMarkers && (
+                <div className="mt-1 text-blue-600 font-medium">
+                  Individual markers active
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Map Controls */}
-      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2">
+      {/* Map Controls - Mobile Responsive */}
+      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2 map-controls">
         <Button
           variant="outline"
           size="icon"
-          className="bg-white shadow-lg"
+          className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
           onClick={handleZoomIn}
         >
           <ZoomIn className="h-4 w-4" />
@@ -429,7 +556,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         <Button
           variant="outline"
           size="icon"
-          className="bg-white shadow-lg"
+          className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
           onClick={handleZoomOut}
         >
           <ZoomOut className="h-4 w-4" />
@@ -437,17 +564,28 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         <Button
           variant="outline"
           size="icon"
-          className="bg-white shadow-lg"
+          className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
           onClick={handleFindLocation}
         >
           <Crosshair className="h-4 w-4" />
         </Button>
+        {maintainIndividualMarkers && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
+            onClick={handleResetClustering}
+            title="Reset clustering"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        )}
       </div>
       
-      {/* Selected Applicant Info */}
+      {/* Selected Applicant Info - Mobile Responsive */}
       {selectedApplicant && (
-        <div className="absolute z-[1000] top-4 left-96 w-80">
-          <Card className="shadow-lg">
+        <div className="absolute z-[1000] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto map-applicant-card">
+          <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-[60vh] md:max-h-none overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center justify-between">
                 <span>Selected Applicant</span>
@@ -464,15 +602,18 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => onApplicantClick?.(null)}
-                    className="h-6 w-6 p-0 hover:bg-muted"
+                    onClick={() => {
+                      onApplicantClick?.(null);
+                      // Don't reset maintainIndividualMarkers here - let user decide
+                    }}
+                    className="h-8 w-8 p-0 hover:bg-muted"
                   >
-                    <X className="h-3 w-3" />
+                    <X className="h-4 w-4" />
                   </Button>
                 </div>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
+            <CardContent className="space-y-3 map-applicant-info overflow-y-auto max-h-[calc(60vh-80px)] md:max-h-none">
               <div>
                 <h4 className="font-medium text-sm">{selectedApplicant.name}</h4>
                 <p className="text-xs text-muted-foreground">{selectedApplicant.location}</p>
@@ -487,7 +628,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
               </div>
               <div>
                 <div className="text-xs font-medium mb-1">Skills:</div>
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 map-skills">
                   {selectedApplicant.skills.slice(0, 5).map((skill, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {typeof skill === 'string' ? skill : skill.name}
@@ -500,24 +641,64 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   )}
                 </div>
               </div>
-              {/* Only show Accept/Reject if status is open or applied */}
+              
+              {/* Action Buttons - Show for open/applied status */}
               {(selectedApplicant.status === 'open' || selectedApplicant.status === 'applied') && (
-                <div className="flex justify-end gap-2 mt-4">
+                <div className="flex gap-2 mt-4 map-action-buttons">
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={handleReject}
-                    disabled={false}
+                    disabled={loadingStates[selectedApplicant.id] === 'reject' || loadingStates[selectedApplicant.id] === 'accept'}
+                    className="flex-1 h-10 md:h-8"
                   >
-                    Reject
+                    {loadingStates[selectedApplicant.id] === 'reject' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Rejecting...
+                      </>
+                    ) : (
+                      <>
+                        <XCircle className="h-4 w-4 mr-1" />
+                        Reject
+                      </>
+                    )}
                   </Button>
                   <Button
                     size="sm"
                     onClick={handleAccept}
-                    disabled={false}
+                    disabled={loadingStates[selectedApplicant.id] === 'accept' || loadingStates[selectedApplicant.id] === 'reject'}
+                    className="flex-1 h-10 md:h-8"
                   >
-                    Accept
+                    {loadingStates[selectedApplicant.id] === 'accept' ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                        Accepting...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle className="h-4 w-4 mr-1" />
+                        Accept
+                      </>
+                    )}
                   </Button>
+                </div>
+              )}
+              
+              {/* Show status for other statuses */}
+              {(selectedApplicant.status === 'shortlisted' || selectedApplicant.status === 'rejected') && (
+                <div className="flex items-center gap-2 mt-4 p-2 bg-muted rounded">
+                  {selectedApplicant.status === 'shortlisted' ? (
+                    <>
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-600">Shortlisted</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-sm font-medium text-red-600">Rejected</span>
+                    </>
+                  )}
                 </div>
               )}
             </CardContent>

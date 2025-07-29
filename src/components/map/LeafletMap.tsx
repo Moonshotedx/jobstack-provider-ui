@@ -76,8 +76,8 @@ const createCustomIcon = (status: string) => {
     html: `
       <div style="
         background-color: ${color};
-        width: 24px;
-        height: 24px;
+        width: 28px;
+        height: 28px;
         border-radius: 50%;
         border: 3px solid white;
         display: flex;
@@ -85,17 +85,18 @@ const createCustomIcon = (status: string) => {
         justify-content: center;
         font-weight: bold;
         color: white;
-        font-size: 10px;
+        font-size: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         cursor: pointer;
-      ">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+        transition: transform 0.2s ease;
+      " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
         </svg>
       </div>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
+    iconSize: [28, 28],
+    iconAnchor: [14, 14],
   });
 };
 
@@ -137,27 +138,50 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
               click: () => onApplicantClick?.(applicant),
             }}
           >
-            <Popup closeOnClick={false} autoClose={false}>
-              <div className="p-2 min-w-[200px]">
-                <h3 className="font-bold text-sm mb-1">{applicant.name}</h3>
-                <p className="text-xs text-gray-600 mb-2">{applicant.location}</p>
+            <Popup 
+              closeOnClick={false} 
+              autoClose={false}
+              offset={[0, -15]}
+              maxWidth={300}
+              minWidth={200}
+              maxHeight={400}
+              keepInView={true}
+              autoPan={true}
+              autoPanPadding={[50, 50]}
+              className="custom-popup"
+            >
+              <div className="p-3 min-w-[200px] max-w-[280px] font-sans">
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-semibold text-sm text-gray-900 m-0">{applicant.name}</h3>
+                  <button 
+                    className="bg-none border-none text-gray-500 cursor-pointer text-lg p-0 leading-none w-5 h-5 flex items-center justify-center rounded hover:bg-gray-100 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const popup = e.currentTarget.closest('.leaflet-popup');
+                      if (popup) popup.remove();
+                    }}
+                  >
+                    ×
+                  </button>
+                </div>
+                <p className="text-xs text-gray-600 mb-2 leading-relaxed">{applicant.location}</p>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium">{applicant.age} years</span>
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className="text-sm font-medium text-gray-700">{applicant.age} years</span>
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${
                     applicant.status === 'shortlisted' || applicant.status === 'closed' ? 'bg-green-100 text-green-800' :
-                    applicant.status === 'rejected' || applicant.status === 'archived' ? 'bg-red-100 text-red-800' :
+                    applicant.status === 'rejected' || applicant.status === 'archived' ? 'bg-red-100 text-red-600' :
                     applicant.status === 'interview' ? 'bg-orange-100 text-orange-800' :
                     applicant.status === 'hired' ? 'bg-blue-100 text-blue-800' :
-                    'bg-gray-100 text-gray-800'
+                    'bg-gray-100 text-gray-700'
                   }`}>
                     {applicant.status}
                   </span>
                 </div>
                 <div className="text-xs text-gray-600 mb-2">
-                  <div className="font-medium">Skills:</div>
-                  <div className="mt-1">
+                  <div className="font-medium text-gray-700 mb-1">Skills:</div>
+                  <div className="flex flex-wrap gap-1">
                     {applicant.skills.slice(0, 3).map((skill, index) => (
-                      <span key={index} className="inline-block bg-gray-100 rounded px-1 py-0.5 mr-1 mb-1 text-xs">
+                      <span key={index} className="inline-block bg-gray-50 rounded-lg px-2 py-1 text-xs text-gray-700 border border-gray-200">
                         {skill}
                       </span>
                     ))}
@@ -166,8 +190,8 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
                     )}
                   </div>
                 </div>
-                <div className="text-xs text-gray-600">
-                  <div>📧 {applicant.email}</div>
+                <div className="text-xs text-gray-600 leading-relaxed">
+                  <div className="mb-1">📧 {applicant.email}</div>
                   <div>📞 {applicant.phone}</div>
                 </div>
               </div>

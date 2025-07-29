@@ -783,13 +783,8 @@ function JobApplicantsPage() {
                 <SelectContent>
                   <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="closed">Shortlisted</SelectItem>
-                  <SelectItem value="applied">Applied</SelectItem>
-                  <SelectItem value="reviewed">Reviewed</SelectItem>
-                  <SelectItem value="interview">Interview</SelectItem>
-                  <SelectItem value="hired">Hired</SelectItem>
+                  <SelectItem value="shortlisted">Shortlisted</SelectItem>
                   <SelectItem value="rejected">Rejected</SelectItem>
-                  <SelectItem value="archived">Archived/Rejected</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -934,7 +929,7 @@ function JobApplicantsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[600px] w-full">
+                <div className="h-[600px] w-full map-container">
                   {isLoadingMap ? (
                     <div className="flex items-center justify-center h-full">
                       <Loader2 className="h-8 w-8 animate-spin" />
@@ -947,6 +942,14 @@ function JobApplicantsPage() {
                       selectedApplicant={selectedMapApplicant}
                       mapCenter={mapCenter}
                       zoom={5}
+                      onTakeAction={async (applicantId: string, action: 'accept' | 'reject') => {
+                        // Find the corresponding JobApplicant
+                        const correspondingApplicant = applicants.find(app => app.id === applicantId);
+                        if (correspondingApplicant) {
+                          await handleTakeAction(correspondingApplicant, action);
+                        }
+                      }}
+                      loadingStates={loadingStates}
                     />
                   )}
                 </div>
