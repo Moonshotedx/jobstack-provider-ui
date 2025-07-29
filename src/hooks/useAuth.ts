@@ -31,6 +31,7 @@ interface UseAuthReturn {
   resendVerificationEmail: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
+  handleOtpVerification: (verificationData: any) => Promise<void>;
 }
 
 export const useAuth = (): UseAuthReturn => {
@@ -41,46 +42,21 @@ export const useAuth = (): UseAuthReturn => {
   const { setUser, clearUser, setLoading: setUserLoading, user } = useUserStore();
   const queryClient = useQueryClient();
 
-  // Helper function to load organization profile from better-auth
-  const loadOrganizationProfile = async (sessionData: any) => {
+  // Helper function to load organization profile from custom session
+  const loadOrganizationProfile = async (_sessionData: any) => {
     try {
-      // First, get the user's organizations
-      const orgListResponse = await authClient.organization.list({}, { credentials: 'include' });
-      
-      if (orgListResponse.error) {
-        return undefined;
-      }
-
-      const organizations = orgListResponse.data || [];
+      // First, get the user's organizations using the API client with auth token
+      const { getOrganizationList } = await import('@/lib/api-client');
+      const organizations = await getOrganizationList();
       
       // If user has no organizations, return undefined
       if (organizations.length === 0) {
         return undefined;
       }
 
-      let activeOrganizationId = sessionData?.session?.activeOrganizationId;
-      
-      // If no active organization is set but user has organizations, set the first one as active
-      if (!activeOrganizationId && organizations.length > 0) {
-        const firstOrg = organizations[0];
-        
-        try {
-          const setActiveResult = await authClient.organization.setActive({ 
-            organizationId: firstOrg.id 
-          }, { credentials: 'include' });
-          
-          if (setActiveResult.error) {
-            console.error('Failed to set active organization:', setActiveResult.error);
-          } else {
-            activeOrganizationId = firstOrg.id;
-          }
-        } catch (error) {
-          console.error('Error setting active organization:', error);
-        }
-      }
-      
-      // Now find the active organization
-      const activeOrg = organizations.find(org => org.id === activeOrganizationId);
+      // For now, use the first organization as active
+      // In the future, we can implement proper active organization selection
+      const activeOrg = organizations[0];
       
       if (!activeOrg) {
         return undefined;
@@ -104,7 +80,7 @@ export const useAuth = (): UseAuthReturn => {
         metadata = {};
       }
 
-      return {
+      const profile = {
         id: activeOrg.id,
         name: activeOrg.name,
         slug: activeOrg.slug,
@@ -120,6 +96,8 @@ export const useAuth = (): UseAuthReturn => {
         isActive: true,
         isDefault: true
       };
+
+      return profile;
     } catch (error) {
       console.error('Failed to load organization profile:', error);
       return undefined;
@@ -136,17 +114,29 @@ export const useAuth = (): UseAuthReturn => {
       setIsCheckingSession(true);
       setUserLoading(true);
       
-      const session = await authClient.getSession(undefined, { credentials: 'include' });
+      // Check for auth token first
+      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
       
-      if (session.data?.user) {
-        const betterAuthUser = session.data.user;
-        const profile = await loadOrganizationProfile(session.data);
+      if (!authToken) {
+        // No token available, clear user and return
+        clearUser();
+        return;
+      }
+      
+      // Use custom session API with Bearer token
+      const { getCustomSession } = await import('@/lib/api-client');
+      const sessionData = await getCustomSession();
+      
+      if (sessionData?.user) {
+        const customUser = sessionData.user;
+        
+        const profile = await loadOrganizationProfile(sessionData);
         
         const mappedUser = {
-          id: betterAuthUser.id,
-          email: betterAuthUser.email,
+          id: customUser.id,
+          email: customUser.email,
           role: 'organization' as const, // default for now
-          isVerified: betterAuthUser.emailVerified || false,
+          isVerified: customUser.emailVerified || customUser.phoneNumberVerified || false,
           profile: profile,
         };
         
@@ -258,6 +248,7 @@ export const useAuth = (): UseAuthReturn => {
       if (typeof window !== 'undefined') {
         sessionStorage.clear();
         localStorage.removeItem('user-storage');
+        localStorage.removeItem('auth-token');
       }
       
       // Attempt server logout, but handle session errors gracefully
@@ -286,9 +277,17 @@ export const useAuth = (): UseAuthReturn => {
 
   const checkEmailVerification = async () => {
     try {
-      const session = await authClient.getSession(undefined, { credentials: 'include' });
-      if (session.data?.user) {
-        const isVerified = session.data.user.emailVerified || false;
+      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      
+      if (!authToken) {
+        return false;
+      }
+      
+      const { getCustomSession } = await import('@/lib/api-client');
+      const sessionData = await getCustomSession();
+      
+      if (sessionData?.user) {
+        const isVerified = sessionData.user.emailVerified || sessionData.user.phoneNumberVerified || false;
         const currentUser = useUserStore.getState().user;
         
         // Only update user state if verification status has changed
@@ -315,15 +314,12 @@ export const useAuth = (): UseAuthReturn => {
     }
     
     try {
-      // Use the better-auth sendVerificationEmail method
-      const result = await authClient.sendVerificationEmail({ 
+      // Use the API client for resending verification email
+      const { default: apiClient } = await import('@/lib/api-client');
+      await apiClient.post('/auth/send-verification-email', { 
         email: emailToResend,
         callbackURL: `${window.location.origin}/verify/email`
-      }, { credentials: 'include' });
-      
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
+      });
       
       // Update pending verification email if it wasn't set
       if (!pendingVerificationEmail) {
@@ -361,6 +357,55 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
+  const handleOtpVerification = async (verificationData: any) => {
+    try {
+      // Store the token in localStorage or sessionStorage for future requests
+      if (verificationData.token) {
+        localStorage.setItem('auth-token', verificationData.token);
+        sessionStorage.setItem('auth-token', verificationData.token);
+      }
+
+      // Use custom session API to get complete user data
+      const { getCustomSession } = await import('@/lib/api-client');
+      const sessionData = await getCustomSession();
+      
+      if (sessionData?.user) {
+        const customUser = sessionData.user;
+        const profile = await loadOrganizationProfile(sessionData);
+        
+        const userData = {
+          id: customUser.id,
+          email: customUser.email,
+          role: 'organization' as const, // Map to expected role format
+          isVerified: customUser.emailVerified || customUser.phoneNumberVerified,
+          profile: profile
+        };
+
+        setUser(userData);
+      } else {
+        // Fallback to OTP verification data if custom session fails
+        const userData = {
+          id: verificationData.user.id,
+          email: verificationData.user.email,
+          role: 'organization' as const,
+          isVerified: verificationData.user.emailVerified || verificationData.user.phoneNumberVerified,
+          profile: undefined // Don't set profile yet, let the organization check handle it
+        };
+        setUser(userData);
+      }
+      
+      // Clear any pending verification email
+      setPendingVerificationEmail(undefined);
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries();
+      
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to complete verification');
+      throw error;
+    }
+  };
+
   // Check session on mount only once
   useEffect(() => {
     if (!hasInitialCheck && !isCheckingSession) {
@@ -380,5 +425,6 @@ export const useAuth = (): UseAuthReturn => {
     resendVerificationEmail,
     forgotPassword,
     resetPassword,
+    handleOtpVerification,
   };
 }; 

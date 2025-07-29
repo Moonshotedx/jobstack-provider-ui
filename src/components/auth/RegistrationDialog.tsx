@@ -46,12 +46,14 @@ interface RegistrationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToLogin?: () => void;
+  identifier?: string;
 }
 
 const RegistrationDialog: React.FC<RegistrationDialogProps> = ({ 
   isOpen, 
   onClose, 
-  onSwitchToLogin 
+  onSwitchToLogin,
+  identifier
 }) => {
   const { t } = useTranslation('auth');
   const { register, resendVerificationEmail, isLoading, pendingVerificationEmail } = useAuth();
@@ -65,7 +67,8 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
     defaultValues: {
       role: 'organization',
       termsAccepted: false,
-      privacyAccepted: false
+      privacyAccepted: false,
+      email: identifier || ''
     }
   });
 

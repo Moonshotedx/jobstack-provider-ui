@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Header from '@/components/Header';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/stores/authStore';
+import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
 import { authClient } from '@/lib/auth-client';
 
@@ -29,6 +30,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   const clearUser = useUserStore((state) => state.clearUser);
   const user = useUserStore((state) => state.user);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   // Redirect authenticated users to dashboard
   useEffect(() => {
@@ -47,6 +49,15 @@ function RouteComponent() {
           return;
         }
 
+        // Check for auth token
+        const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+        
+        if (authToken) {
+          // We have an auth token, user should be authenticated
+          // Don't clear session, let the auth system handle it
+          return;
+        }
+
         // Check server session to see if user is actually logged in
         const session = await authClient.getSession(undefined, { credentials: 'include' });
         
@@ -61,6 +72,7 @@ function RouteComponent() {
           // Clear any persisted data from localStorage
           if (typeof window !== 'undefined') {
             localStorage.removeItem('user-storage');
+            localStorage.removeItem('auth-token');
             sessionStorage.clear();
           }
         }
@@ -70,6 +82,7 @@ function RouteComponent() {
         
         if (typeof window !== 'undefined') {
           localStorage.removeItem('user-storage');
+          localStorage.removeItem('auth-token');
           sessionStorage.clear();
         }
       }
@@ -107,33 +120,30 @@ function RouteComponent() {
 
           <Card className="p-6">
             <CardHeader>
-              <CardTitle>{t('landing.getStarted')}</CardTitle>
+              <CardTitle>Sign in or create account</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-3">
                 <Button 
                   className="w-full" 
                   size="lg"
-                  onClick={() => navigate({ to: "/auth/$action", params: { action: "login" } })}
+                  onClick={() => setShowAuthDialog(true)}
                 >
-                  {t('landing.loginButton')}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  size="lg"
-                  onClick={() => navigate({ to: "/auth/$action", params: { action: "signup" } })}
-                >
-                  {t('landing.createAccountButton')}
+                  Enter mobile number or email
                 </Button>
               </div>
               <div className="text-sm text-muted-foreground">
-                {t('landing.newUserMessage')}
+                Get started with your job search journey
               </div>
             </CardContent>
           </Card>
         </div>
       </div>
+      
+      <UnifiedAuthDialog
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
+      />
     </div>
   );
 }

@@ -501,6 +501,41 @@ function DashboardContent() {
 }
 
 function DashboardComponent() {
+  const user = useUserStore((state) => state.user);
+  const { checkSession } = useAuth();
+  
+  // Check for auth token or user in store
+  useEffect(() => {
+    const checkAuth = async () => {
+      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      
+      if (!user && !authToken) {
+        // No user and no token, redirect to login
+        window.location.href = '/';
+        return;
+      }
+      
+      if (authToken && !user) {
+        // We have a token but no user in store, try to check session
+        await checkSession();
+      }
+    };
+    
+    checkAuth();
+  }, [user, checkSession]);
+
+  // Show loading while checking authentication
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Please log in to access the dashboard.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <Header />

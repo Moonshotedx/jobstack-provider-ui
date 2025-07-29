@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
 import LoginDialog from '@/components/auth/LoginDialog'
 import RegistrationDialog from '@/components/auth/RegistrationDialog'
+import OtpSignupDialog from '@/components/auth/OtpSignupDialog'
+import { useSearch } from '@tanstack/react-router'
 
 export const Route = createFileRoute('/auth/$action')({
   component: AuthModalRoute,
@@ -10,6 +12,7 @@ export const Route = createFileRoute('/auth/$action')({
 
 function AuthModalRoute() {
   const { action } = Route.useParams()
+  const search = useSearch({ from: '/auth/$action' })
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(true)
 
@@ -67,6 +70,8 @@ function AuthModalRoute() {
     return null
   }
 
+  const identifier = (search as any).identifier;
+
   return (
     <>
       <LoginDialog
@@ -75,11 +80,20 @@ function AuthModalRoute() {
         onSwitchToRegister={handleSwitchToSignup}
       />
       
-      <RegistrationDialog
-        isOpen={isOpen && isSignup}
-        onClose={handleClose}
-        onSwitchToLogin={handleSwitchToLogin}
-      />
+      {identifier ? (
+        <OtpSignupDialog
+          isOpen={isOpen && isSignup}
+          onClose={handleClose}
+          identifier={identifier}
+        />
+      ) : (
+        <RegistrationDialog
+          isOpen={isOpen && isSignup}
+          onClose={handleClose}
+          onSwitchToLogin={handleSwitchToLogin}
+          identifier={identifier}
+        />
+      )}
     </>
   )
 } 

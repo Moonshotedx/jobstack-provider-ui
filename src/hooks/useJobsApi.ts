@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList } from '@/lib/api-client';
-import { authClient } from '@/lib/auth-client';
+
 
 // Query keys for cache management
 export const jobsQueryKeys = {
@@ -151,31 +151,33 @@ export const useGetJobApplications = (organizationId: string, jobId: string) => 
 
 // Hook to get the current active organization's jobs
 export const useCurrentOrganizationJobs = () => {
-  const { data: session, isLoading: sessionLoading, error: sessionError } = useQuery({
-    queryKey: ['session'],
-    queryFn: () => authClient.getSession(undefined, { credentials: 'include' }),
-    staleTime: 0, // Always fetch fresh session data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
-    retry: 2,
-  });
-
-  const activeOrgId = session?.data?.session?.activeOrganizationId;
+  const activeOrgId = useActiveOrganizationId();
   const jobsQuery = useGetJobs(activeOrgId || '');
   
   return {
     ...jobsQuery,
-    isLoading: sessionLoading || (!!activeOrgId && jobsQuery.isLoading),
-    error: sessionError || (!activeOrgId && !sessionLoading ? new Error('No active organization found') : jobsQuery.error),
+    isLoading: !activeOrgId || jobsQuery.isLoading,
+    error: !activeOrgId ? new Error('No active organization found') : jobsQuery.error,
     data: activeOrgId ? jobsQuery.data : [],
   };
 };
 
 // Hook to get active organization ID
 export const useActiveOrganizationId = () => {
-  const { data: session, isLoading } = useQuery({
-    queryKey: ['session'],
-    queryFn: () => authClient.getSession(undefined, { credentials: 'include' }),
+  const { data: organizations, isLoading } = useQuery({
+    queryKey: ['organizations'],
+    queryFn: async () => {
+      // Check for auth token first
+      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      
+      if (!authToken) {
+        return [];
+      }
+      
+      // Get organization list
+      const { getOrganizationList } = await import('@/lib/api-client');
+      return await getOrganizationList();
+    },
     staleTime: 0, // Always fetch fresh session data
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -186,12 +188,9 @@ export const useActiveOrganizationId = () => {
     return undefined;
   }
 
-  const isLoggedIn = !!session?.data?.user;
-  if (!isLoggedIn) {
-    return undefined;
-  }
-
-  return session?.data?.session?.activeOrganizationId;
+  // For now, we'll use the first organization as active
+  // In the future, we can implement proper active organization selection
+  return organizations?.[0]?.id || null;
 };
 
 // Hook to take action on a job application (accept/reject)
@@ -252,22 +251,20 @@ export const useUpdateOrganization = () => {
     }) => {
       console.log('🔄 Updating organization with new auth API:', { organizationId, organizationData });
       
-      const result = await authClient.organization.update({
+      // Use apiClient instead of authClient for proper Authorization header
+      const { default: apiClient } = await import('@/lib/api-client');
+      const response = await apiClient.put(`/auth/organization/update`, {
+        organizationId: organizationId,
         data: {
           name: organizationData.name,
           logo: organizationData.logo,
           metadata: organizationData.metadata,
           slug: organizationData.slug
-        },
-        organizationId: organizationId // Use as safeguard even though it defaults to current active organization
+        }
       });
 
-      if (result.error) {
-        throw new Error(result.error.message || 'Failed to update organization');
-      }
-
-      console.log('✅ Organization updated successfully:', result.data);
-      return result.data;
+      console.log('✅ Organization updated successfully:', response.data);
+      return response.data;
     },
     onSuccess: (data) => {
       console.log('Organization update success:', data);

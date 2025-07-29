@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { createOrganisation, authClient } from "@/lib/auth-client"
+import { createOrganisation } from "@/lib/auth-client"
 import { Input } from '@/components/ui/input'
 import { toast } from "sonner"
 import { Textarea } from '@/components/ui/textarea';
@@ -127,13 +127,14 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       if (organization) {
         // Set the newly created organization as active
         try {
-          const setActiveResult = await authClient.organization.setActive({ 
+          const { default: apiClient } = await import('@/lib/api-client');
+          const setActiveResponse = await apiClient.post('/auth/organization/set-active', { 
             organizationId: organization.id 
-          }, { credentials: 'include' });
+          });
           
-          if (setActiveResult.error) {
-            console.error('Failed to set organization as active:', setActiveResult.error);
-            throw new Error(`Failed to set organization as active: ${setActiveResult.error.message}`);
+          if (setActiveResponse.status !== 200) {
+            console.error('Failed to set organization as active:', setActiveResponse.status);
+            throw new Error('Failed to set organization as active');
           }
         } catch (error) {
           console.error('Error setting organization as active:', error);
