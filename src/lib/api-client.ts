@@ -414,7 +414,8 @@ export const uploadFileToPresignedUrl = async (uploadUrl: string, file: File): P
         'Content-Type': file.type,
       },
       body: file,
-      credentials: 'include', // Include credentials for authenticated uploads
+      // Note: Don't include credentials for presigned URLs as they contain auth in the URL itself
+      // and cloud storage providers return Access-Control-Allow-Origin: * which conflicts with credentials
     });
 
     console.log('📡 Upload response status:', response.status, response.statusText);
@@ -459,7 +460,7 @@ const uploadFileThroughServer = async (file: File): Promise<void> => {
     await apiClient.post('/storage/upload', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
-      },
+      }
     });
 
     console.log('✅ File uploaded successfully through server');
