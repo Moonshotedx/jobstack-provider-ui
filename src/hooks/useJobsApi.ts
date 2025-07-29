@@ -249,18 +249,18 @@ export const useUpdateOrganization = () => {
         slug?: string;
       };
     }) => {
-      console.log('🔄 Updating organization with new auth API:', { organizationId, organizationData });
+      console.log('🔄 Updating organization with jobs API:', { organizationId, organizationData });
       
-      // Use apiClient instead of authClient for proper Authorization header
+      // Use apiClient with the correct jobs endpoint
       const { default: apiClient } = await import('@/lib/api-client');
-      const response = await apiClient.put(`/auth/organization/update`, {
-        organizationId: organizationId,
+      const response = await apiClient.post(`/auth/organization/update`, {
         data: {
           name: organizationData.name,
           logo: organizationData.logo,
           metadata: organizationData.metadata,
           slug: organizationData.slug
-        }
+        },
+        organizationId: organizationId
       });
 
       console.log('✅ Organization updated successfully:', response.data);
