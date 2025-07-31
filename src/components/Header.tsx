@@ -149,6 +149,15 @@ const Header = () => {
                   </Button>
                 </div>
               </div>
+              
+              {/* User Email Display */}
+              <div className="pt-2 border-t">
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {user.email || user.phone}
+                  </p>
+                </div>
+              </div>
             </>
           ) : (
             <div className="space-y-2">
@@ -184,8 +193,7 @@ const Header = () => {
                 <img
                   src="/Onest_logo_mobile.png"
                   alt="ONEST Logo"
-                  className="h-8 w-auto object-contain"
-                  style={{ maxWidth: 120 }}
+                  className="h-8 w-auto object-contain max-w-[120px]"
                 />
               </Link>
             </div>
@@ -237,6 +245,12 @@ const Header = () => {
                           Complete Profile
                         </DropdownMenuItem>
                       )}
+                      {/* User Email Display */}
+                      <div className="px-3 py-2 bg-muted/30">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {user.email || user.phone}
+                        </p>
+                      </div>
                       <DropdownMenuItem onClick={handleLogout}>
                         <LogOut className="h-4 w-4 mr-2" />
                         {t('header.logout')}

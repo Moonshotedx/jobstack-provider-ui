@@ -101,6 +101,12 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
+            {/* User Email Display */}
+            <div className="px-3 py-2 bg-muted/30">
+              <p className="text-sm font-medium text-muted-foreground">
+                {user.email}
+              </p>
+            </div>
             <DropdownMenuItem onClick={logout}>
               <LogOut />
               Log out
