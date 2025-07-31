@@ -167,8 +167,8 @@
               "type": "string",
               "title": "Selection Criteria - Quality",
               "description": "Pass means the candidate is able to stitch straight lines with atleast a 70% accuracy",
-              "enum": ["yes", "no"],
-              "enumNames": ["Yes", "No"]
+              "enum": ["Pass", "Fail"],
+              "enumNames": ["Pass", "Fail"]
             },
             "maxTimeAllowed": {
               "type": "number",
