@@ -253,7 +253,7 @@ export const useUpdateOrganization = () => {
       
       // Use apiClient with the correct jobs endpoint
       const { default: apiClient } = await import('@/lib/api-client');
-      const response = await apiClient.put(`/auth/organization/update`, {
+      const response = await apiClient.post(`/auth/organization/update`, {
         data: {
           name: organizationData.name,
           logo: organizationData.logo,
