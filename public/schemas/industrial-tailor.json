@@ -170,15 +170,9 @@
               "enum": ["Pass", "Fail"],
               "enumNames": ["Pass", "Fail"]
             },
-            "maxTimeAllowed": {
-              "type": "number",
-              "title": "Max Time Allowed",
-              "description": "How long is allowed to do the task, at most?",
-              "minimum": 0
-            },
             "selectionCriteriaTimeAllowed": {
               "type": "number",
-              "title": "Selection Criteria - Time Allowed",
+              "title": "Selection Criteria - Max. Time Allowed",
               "description": "The highest acceptable time (in minutes) allowed to do the task",
               "minimum": 0
             },
