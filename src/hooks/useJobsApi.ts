@@ -251,6 +251,19 @@ export const useUpdateOrganization = () => {
     }) => {
       console.log('🔄 Updating organization with jobs API:', { organizationId, organizationData });
       
+      // Ensure slug is not empty - if empty, generate a unique one
+      let finalSlug = organizationData.slug;
+      if (!finalSlug || finalSlug.trim() === '') {
+        // Generate slug from GST number in metadata, or create unique ID
+        const gstNumber = organizationData.metadata?.gstNumber;
+        if (gstNumber && gstNumber.trim().length > 0) {
+          finalSlug = gstNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+        } else {
+          finalSlug = crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+        }
+        console.log('Generated slug for update:', finalSlug);
+      }
+      
       // Use apiClient with the correct jobs endpoint
       const { default: apiClient } = await import('@/lib/api-client');
       const response = await apiClient.post(`/auth/organization/update`, {
@@ -258,7 +271,7 @@ export const useUpdateOrganization = () => {
           name: organizationData.name,
           logo: organizationData.logo,
           metadata: organizationData.metadata,
-          slug: organizationData.slug
+          slug: finalSlug
         },
         organizationId: organizationId
       });
