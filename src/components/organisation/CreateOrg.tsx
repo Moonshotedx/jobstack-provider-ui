@@ -21,7 +21,7 @@ import { Upload, Building, Loader2, X } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
-import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
+import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
 
 const FormSchema = z.object({
   name: z.string()
@@ -103,6 +103,20 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     
     try {
       const slug = generateSlug(data.gstNumber);
+
+      // Check if the slug is available (only if it's based on GST number to avoid conflicts)
+      if (data.gstNumber && data.gstNumber.trim().length > 0) {
+        console.log('🔍 Checking slug availability for:', slug);
+        const isSlugAvailable = await checkOrganizationSlugAvailability(slug);
+        
+        if (!isSlugAvailable) {
+          toast.error(t('errors.slugTakenUserFriendly'), {
+            description: t('errors.slugTakenDescription')
+          });
+          return;
+        }
+        console.log('✅ Slug is available:', slug);
+      }
 
       // Prepare metadata with extended fields - trim whitespace from string fields
       const metadata = {

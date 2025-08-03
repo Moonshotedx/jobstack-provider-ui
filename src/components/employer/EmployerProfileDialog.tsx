@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { useUpdateOrganization } from '@/hooks/useJobsApi';
 import { Loader2, Upload, Building, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
+import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
@@ -166,6 +166,29 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     });
   };
 
+  // Helper function to generate slug from GST number or create unique ID
+  const generateSlug = (gstNumber?: string): string => {
+    // If GST number/identifier is provided, clean and use it as slug
+    if (gstNumber && gstNumber.trim().length > 0) {
+      return gstNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
+    }
+    // If empty, generate crypto-based unique ID
+    return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
+  };
+
+  // Function to check if slug is available
+  const checkSlugAvailability = async (slug: string): Promise<boolean> => {
+    try {
+      console.log('🔍 [EmployerProfileDialog] Checking slug availability for:', slug);
+      const isAvailable = await checkOrganizationSlugAvailability(slug);
+      console.log(`✅ [EmployerProfileDialog] Slug "${slug}" availability result:`, isAvailable);
+      return isAvailable;
+    } catch (error: any) {
+      console.error('❌ [EmployerProfileDialog] Error checking slug availability:', error);
+      return true; // Assume available on error to not block the user
+    }
+  };
+
   const handleSubmit = async () => {
     // Enhanced validation with whitespace checks and phone number validation
     const trimmedName = formData.name.trim();
@@ -224,9 +247,46 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     if (employer) {
       // Update existing organization
       try {
+        const currentGstNumber = formData.gstNumber?.trim() || '';
+        const existingGstNumber = employer.gstNumber || '';
+        
+        // Generate new slug based on current GST number
+        const newSlug = generateSlug(currentGstNumber);
+        
+        console.log('🔄 [EmployerProfileDialog] Organization update details:', {
+          currentGstNumber,
+          existingGstNumber,
+          newSlug,
+          employerId: employer.id
+        });
+        
+        // Check if GST number (and therefore slug) has changed
+        const gstNumberChanged = currentGstNumber !== existingGstNumber;
+        
+        console.log('📊 [EmployerProfileDialog] GST number change analysis:', {
+          gstNumberChanged,
+          willCheckSlug: gstNumberChanged && currentGstNumber
+        });
+        
+        // If GST number changed, check slug availability
+        if (gstNumberChanged && currentGstNumber) {
+          console.log('🔍 [EmployerProfileDialog] GST number changed, checking slug availability...');
+          const isSlugAvailable = await checkSlugAvailability(newSlug);
+          if (!isSlugAvailable) {
+            console.log('❌ [EmployerProfileDialog] Slug is not available:', newSlug);
+            toast.error(t('errors.slugTakenUserFriendly'), {
+              description: t('errors.slugTakenDescription')
+            });
+            return;
+          }
+          console.log('✅ [EmployerProfileDialog] Slug is available, proceeding with update');
+        } else {
+          console.log('ℹ️ [EmployerProfileDialog] No GST number change detected, skipping slug check');
+        }
+
         const metadata = {
           address: trimmedAddress,
-          gstNumber: formData.gstNumber?.trim() || '',
+          gstNumber: currentGstNumber,
           contactPersonName: trimmedContactPerson,
           contactEmail: trimmedEmail,
           contactPhone: trimmedPhone,
@@ -240,15 +300,26 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
             name: trimmedName,
             metadata: metadata, // Pass as object, not JSON string
             logo: formData.logo,
-            slug: formData.gstNumber || employer.gstNumber // Use existing GST number as slug if available
+            slug: newSlug // Always use properly generated slug
           }
         });
 
         toast.success("Organization updated successfully!");
         onClose();
-      } catch (error) {
+      } catch (error: any) {
         console.error('Failed to update organization:', error);
-        toast.error("Failed to update organization. Please try again.");
+        
+        // Check for slug taken error during update
+        if (error.code === 'SLUG_IS_TAKEN' || 
+            error.message === 'Organization Identifier Already Exists' ||
+            error.response?.data?.message?.includes('slug') ||
+            error.response?.data?.message?.includes('already exists')) {
+          toast.error(t('errors.slugTakenUserFriendly'), {
+            description: t('errors.slugTakenDescription')
+          });
+        } else {
+          toast.error("Failed to update organization. Please try again.");
+        }
       }
     } else {
       // TODO: Implement create organization functionality

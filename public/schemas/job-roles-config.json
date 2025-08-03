@@ -40,6 +40,21 @@
       "schemaFile": "machine-operator.json",
       "industry": "Machine Operator",
       "description": "Machine operator and maintenance positions"
+    },
+    "Data Entry Operator": {
+      "schemaFile": "data-entry.json",
+      "industry": "Data Entry",
+      "description": "Data entry and administrative positions"
+    },
+    "Tele Salesperson": {
+      "schemaFile": "tele-salesperson.json",
+      "industry": "Sales",
+      "description": "Tele sales and customer service positions"
+    },
+    "Field Salesperson": {
+      "schemaFile": "field-sales-person.json",
+      "industry": "Sales",
+      "description": "Field sales and customer service positions"
     }
   }
 } 

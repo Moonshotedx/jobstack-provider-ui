@@ -495,6 +495,58 @@ export const getOrganizationList = async (): Promise<Organization[]> => {
   }
 };
 
+// Check if organization slug is available
+export const checkOrganizationSlugAvailability = async (slug: string): Promise<boolean> => {
+  console.log('🚀 [API] Making slug availability check request:', {
+    slug,
+    endpoint: '/auth/organization/check-slug',
+    timestamp: new Date().toISOString()
+  });
+  
+  try {
+    const response = await apiClient.post('/auth/organization/check-slug', { slug });
+    console.log('✅ [API] Slug availability check response:', {
+      slug,
+      status: response.status,
+      data: response.data
+    });
+    
+    // Handle different response formats from backend
+    // Backend returns {"status": true} when slug is available
+    // Backend returns {"status": false} when slug is taken
+    const isAvailable = response.data.status === true || response.data.available === true;
+    
+    console.log('📊 [API] Processed availability result:', {
+      slug,
+      rawResponse: response.data,
+      isAvailable
+    });
+    
+    return isAvailable;
+  } catch (error: any) {
+    console.log('❌ [API] Slug availability check error:', {
+      slug,
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message,
+      error
+    });
+    
+    // If endpoint doesn't exist or returns 404, assume available
+    if (error.response?.status === 404) {
+      console.warn('⚠️ [API] Slug check endpoint not available, assuming slug is available');
+      return true;
+    }
+    // If 409 or conflict, slug is taken
+    if (error.response?.status === 409) {
+      console.log('🚫 [API] Slug is taken (409 conflict)');
+      return false;
+    }
+    console.error('❌ [API] Error checking slug availability:', error);
+    // On other errors, assume available to not block user
+    return true;
+  }
+};
+
 // Organization update functionality has been moved to use the new auth client API
 // in src/hooks/useJobsApi.ts - useUpdateOrganization hook
 
