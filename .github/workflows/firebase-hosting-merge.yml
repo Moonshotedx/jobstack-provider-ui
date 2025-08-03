@@ -1,0 +1,35 @@
+#gh firebase
+name: Deploy to Firebase Hosting on merge
+
+on:
+  push:
+    branches:
+      - firebase_ui
+  workflow_dispatch:  
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Install pnpm
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      # Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+
+      # Deploy to Firebase
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_VELVETY_CALLING_462806_N3 }}
+          channelId: live
+          projectId: velvety-calling-462806-n3
