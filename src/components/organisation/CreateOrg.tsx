@@ -12,7 +12,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { createOrganisation, authClient } from "@/lib/auth-client"
+import { createOrganisation } from "@/lib/auth-client"
 import { Input } from '@/components/ui/input'
 import { toast } from "sonner"
 import { Textarea } from '@/components/ui/textarea';
@@ -21,7 +21,7 @@ import { Upload, Building, Loader2, X } from 'lucide-react';
 import { useUserStore } from '@/stores/authStore';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
-import { getPresignedUrl, uploadFileToPresignedUrl } from '@/lib/api-client';
+import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
 
 const FormSchema = z.object({
   name: z.string()
@@ -104,6 +104,20 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     try {
       const slug = generateSlug(data.gstNumber);
 
+      // Check if the slug is available (only if it's based on GST number to avoid conflicts)
+      if (data.gstNumber && data.gstNumber.trim().length > 0) {
+        console.log('🔍 Checking slug availability for:', slug);
+        const isSlugAvailable = await checkOrganizationSlugAvailability(slug);
+        
+        if (!isSlugAvailable) {
+          toast.error(t('errors.slugTakenUserFriendly'), {
+            description: t('errors.slugTakenDescription')
+          });
+          return;
+        }
+        console.log('✅ Slug is available:', slug);
+      }
+
       // Prepare metadata with extended fields - trim whitespace from string fields
       const metadata = {
         address: data.address.trim(),
@@ -127,13 +141,14 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       if (organization) {
         // Set the newly created organization as active
         try {
-          const setActiveResult = await authClient.organization.setActive({ 
+          const { default: apiClient } = await import('@/lib/api-client');
+          const setActiveResponse = await apiClient.post('/auth/organization/set-active', { 
             organizationId: organization.id 
-          }, { credentials: 'include' });
+          });
           
-          if (setActiveResult.error) {
-            console.error('Failed to set organization as active:', setActiveResult.error);
-            throw new Error(`Failed to set organization as active: ${setActiveResult.error.message}`);
+          if (setActiveResponse.status !== 200) {
+            console.error('Failed to set organization as active:', setActiveResponse.status);
+            throw new Error('Failed to set organization as active');
           }
         } catch (error) {
           console.error('Error setting organization as active:', error);

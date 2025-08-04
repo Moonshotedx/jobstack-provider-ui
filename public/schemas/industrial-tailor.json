@@ -159,56 +159,21 @@
         },
         "jukiMachineStraightLineSubsection": {
           "type": "object",
-          "title": "Juki Machine Straight Line",
-          "x-subsection": "juki-machine-straight-line-subsection",
+          "title": "Juki Machine - Straight Line Stitch Assessment",
+          "x-subsection": "Juki Machine - Straight Line Stitch Assessment",
           "x-ui-subsection": "border",
           "properties": {
-            "minQualityScore1a": {
-              "type": "number",
-              "title": "Min Quality Score 1a",
-              "description": "How many of the 100 boxes need to be squares, at minimum?",
-              "minimum": 0
+            "selectionCriteria": {
+              "type": "string",
+              "title": "Selection Criteria - Quality",
+              "description": "Pass means the candidate is able to stitch straight lines with atleast a 70% accuracy",
+              "enum": ["Pass", "Fail"],
+              "enumNames": ["Pass", "Fail"]
             },
-            "minQualityScore1b": {
+            "selectionCriteriaTimeAllowed": {
               "type": "number",
-              "title": "Min Quality Score 1b",
-              "description": "How many of the 10 rows need to be equidistant, at minimum?",
-              "minimum": 0
-            },
-            "maxTimeAllowed": {
-              "type": "number",
-              "title": "Max Time Allowed",
-              "description": "How long is allowed to do the task, at most?",
-              "minimum": 0
-            },
-            "uploadSampleMedia": {
-              "type": "array",
-              "title": "Upload Sample media",
-              "description": "Upload reference image",
-              "items": {
-                "type": "string",
-                "format": "data-url"
-              },
-              "maxItems": 5
-            }
-          }
-        },
-        "jukiMachineMachineControlSubsection": {
-          "type": "object",
-          "title": "Juki Machine Machine Control",
-          "x-subsection": "juki-machine-machine-control-subsection",
-          "x-ui-subsection": "border",
-          "properties": {
-            "minQualityScore2": {
-              "type": "number",
-              "title": "Min Quality Score 2",
-              "description": "What % of the corners having noticeable holes is acceptable?",
-              "minimum": 0
-            },
-            "maxTimeAllowed2": {
-              "type": "number",
-              "title": "Max Time Allowed 2",
-              "description": "How long is allowed to do the task, at most?",
+              "title": "Selection Criteria - Max. Time Allowed",
+              "description": "The highest acceptable time (in minutes) allowed to do the task",
               "minimum": 0
             },
             "uploadSampleMedia": {

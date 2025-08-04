@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { User, LogOut, AlertCircle, Menu } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
@@ -11,19 +11,21 @@ import { CreateOrg } from './organisation/CreateOrg';
 import LanguageSwitcher from './ui/language-switcher';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
-import { logoutAndRedirect } from '@/lib/utils';
+
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { t } = useTranslation('navigation');
   
-  const navigate = useNavigate();
+
   const user = useUserStore((state) => state.user);
-  const { checkSession } = useAuth();
+  const { checkSession, logout } = useAuth();
   const queryClient = useQueryClient();
 
   const handleCompleteProfile = () => {
@@ -46,10 +48,34 @@ const Header = () => {
       // Clear queries first to prevent race conditions
       queryClient.clear();
       
-      await logoutAndRedirect();
+      // Use the useAuth hook's logout function
+      await logout();
+      
+      // Clear user state from store
+      const clearUser = useUserStore.getState().clearUser;
+      clearUser();
+      
+      // Clear all storage
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+        localStorage.removeItem('user-storage');
+        localStorage.removeItem('auth-token');
+      }
+      
+      // Force a page reload to ensure clean state
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error in header:', error);
-      // Even if logout fails, redirect to home page
+      // Even if logout fails, clear state and redirect
+      const clearUser = useUserStore.getState().clearUser;
+      clearUser();
+      
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear();
+        localStorage.removeItem('user-storage');
+        localStorage.removeItem('auth-token');
+      }
+      
       window.location.href = '/';
     }
   };
@@ -123,6 +149,15 @@ const Header = () => {
                   </Button>
                 </div>
               </div>
+              
+              {/* User Email Display */}
+              <div className="pt-2 border-t">
+                <div className="p-3 bg-muted/30 rounded-lg">
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {user.email || user.phone}
+                  </p>
+                </div>
+              </div>
             </>
           ) : (
             <div className="space-y-2">
@@ -130,7 +165,7 @@ const Header = () => {
                 variant="ghost"
                 className="w-full justify-start"
                 onClick={() => {
-                  navigate({ to: "/auth/$action", params: { action: "login" } });
+                  setShowAuthDialog(true);
                   setMobileMenuOpen(false);
                 }}
               >
@@ -158,8 +193,7 @@ const Header = () => {
                 <img
                   src="/Onest_logo_mobile.png"
                   alt="ONEST Logo"
-                  className="h-8 w-auto object-contain"
-                  style={{ maxWidth: 120 }}
+                  className="h-8 w-auto object-contain max-w-[120px]"
                 />
               </Link>
             </div>
@@ -211,6 +245,12 @@ const Header = () => {
                           Complete Profile
                         </DropdownMenuItem>
                       )}
+                      {/* User Email Display */}
+                      <div className="px-3 py-2 bg-muted/30">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {user.email || user.phone}
+                        </p>
+                      </div>
                       <DropdownMenuItem onClick={handleLogout}>
                         <LogOut className="h-4 w-4 mr-2" />
                         {t('header.logout')}
@@ -223,7 +263,7 @@ const Header = () => {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => navigate({ to: "/auth/$action", params: { action: "login" } })}
+                    onClick={() => setShowAuthDialog(true)}
                   >
                     {t('header.login')}
                   </Button>
@@ -256,6 +296,12 @@ const Header = () => {
           queryClient.invalidateQueries();
           toast.success('Organization created successfully!');
         }}
+      />
+
+      {/* Unified Auth Dialog */}
+      <UnifiedAuthDialog
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
       />
     </>
   );

@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "Tele Salesperson Job Posting",
+  "description": "Complete job posting form for Tele Salesperson positions",
+  "properties": {
+    "basicInfo": {
+      "type": "object",
+      "title": "Basic Information",
+      "x-section": "basic-info",
+      "properties": {
+        "jobProviderName": {
+          "type": "string",
+          "title": "Job Provider Name",
+          "description": "Enter job provider/company name",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        },
+        "jobProviderRegistration": {
+          "type": "string",
+          "title": "Job Provider Registration Details",
+          "description": "GST, CIN, TAN, PAN or other registration number",
+          "minLength": 1,
+          "pattern": "^.+$"
+        },
+        "jobProviderLocation": {
+          "type": "string",
+          "title": "Job Provider Location",
+          "description": "Enter job provider location",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        },
+        "jobProviderLogo": {
+          "type": "string",
+          "title": "Job Provider Logo",
+          "description": "Upload company logo (PNG, JPG, max 5MB)",
+          "format": "data-url"
+        }
+      },
+      "required": ["jobProviderName", "jobProviderLocation"]
+    },
+    "jobDetails": {
+      "type": "object",
+      "title": "Job Details",
+      "x-section": "job-details",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Job Title",
+          "description": "Job title (editable)",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        },
+        "positions": {
+          "type": "integer",
+          "title": "Number of Openings",
+          "description": "How many positions are available?",
+          "minimum": 1,
+          "default": 1
+        },
+        "jobDetailsVideo": {
+          "type": "string",
+          "title": "Job Details Video",
+          "format": "data-url",
+          "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+        },
+        "jobLocationPhotos": {
+          "type": "array",
+          "title": "Job Location Photos",
+          "items": {
+            "type": "string",
+            "format": "data-url"
+          },
+          "description": "Upload photos of the job location (PNG, JPEG, JPG, max 5MB each)"
+        },
+        "workingHoursPerDay": {
+          "type": "number",
+          "title": "Working Hours Per Day",
+          "description": "Enter working hours per day",
+          "minimum": 1,
+          "maximum": 24
+        },
+        "modeOfWork": {
+          "type": "string",
+          "title": "Mode of Work",
+          "description": "Select mode of work",
+          "enum": ["on-site-no-shift", "on-site-shifts", "remote", "hybrid", "travelling"],
+          "enumNames": ["On-Site-No Shift", "On-Site-Shifts", "Remote", "Hybrid", "Travelling"]
+        },
+        "minMonthlyInHand": {
+          "type": "number",
+          "title": "Monthly minimum in-hand salary (INR)",
+          "description": "Enter minimum monthly in-hand salary amount",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "maxMonthlyInHand": {
+          "type": "number",
+          "title": "Monthly maximum in-hand salary (INR)",
+          "description": "Enter maximum monthly in-hand salary amount",
+          "minimum": 0,
+          "maximum": 1000000
+        },
+        "monthlyIncentivePossible": {
+          "type": "number",
+          "title": "Monthly Incentive Possible",
+          "description": "Enter monthly incentive amount",
+          "minimum": 0
+        },
+        "monthlyPfEsicBenefits": {
+          "type": "number",
+          "title": "Monthly PF & Health Insurance Benefits (INR)",
+          "description": "Enter monthly PF & Health Insurance benefits amount",
+          "minimum": 0
+        }
+      },
+      "required": ["title", "positions"]
+    },
+    "jobNeeds": {
+      "type": "object",
+      "title": "Job Needs",
+      "x-section": "job-needs",
+      "properties": {
+        "ageAllowedLowerLimit": {
+          "type": "integer",
+          "title": "Age Allowed - Lower Limit",
+          "description": "Enter minimum age",
+          "minimum": 18,
+          "maximum": 100
+        },
+        "languageSubsection": {
+          "type": "object",
+          "title": "Language",
+          "x-subsection": "language-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "languageKnown": {
+              "type": "array",
+              "title": "Languages Known",
+              "description": "Select all languages that the candidate should know",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Assamese",
+                  "Bengali",
+                  "Bodo",
+                  "Dogri",
+                  "English",
+                  "Gujarati",
+                  "Hindi",
+                  "Kannada",
+                  "Kashmiri",
+                  "Konkani",
+                  "Maithili",
+                  "Malayalam",
+                  "Manipuri",
+                  "Marathi",
+                  "Mizo",
+                  "Nepali",
+                  "Odia",
+                  "Punjabi",
+                  "Sanskrit",
+                  "Santali",
+                  "Sindhi",
+                  "Tamil",
+                  "Telugu",
+                  "Urdu"
+                ],
+                "enumNames": [
+                  "Assamese (অসমীয়া)",
+                  "Bengali (বাংলা)",
+                  "Bodo (बड़ो)",
+                  "Dogri (डोगरी)",
+                  "English",
+                  "Gujarati (ગુજરાતી)",
+                  "Hindi (हिन्दी)",
+                  "Kannada (ಕನ್ನಡ)",
+                  "Kashmiri (कॉशुर)",
+                  "Konkani (कोंकणी)",
+                  "Maithili (मैथिली)",
+                  "Malayalam (മലയാളം)",
+                  "Manipuri (মৈতৈলোন্)",
+                  "Marathi (मराठी)",
+                  "Mizo (Mizo ṭawng)",
+                  "Nepali (नेपाली)",
+                  "Odia (ଓଡ଼ିଆ)",
+                  "Punjabi (ਪੰਜਾਬੀ)",
+                  "Sanskrit (संस्कृतम्)",
+                  "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
+                  "Sindhi (سنڌي)",
+                  "Tamil (தமிழ்)",
+                  "Telugu (తెలుగు)",
+                  "Urdu (اردو)"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        },
+        "highestQualificationSubsection": {
+          "type": "object",
+          "title": "Highest Qualification",
+          "x-subsection": "highest-qualification-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "highestQualification": {
+              "type": "array",
+              "title": "Min. Highest Qualification Preferred",
+              "description": "Select the minimum highest qualification",
+              "items": {
+                "type": "string",
+                "enum": ["10th", "12th", "3 year Undergraduate Degree", "4 year Undergraduate Degree", "Postgraduate and above"],
+                "enumNames": ["10th", "12th", "3 year Undergraduate Degree", "4 year Undergraduate Degree", "Postgraduate and above"]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        },
+        "customerHandlingSubsection": {
+          "type": "object",
+          "title": "Customer Handling",
+          "x-subsection": "customer-handling-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "communicationSkillScore": {
+              "type": "string",
+              "title": "Communication Skill Score",
+              "description": "Enter the minimum acceptable communication skill score"
+            },
+            "domainKnowledge": {
+              "type": "array",
+              "title": "Domain Knowledge",
+              "description": "Select domain knowledge areas",
+              "items": {
+                "type": "string",
+                "enum": ["general", "cashcards", "electronics", "mobile-phones", "kitchen-appliances", "furniture", "other"],
+                "enumNames": ["General", "Cashcards", "Electronics", "Mobile Phones", "Kitchen Appliances", "Furniture", "Other"]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        }
+      }
+    }
+  }
+}

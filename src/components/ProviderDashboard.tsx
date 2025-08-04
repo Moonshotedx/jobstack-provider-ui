@@ -7,19 +7,21 @@ import { CreateOrg } from './organisation/CreateOrg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
-import { useNavigate } from '@tanstack/react-router';
+
 import { useUserStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId } from '@/hooks/useJobsApi';
+import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 
 const ProviderDashboard = () => {
   const { t } = useTranslation('dashboard');
   const [showPostJob, setShowPostJob] = useState(false);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   
   // const { user } = useAuth();
   const user = useUserStore((state) => state.user);
-  const navigate = useNavigate();
+
   
   // Get real-time jobs data
   const { data: jobs } = useCurrentOrganizationJobs();
@@ -63,17 +65,9 @@ const ProviderDashboard = () => {
                 <Button 
                   className="w-full" 
                   size="lg"
-                  onClick={() => navigate({ to: "/auth/$action", params: { action: "login" } })}
+                  onClick={() => setShowAuthDialog(true)}
                 >
                   {t('landing.loginButton')}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full" 
-                  size="lg"
-                  onClick={() => navigate({ to: "/auth/$action", params: { action: "signup" } })}
-                >
-                  {t('landing.createAccountButton')}
                 </Button>
               </div>
               
@@ -210,6 +204,12 @@ const ProviderDashboard = () => {
       <CreateOrg 
         isOpen={showCreateOrg}
         onClose={() => setShowCreateOrg(false)}
+      />
+
+      {/* Unified Auth Dialog */}
+      <UnifiedAuthDialog
+        isOpen={showAuthDialog}
+        onClose={() => setShowAuthDialog(false)}
       />
     </div>
   );
