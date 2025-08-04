@@ -573,6 +573,7 @@ export interface VerifyOtpRequest {
   email?: string;
   phoneNumber?: string;
   otp: string;
+  rememberMe?: boolean;
 }
 
 export interface VerifyOtpResponse {
@@ -641,6 +642,10 @@ export const requestOtp = async (request: RequestOtpRequest): Promise<RequestOtp
 };
 
 export const verifyOtp = async (request: VerifyOtpRequest): Promise<VerifyOtpResponse> => {
-  const response = await apiClient.post('/auth/unified-otp/verify', request);
+  const requestWithRememberMe = {
+    ...request,
+    rememberMe: true
+  };
+  const response = await apiClient.post('/auth/unified-otp/verify', requestWithRememberMe);
   return response.data;
 };
