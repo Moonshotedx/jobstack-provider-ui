@@ -51,6 +51,36 @@
             "minLength": 1,
             "pattern": "^\\s*\\S+\\s*$"
           },
+          "designation": {
+            "type": "string",
+            "title": "Designation",
+            "description": "Enter the designation for the job position",
+            "minLength": 1,
+            "pattern": "^\\s*\\S+\\s*$"
+          },
+          "jobType": {
+            "type": "array",
+            "title": "Job Type",
+            "description": "Select the type of job (e.g., Full-time, Part-time, Contract)",
+            "items": {
+              "type": "string",
+              "enum": ["Full-time", "Part-time", "Apprenticeship"],
+              "enumNames": ["Full-time", "Part-time", "Apprenticeship"]
+            },
+            "uniqueItems": true,
+            "minItems": 1
+          },
+          "hiringUrgency": {
+            "type": "string",
+            "title": "Hiring Urgency",
+            "description": "Select the urgency of hiring (e.g., Immediate, Within 1 month, Within 3 months)"
+          },
+          "validTill": {
+            "type": "string",
+            "title": "Valid Till(dd-mm-yyyy)",
+            "description": "Enter the date until which the job posting is valid",
+            "format": "date"
+          },
           "positions": {
             "type": "integer",
             "title": "Number of Openings",
@@ -63,6 +93,13 @@
             "title": "Job Details Video",
             "format": "data-url",
             "description": "Upload video explaining job details (MOV, AVI, MP4, MKV, WMV, max 50MB)"
+          },
+          "jobDescription": {
+            "type": "string",
+            "title": "Job Description",
+            "description": "Provide a detailed description of the job responsibilities and requirements",
+            "minLength": 10,
+            "maxLength": 2000
           },
           "jobLocationPhotos": {
             "type": "array",
@@ -106,16 +143,46 @@
             "minimum": 0,
             "maximum": 1000000
           },
-          "monthlyPfEsicBenefits": {
+          "monthlyAttendanceBonus": {
             "type": "number",
-            "title": "Monthly PF & ESIC Benefits (INR)",
-            "description": "Enter monthly PF & ESIC benefits amount",
+            "title": "Monthly Attendance Bonus (INR)",
+            "description": "Bonus Amount(INR)",
             "minimum": 0
+          },
+          "monthlyAttendanceBonusCriteria": {
+            "type": "string",
+            "title": "Monthly Attendance Bonus Criteria",
+            "description": "Criteria (%)"
           },
           "monthlyAverageOT": {
             "type": "string",
             "title": "Monthly Average OT (Overtime) (INR)",
             "description": "Enter monthly average overtime amount"
+          },
+          "otPerHourRate": {
+            "type": "number",
+            "title": "Overtime Per Hour Rate (INR)",
+            "description": "Enter overtime per hour rate",
+            "minimum": 0
+          },
+           "monthlyPfEsicBenefits": {
+            "type": "number",
+            "title": "Monthly PF & ESIC Benefits (INR)",
+            "description": "Enter monthly PF & ESIC benefits amount",
+            "minimum": 0
+          },
+          "foodProvided": {
+            "type": "string",
+            "title": "Food Provided",
+            "description": "Is food provided by the employer?",
+            "enum": ["yes", "no"],
+            "enumNames": ["Yes", "No"],
+            "x-ui-widget": "radio"
+          },
+          "travelProvided": {
+            "type": "string",
+            "title": "Travel Provided",
+            "description": "Is travel provided by the employer?"
           }
         },
         "required": ["title", "positions"]
@@ -326,6 +393,11 @@
                 },
                 "uniqueItems": true,
                 "minItems": 1
+              },
+              "skillsRequired":{
+                "type": "string",
+                "title": "Skills Required",
+                "description": "Enter the skills required for the job position"
               }
             }
           },
@@ -347,6 +419,76 @@
                 "description": "Minimum acceptable score for intent assessment tasks",
                 "minimum": 0
               }
+            }
+          },
+          "languagesSubsection": {
+            "type": "object",
+            "title": "Languages",
+            "x-subsection": "languages-subsection",
+            "x-ui-subsection": "border",
+            "properties": {
+              "languagesKnown": {
+                "type": "array",
+                "title": "Languages Known",
+                "description": "Select languages known (multiple selections allowed)",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                  "Assamese",
+                  "Bengali",
+                  "Bodo",
+                  "Dogri",
+                  "English",
+                  "Gujarati",
+                  "Hindi",
+                  "Kannada",
+                  "Kashmiri",
+                  "Konkani",
+                  "Maithili",
+                  "Malayalam",
+                  "Manipuri",
+                  "Marathi",
+                  "Mizo",
+                  "Nepali",
+                  "Odia",
+                  "Punjabi",
+                  "Sanskrit",
+                  "Santali",
+                  "Sindhi",
+                  "Tamil",
+                  "Telugu",
+                  "Urdu"
+                ],
+                "enumNames": [
+                  "Assamese (অসমীয়া)",
+                  "Bengali (বাংলা)",
+                  "Bodo (बड़ो)",
+                  "Dogri (डोगरी)",
+                  "English",
+                  "Gujarati (ગુજરાતી)",
+                  "Hindi (हिन्दी)",
+                  "Kannada (ಕನ್ನಡ)",
+                  "Kashmiri (कॉशुर)",
+                  "Konkani (कोंकणी)",
+                  "Maithili (मैथिली)",
+                  "Malayalam (മലയാളം)",
+                  "Manipuri (মৈতৈলোন্)",
+                  "Marathi (मराठी)",
+                  "Mizo (Mizo ṭawng)",
+                  "Nepali (नेपाली)",
+                  "Odia (ଓଡ଼ିଆ)",
+                  "Punjabi (ਪੰਜਾਬੀ)",
+                  "Sanskrit (संस्कृतम्)",
+                  "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
+                  "Sindhi (سنڌي)",
+                  "Tamil (தமிழ்)",
+                  "Telugu (తెలుగు)",
+                  "Urdu (اردو)"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
             }
           }
         }
