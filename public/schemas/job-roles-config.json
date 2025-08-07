@@ -55,6 +55,11 @@
       "schemaFile": "field-sales-person.json",
       "industry": "Sales",
       "description": "Field sales and customer service positions"
+    },
+    "Generic ITI": {
+      "schemaFile": "genericITI.json",
+      "industry": "ITI",
+      "description": "Generic ITI positions across various trades"
     }
   }
 } 
