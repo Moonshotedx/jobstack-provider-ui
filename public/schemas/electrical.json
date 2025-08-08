@@ -433,7 +433,7 @@
           "properties": {
             "fitterAssessmentScore": {
               "type": "number",
-              "title": "Fitter Assessment Score - Benchmark",
+              "title": "Trade Assessment Score - Benchmark",
               "description": "Minimum acceptable score for fitter assessment tasks",
               "minimum": 0
             },
