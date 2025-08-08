@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { PhoneInput } from '@/components/ui/phone-input';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,8 +11,8 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
-import { requestOtp, verifyOtp } from '@/lib/api-client';
-import type { RequestOtpRequest, VerifyOtpRequest } from '@/lib/api-client';
+import { checkUser, requestOtp, verifyOtp } from '@/lib/api-client';
+import type { CheckUserRequest, VerifyOtpRequest } from '@/lib/api-client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const UnifiedAuthSchema = z.object({
@@ -20,8 +21,10 @@ const UnifiedAuthSchema = z.object({
     .refine((val) => {
       // Check if it's a valid email or phone number
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      // Updated phone regex to handle country codes (e.g., +91 9876543210)
       const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-      return emailRegex.test(val) || phoneRegex.test(val);
+      const phoneWithCountryCodeRegex = /^\+\d{1,4}\s?[\d\s\-\(\)]{6,}$/;
+      return emailRegex.test(val) || phoneRegex.test(val) || phoneWithCountryCodeRegex.test(val);
     }, "Please enter a valid email or phone number"),
 });
 
@@ -48,7 +51,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   const { handleOtpVerification } = useAuth();
   const [currentStep, setCurrentStep] = useState<AuthStep>('identifier');
   const [identifier, setIdentifier] = useState('');
+  const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
 
+  const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
@@ -61,28 +66,43 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   });
 
   const handleIdentifierSubmit = async (data: UnifiedAuthInputs) => {
-    setIsRequestingOtp(true);
+    setIsCheckingUser(true);
     setIdentifier(data.identifier);
     
     try {
       // Determine if it's email or phone
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
+      setIdentifierType(isEmail ? 'email' : 'phone');
       
-      const request: RequestOtpRequest = isEmail 
+      const checkUserRequest: CheckUserRequest = isEmail 
         ? { email: data.identifier }
         : { phoneNumber: data.identifier };
 
+      const response = await checkUser(checkUserRequest);
+              
+      if (response.userExists) {
+        // User exists, request OTP for login
+        await handleRequestOtp(checkUserRequest);
+      } else {
+        // User doesn't exist, proceed to signup
+        setCurrentStep('signup');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to check user. Please try again.');
+    } finally {
+      setIsCheckingUser(false);
+    }
+  };
+
+  const handleRequestOtp = async (request: CheckUserRequest) => {
+    setIsRequestingOtp(true);
+    
+    try {
       const response = await requestOtp(request);
       
       if (response.ok) {
-        if (response.user) {
-          // User exists, proceed to OTP verification for login
-          setCurrentStep('otp');
-          toast.success('OTP sent successfully!');
-        } else {
-          // User doesn't exist, proceed to signup
-          setCurrentStep('signup');
-        }
+        setCurrentStep('otp');
+        toast.success('OTP sent successfully!');
       } else {
         toast.error('Failed to send OTP. Please try again.');
       }
@@ -97,10 +117,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     setIsVerifyingOtp(true);
     
     try {
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-      
       const verifyRequest: VerifyOtpRequest = {
-        ...(isEmail ? { email: identifier } : { phoneNumber: identifier }),
+        ...(identifierType === 'email' ? { email: identifier } : { phoneNumber: identifier }),
         otp: data.otp
       };
 
@@ -125,26 +143,11 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   };
 
   const handleResendOtp = async () => {
-    setIsRequestingOtp(true);
+    const request: CheckUserRequest = identifierType === 'email'
+      ? { email: identifier }
+      : { phoneNumber: identifier };
     
-    try {
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-      const request: RequestOtpRequest = isEmail 
-        ? { email: identifier }
-        : { phoneNumber: identifier };
-
-      const response = await requestOtp(request);
-      
-      if (response.ok) {
-        toast.success('OTP resent successfully!');
-      } else {
-        toast.error('Failed to resend OTP. Please try again.');
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to resend OTP. Please try again.');
-    } finally {
-      setIsRequestingOtp(false);
-    }
+    await handleRequestOtp(request);
   };
 
   const handleBackToIdentifier = () => {
@@ -155,10 +158,26 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   const handleClose = () => {
     setCurrentStep('identifier');
     setIdentifier('');
+    setIdentifierType('email');
 
     identifierForm.reset();
     otpForm.reset();
     onClose();
+  };
+
+  const handleIdentifierChange = (value: string) => {
+    // Determine if it's email or phone based on the input
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(value) || value.startsWith('+') || /^\d/.test(value);
+    
+    if (isEmail) {
+      setIdentifierType('email');
+    } else if (isPhone) {
+      setIdentifierType('phone');
+    }
+    
+    // Update the form value
+    identifierForm.setValue('identifier', value);
   };
 
   const renderIdentifierStep = () => (
@@ -166,12 +185,40 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
       <form onSubmit={identifierForm.handleSubmit(handleIdentifierSubmit)} className="space-y-4">
         <div>
           <Label htmlFor="identifier">Enter mobile number or email</Label>
-          <Input
-            id="identifier"
-            type="text"
-            placeholder="Enter your email or phone number"
-            {...identifierForm.register("identifier")}
-          />
+          <div className="space-y-2">
+            {identifierType === 'phone' ? (
+              <PhoneInput
+                value={identifierForm.watch('identifier') || ''}
+                onChange={handleIdentifierChange}
+                placeholder="Enter your phone number"
+                error={identifierForm.formState.errors.identifier?.message}
+              />
+            ) : (
+              <Input
+                id="identifier-email"
+                type="email"
+                placeholder="Enter your email address"
+                {...identifierForm.register("identifier", {
+                  onChange: (e) => handleIdentifierChange(e.target.value)
+                })}
+              />
+            )}
+            
+            {/* Toggle Button */}
+            <div className="flex justify-center">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setIdentifierType(identifierType === 'email' ? 'phone' : 'email');
+                  identifierForm.setValue('identifier', '');
+                }}
+              >
+                {identifierType === 'email' ? 'Use phone number instead' : 'Use email instead'}
+              </Button>
+            </div>
+          </div>
           {identifierForm.formState.errors.identifier && (
             <span className="text-sm text-destructive">
               {identifierForm.formState.errors.identifier.message}
@@ -182,12 +229,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isRequestingOtp}
+          disabled={isCheckingUser}
         >
-          {isRequestingOtp ? (
+          {isCheckingUser ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Sending OTP...
+              Checking...
             </>
           ) : (
             'Continue'
