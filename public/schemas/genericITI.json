@@ -16,6 +16,11 @@
             "minLength": 1,
             "pattern": "^\\s*\\S+\\s*$"
           },
+          "jobProviderType": {
+            "type": "string",
+            "title": "Job Provider Type",
+            "description": "Select the type of job provider"
+          },
           "jobProviderRegistration": {
             "type": "string",
             "title": "Job Provider Registration Details",
@@ -44,6 +49,11 @@
         "title": "Job Details",
         "x-section": "job-details",
         "properties": {
+          "callBackTime": {
+            "type": "string",
+            "title": "Call Back Time",
+            "description": "Enter the call back time"
+          },
           "title": {
             "type": "string",
             "title": "Job Title",
@@ -198,6 +208,20 @@
             "description": "Enter minimum age",
             "minimum": 18,
             "maximum": 100
+          },
+          "ageAllowedUpperLimit": {
+            "type": "integer",
+            "title": "Age Allowed - Upper Limit",
+            "description": "Enter maximum age",
+            "minimum": 18,
+            "maximum": 100
+          },
+          "genderPreference": {
+            "type": "string",
+            "title": "Gender Preference",
+            "description": "Select the gender preference",
+            "enum": ["Male", "Female", "Both"],
+            "enumNames": ["Male", "Female", "Both"]
           },
           "educationSubsection": {
             "type": "object",
