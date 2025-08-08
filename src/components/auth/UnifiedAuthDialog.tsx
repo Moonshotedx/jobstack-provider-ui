@@ -10,8 +10,8 @@ import { toast } from "sonner";
 import { useNavigate } from "@tanstack/react-router";
 import { useAuth } from "@/hooks/useAuth";
 
-import { checkUser, requestOtp, verifyOtp } from '@/lib/api-client';
-import type { CheckUserRequest, VerifyOtpRequest } from '@/lib/api-client';
+import { requestOtp, verifyOtp } from '@/lib/api-client';
+import type { RequestOtpRequest, VerifyOtpRequest } from '@/lib/api-client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
 const UnifiedAuthSchema = z.object({
@@ -49,13 +49,9 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   const [currentStep, setCurrentStep] = useState<AuthStep>('identifier');
   const [identifier, setIdentifier] = useState('');
 
-  const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
-    const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
 
-
-  
-  
   const identifierForm = useForm<UnifiedAuthInputs>({
     resolver: zodResolver(UnifiedAuthSchema)
   });
@@ -65,42 +61,28 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   });
 
   const handleIdentifierSubmit = async (data: UnifiedAuthInputs) => {
-    setIsCheckingUser(true);
+    setIsRequestingOtp(true);
     setIdentifier(data.identifier);
     
     try {
       // Determine if it's email or phone
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
       
-      const checkUserRequest: CheckUserRequest = isEmail 
+      const request: RequestOtpRequest = isEmail 
         ? { email: data.identifier }
         : { phoneNumber: data.identifier };
 
-      const response = await checkUser(checkUserRequest);
-              
-        if (response.userExists) {
-        // User exists, request OTP for login
-        await handleRequestOtp(checkUserRequest);
-      } else {
-        // User doesn't exist, proceed to signup
-        setCurrentStep('signup');
-      }
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || 'Failed to check user. Please try again.');
-    } finally {
-      setIsCheckingUser(false);
-    }
-  };
-
-  const handleRequestOtp = async (request: CheckUserRequest) => {
-    setIsRequestingOtp(true);
-    
-    try {
       const response = await requestOtp(request);
       
       if (response.ok) {
-        setCurrentStep('otp');
-        toast.success('OTP sent successfully!');
+        if (response.user) {
+          // User exists, proceed to OTP verification for login
+          setCurrentStep('otp');
+          toast.success('OTP sent successfully!');
+        } else {
+          // User doesn't exist, proceed to signup
+          setCurrentStep('signup');
+        }
       } else {
         toast.error('Failed to send OTP. Please try again.');
       }
@@ -143,12 +125,26 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   };
 
   const handleResendOtp = async () => {
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
-    const request: CheckUserRequest = isEmail 
-      ? { email: identifier }
-      : { phoneNumber: identifier };
+    setIsRequestingOtp(true);
     
-    await handleRequestOtp(request);
+    try {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+      const request: RequestOtpRequest = isEmail 
+        ? { email: identifier }
+        : { phoneNumber: identifier };
+
+      const response = await requestOtp(request);
+      
+      if (response.ok) {
+        toast.success('OTP resent successfully!');
+      } else {
+        toast.error('Failed to resend OTP. Please try again.');
+      }
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || 'Failed to resend OTP. Please try again.');
+    } finally {
+      setIsRequestingOtp(false);
+    }
   };
 
   const handleBackToIdentifier = () => {
@@ -186,12 +182,12 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
         <Button 
           type="submit" 
           className="w-full" 
-          disabled={isCheckingUser}
+          disabled={isRequestingOtp}
         >
-          {isCheckingUser ? (
+          {isRequestingOtp ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Checking...
+              Sending OTP...
             </>
           ) : (
             'Continue'

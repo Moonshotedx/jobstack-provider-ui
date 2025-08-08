@@ -551,15 +551,6 @@ export const checkOrganizationSlugAvailability = async (slug: string): Promise<b
 // in src/hooks/useJobsApi.ts - useUpdateOrganization hook
 
 // OTP Authentication Types
-export interface CheckUserRequest {
-  email?: string;
-  phoneNumber?: string;
-}
-
-export interface CheckUserResponse {
-  userExists: boolean;
-}
-
 export interface RequestOtpRequest {
   email?: string;
   phoneNumber?: string;
@@ -567,6 +558,7 @@ export interface RequestOtpRequest {
 
 export interface RequestOtpResponse {
   ok: boolean;
+  user: boolean; // true if user exists, false if user needs to be created
 }
 
 export interface VerifyOtpRequest {
@@ -631,11 +623,6 @@ export const getCustomSession = async (): Promise<CustomSessionResponse> => {
 };
 
 // OTP Authentication API functions
-export const checkUser = async (request: CheckUserRequest): Promise<CheckUserResponse> => {
-  const response = await apiClient.post('/auth/unified-otp/check-user', request);
-  return response.data;
-};
-
 export const requestOtp = async (request: RequestOtpRequest): Promise<RequestOtpResponse> => {
   const response = await apiClient.post('/auth/unified-otp/request', request);
   return response.data;
