@@ -134,7 +134,7 @@
             "items": {
               "type": "string",
               "enum": ["on-site-no-shift", "on-site-shifts", "remote", "hybrid", "travelling"],
-              "enumNames": ["On-site-no shift - standard work timings every working day", "On-site-shifts - work timings can change as per the shift one is assigned to", "Remote - work from home, no office space provide", "Hybrid - option to work from home, but presence expected on-site as per a prescribed schedule","Travelling - on the road job, requires travel"]
+              "enumNames": ["On-site-no shift - standard work timings every working day", "On-site-shifts - work timings can change as per the shift one is assigned to", "Remote - work from home, no office space provided", "Hybrid - option to work from home, but presence expected on-site as per a prescribed schedule","Travelling - on the road job, requires travel"]
             },
             "uniqueItems": true,
             "minItems": 1
@@ -220,8 +220,8 @@
             "type": "string",
             "title": "Gender Preference",
             "description": "Select the gender preference",
-            "enum": ["Male", "Female", "Both"],
-            "enumNames": ["Male", "Female", "Both"]
+            "enum": ["Male", "Female", "Other", "No Preference"],
+            "enumNames": ["Male", "Female", "Other", "No Preference"]
           },
           "educationSubsection": {
             "type": "object",
@@ -235,8 +235,8 @@
                 "description": "Minimum highest qualification preferred (multiple selections allowed)",
                 "items": {
                   "type": "string",
-                  "enum": ["10th Pass", "12th Pass", "ITI Diploma", "Graduate", "Other"],
-                  "enumNames": ["10th Pass", "12th Pass", "ITI Diploma", "Graduate", "Other"]
+                  "enum": ["10th Pass", "12th Pass", "ITI", "Diploma", "Graduate", "Other"],
+                  "enumNames": ["10th Pass", "12th Pass", "ITI", "Diploma", "Graduate", "Other"]
                 },
                 "uniqueItems": true,
                 "minItems": 1

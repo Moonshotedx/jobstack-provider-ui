@@ -56,10 +56,10 @@
       "industry": "Sales",
       "description": "Field sales and customer service positions"
     },
-    "Generic ITI": {
+    "ITI Student": {
       "schemaFile": "genericITI.json",
       "industry": "ITI",
-      "description": "Generic ITI positions across various trades"
+      "description": "ITI  student positions across various trades"
     }
   }
 } 
