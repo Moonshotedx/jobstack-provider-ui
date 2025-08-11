@@ -55,6 +55,11 @@
       "schemaFile": "field-sales-person.json",
       "industry": "Sales",
       "description": "Field sales and customer service positions"
+    },
+    "ITI Student": {
+      "schemaFile": "genericITI.json",
+      "industry": "ITI",
+      "description": "ITI  student positions across various trades"
     }
   }
 } 

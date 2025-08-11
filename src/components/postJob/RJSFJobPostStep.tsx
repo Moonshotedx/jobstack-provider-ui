@@ -426,8 +426,44 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       );
     }
     
-    // Handle enum fields (dropdowns)
+    // Handle enum fields (dropdowns and radio buttons)
     if (fieldSchema.type === 'string' && fieldSchema.enum) {
+      // Check if this field should be rendered as radio buttons
+      if (fieldSchema['x-ui-widget'] === 'radio') {
+        return (
+          <div key={fieldKey} className="space-y-3">
+            <Label>{fieldLabel}</Label>
+            {fieldSchema.description && (
+              <p className="text-sm text-muted-foreground">{fieldSchema.description}</p>
+            )}
+            <div className="flex flex-col space-y-2">
+              {fieldSchema.enum.map((option: string, index: number) => (
+                <div key={option} className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id={`${fieldId}-${option}`}
+                    name={fieldId}
+                    value={option}
+                    checked={value === option}
+                    onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.value)}
+                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                    aria-describedby={fieldSchema.description ? `${fieldId}-description` : undefined}
+                    aria-label={`${fieldLabel}: ${fieldSchema.enumNames?.[index] || option}`}
+                  />
+                  <Label 
+                    htmlFor={`${fieldId}-${option}`} 
+                    className="font-normal cursor-pointer"
+                  >
+                    {fieldSchema.enumNames?.[index] || option}
+                  </Label>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      }
+
+      // Default dropdown for other enum fields
       return (
         <div key={fieldKey} className="space-y-2">
           <Label htmlFor={fieldId}>{fieldLabel}</Label>
@@ -926,6 +962,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             checked={value || false}
             onChange={(e) => updateFormData(sectionKey, fieldKey, e.target.checked)}
             className="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary"
+            aria-describedby={fieldSchema.description ? `${fieldId}-description` : undefined}
+            aria-label={fieldLabel}
           />
           <Label htmlFor={fieldId} className="font-normal cursor-pointer">
             {fieldLabel}
