@@ -105,30 +105,30 @@ export const useUpdateJob = () => {
   });
 };
 
-// Hook to archive a job (using PUT method)
+// Hook to delete a job
 export const useDeleteJob = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ organizationId, jobId }: { organizationId: string; jobId: string }) => {
-      console.log('🗑️ Archiving job:', { organizationId, jobId });
+      console.log('🗑️ Deleting job:', { organizationId, jobId });
       return await jobsApi.deleteJob(organizationId, jobId);
     },
     onSuccess: (_, variables) => {
-      console.log('✅ Job archived successfully');
+      console.log('✅ Job deleted successfully');
       
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({
         queryKey: ['jobs', variables.organizationId]
       });
       
-      toast.success('Job archived successfully!', {
-        description: 'The job has been archived.',
+      toast.success('Job deleted successfully!', {
+        description: 'The job has been permanently removed.',
       });
     },
     onError: (error: any) => {
-      console.error('❌ Failed to archive job:', error);
-      toast.error(error?.response?.data?.message || 'Failed to archive job. Please try again.');
+      console.error('❌ Failed to delete job:', error);
+      toast.error(error?.response?.data?.message || 'Failed to delete job. Please try again.');
     }
   });
 };
