@@ -36,14 +36,14 @@ const MyJobs = () => {
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);
   const [showJobDetails, setShowJobDetails] = useState(false);
   const [showEditJob, setShowEditJob] = useState(false);
-  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
-  const [jobToArchive, setJobToArchive] = useState<JobPosting | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState<JobPosting | null>(null);
 
   // Duplicate job mutation
   const duplicateJobMutation = useDuplicateJob();
 
   // Delete job mutation
-  const archiveJobMutation = useDeleteJob();
+  const deleteJobMutation = useDeleteJob();
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -150,42 +150,42 @@ const MyJobs = () => {
     }
   };
 
-  // Handle archive job
-  const handleArchiveJob = async (job: JobPosting) => {
+  // Handle delete job
+  const handleDeleteJob = async (job: JobPosting) => {
     if (!activeOrganizationId) {
       toast.error('No active organization found. Please select an organization first.');
       return;
     }
 
-    setJobToArchive(job);
-    setShowArchiveConfirm(true);
+    setJobToDelete(job);
+    setShowDeleteConfirm(true);
   };
 
-  // Handle confirm archive
-  const handleConfirmArchive = async () => {
-    if (!jobToArchive || !activeOrganizationId) {
+  // Handle confirm delete
+  const handleConfirmDelete = async () => {
+    if (!jobToDelete || !activeOrganizationId) {
       return;
     }
 
     try {
-      await archiveJobMutation.mutateAsync({
+      await deleteJobMutation.mutateAsync({
         organizationId: activeOrganizationId,
-        jobId: jobToArchive.id
+        jobId: jobToDelete.id
       });
       
-      // Close the dialog after successful archiving
-      setShowArchiveConfirm(false);
-      setJobToArchive(null);
+      // Close the dialog after successful deletion
+      setShowDeleteConfirm(false);
+      setJobToDelete(null);
     } catch (error) {
       // Error handling is done in the mutation hook
-      console.error('Failed to archive job:', error);
+      console.error('Failed to delete job:', error);
     }
   };
 
-  // Handle cancel archive
-  const handleCancelArchive = () => {
-    setShowArchiveConfirm(false);
-    setJobToArchive(null);
+  // Handle cancel delete
+  const handleCancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setJobToDelete(null);
   };
 
   // Function to render job details dynamically
@@ -344,9 +344,9 @@ const MyJobs = () => {
                             <Copy className="h-4 w-4 mr-2" />
                             {t('management.duplicateJob')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleArchiveJob(job)} className="text-red-600">
+                          <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
                             <Trash2 className="h-4 w-4 mr-2" />
-                            {t('management.archiveJob')}
+                            {t('management.deleteJob')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -492,9 +492,9 @@ const MyJobs = () => {
                             <Copy className="h-4 w-4 mr-2" />
                             {t('management.duplicateJob')}
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleArchiveJob(job)} className="text-red-600">
+                          <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
                             <Trash2 className="h-4 w-4 mr-2" />
-                            {t('management.archiveJob')}
+                            {t('management.deleteJob')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -533,34 +533,34 @@ const MyJobs = () => {
         editJobData={selectedJob}
       />
 
-      {/* Archive Confirmation Dialog */}
-      <Dialog open={showArchiveConfirm} onOpenChange={setShowArchiveConfirm}>
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-orange-500" />
-              Confirm Archive
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirm Delete
             </DialogTitle>
             <DialogDescription>
-              {t('management.confirmArchiveJob')}
+              Are you sure you want to delete "{jobToDelete?.title}"? This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex gap-2">
-            <Button variant="outline" onClick={handleCancelArchive}>
+            <Button variant="outline" onClick={handleCancelDelete}>
               Cancel
             </Button>
             <Button 
               variant="destructive" 
-              onClick={handleConfirmArchive}
-              disabled={archiveJobMutation.isPending}
+              onClick={handleConfirmDelete}
+              disabled={deleteJobMutation.isPending}
             >
-              {archiveJobMutation.isPending ? (
+              {deleteJobMutation.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Archiving...
+                  Deleting...
                 </>
               ) : (
-                'Archive Job'
+                'Delete Job'
               )}
             </Button>
           </DialogFooter>
