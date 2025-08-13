@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -40,6 +40,7 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
 }) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isInitialized, setIsInitialized] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   // Initialize phone number from value prop
   useEffect(() => {
@@ -58,9 +59,21 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
     }
   }, [value, isInitialized]);
 
-  // Update parent when phone number changes
+  // Auto-focus when component is rendered
+  useEffect(() => {
+    if (inputRef.current && !disabled) {
+      inputRef.current.focus();
+      // Set cursor at the end of the input
+      const value = inputRef.current.value;
+      if (value) {
+        inputRef.current.setSelectionRange(value.length, value.length);
+      }
+    }
+  }, [disabled]);
+
+  // Update parent when phone number changes - use useCallback to prevent unnecessary re-renders
   const updateParent = useCallback((newPhoneNumber: string) => {
-    const fullNumber = newPhoneNumber ? `${INDIA_COUNTRY_CODE.dialCode} ${newPhoneNumber}` : '';
+    const fullNumber = newPhoneNumber ? `${INDIA_COUNTRY_CODE.dialCode}${newPhoneNumber}` : '';
     onChange(fullNumber);
   }, [onChange]);
 
@@ -109,6 +122,8 @@ export const PhoneInput: React.FC<PhoneInputProps> = ({
           placeholder={placeholder}
           className="rounded-l-none flex-1"
           disabled={disabled}
+          autoComplete="tel"
+          ref={inputRef}
         />
       </div>
 
