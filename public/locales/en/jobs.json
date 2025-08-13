@@ -158,6 +158,7 @@
     "viewApplications": "View Applications",
     "duplicateJob": "Duplicate Job",
     "deleteJob": "Delete Job",
+    "archiveJob": "Archive Job",
     "closeJob": "Close Job",
     "jobActive": "● Active",
     "loadingJobs": "Loading your job postings...",
@@ -197,13 +198,16 @@
     "jobPostedSuccess": "Job posted successfully!",
     "jobUpdatedSuccess": "Job updated successfully!",
     "jobDeletedSuccess": "Job deleted successfully!",
+    "jobArchivedSuccess": "Job archived successfully!",
     "jobDuplicatedSuccess": "Job duplicated successfully!",
     "jobClosedSuccess": "Job closed successfully!",
     "jobPostFailed": "Failed to post job",
     "jobUpdateFailed": "Failed to update job",
     "jobDeleteFailed": "Failed to delete job",
+    "jobArchiveFailed": "Failed to archive job",
     "jobCreateSuccess": "\"{{title}}\" has been created.",
     "confirmCloseJob": "Are you sure you want to close this job?",
-    "confirmDeleteJob": "Are you sure you want to delete this job?"
+    "confirmDeleteJob": "Are you sure you want to delete this job?",
+    "confirmArchiveJob": "Are you sure you want to archive this job? This action can be undone later."
   }
 } 
