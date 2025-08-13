@@ -77,9 +77,16 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
       // Determine if it's email or phone
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
       
+      // Ensure phone numbers always have +91 prefix
+      let processedIdentifier = identifier;
+      if (!isEmail && !identifier.startsWith('+91')) {
+        const cleanNumber = identifier.replace(/^\+?\d{1,4}\s?/, '');
+        processedIdentifier = `+91${cleanNumber}`;
+      }
+      
       const request: RequestOtpRequest = isEmail 
-        ? { email: identifier }
-        : { phoneNumber: identifier };
+        ? { email: processedIdentifier }
+        : { phoneNumber: processedIdentifier };
 
       const response = await requestOtp(request);
       
@@ -102,8 +109,15 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
     try {
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
       
+      // Ensure phone numbers always have +91 prefix
+      let processedIdentifier = identifier;
+      if (!isEmail && !identifier.startsWith('+91')) {
+        const cleanNumber = identifier.replace(/^\+?\d{1,4}\s?/, '');
+        processedIdentifier = `+91${cleanNumber}`;
+      }
+      
       const verifyRequest: VerifyOtpRequest = {
-        ...(isEmail ? { email: identifier } : { phoneNumber: identifier }),
+        ...(isEmail ? { email: processedIdentifier } : { phoneNumber: processedIdentifier }),
         otp: data.otp
       };
 
@@ -132,9 +146,17 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
     
     try {
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+      
+      // Ensure phone numbers always have +91 prefix
+      let processedIdentifier = identifier;
+      if (!isEmail && !identifier.startsWith('+91')) {
+        const cleanNumber = identifier.replace(/^\+?\d{1,4}\s?/, '');
+        processedIdentifier = `+91${cleanNumber}`;
+      }
+      
       const request: RequestOtpRequest = isEmail 
-        ? { email: identifier }
-        : { phoneNumber: identifier };
+        ? { email: processedIdentifier }
+        : { phoneNumber: processedIdentifier };
 
       const response = await requestOtp(request);
       

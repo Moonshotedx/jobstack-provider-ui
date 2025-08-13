@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,10 +21,12 @@ const UnifiedAuthSchema = z.object({
     .refine((val) => {
       // Check if it's a valid email or phone number
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // Updated phone regex to handle country codes (e.g., +91 9876543210)
+      // Updated phone regex to handle country codes and various formats
       const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
       const phoneWithCountryCodeRegex = /^\+\d{1,4}\s?[\d\s\-\(\)]{6,}$/;
-      return emailRegex.test(val) || phoneRegex.test(val) || phoneWithCountryCodeRegex.test(val);
+      const localPhoneRegex = /^\d{10,}$/;
+      
+      return emailRegex.test(val) || phoneRegex.test(val) || phoneWithCountryCodeRegex.test(val) || localPhoneRegex.test(val);
     }, "Please enter a valid email or phone number"),
 });
 
@@ -52,6 +54,8 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   const [currentStep, setCurrentStep] = useState<AuthStep>('identifier');
   const [identifier, setIdentifier] = useState('');
   const [identifierType, setIdentifierType] = useState<'email' | 'phone'>('email');
+  const [previousIdentifierType, setPreviousIdentifierType] = useState<'email' | 'phone'>('email');
+  const [cursorPosition, setCursorPosition] = useState<number>(0);
 
   const [isCheckingUser, setIsCheckingUser] = useState(false);
   const [isRequestingOtp, setIsRequestingOtp] = useState(false);
@@ -65,6 +69,33 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     resolver: zodResolver(OtpSchema)
   });
 
+  // Refs for input fields
+  const emailInputRef = useRef<HTMLInputElement>(null);
+
+  // Effect to restore cursor position when input type changes
+  useEffect(() => {
+    if (identifierType !== previousIdentifierType) {
+      setPreviousIdentifierType(identifierType);
+      
+      // Small delay to ensure the new input is rendered
+      setTimeout(() => {
+        if (identifierType === 'phone') {
+          // For phone input, focus will be handled by the PhoneInput component
+          // We just need to ensure the form value is properly set
+        } else if (identifierType === 'email' && emailInputRef.current) {
+          emailInputRef.current.focus();
+          // For email input, restore the exact cursor position
+          // Use a small delay to ensure the input is fully rendered
+          setTimeout(() => {
+            if (emailInputRef.current) {
+              emailInputRef.current.setSelectionRange(cursorPosition, cursorPosition);
+            }
+          }, 5);
+        }
+      }, 10);
+    }
+  }, [identifierType, previousIdentifierType, cursorPosition]);
+
   const handleIdentifierSubmit = async (data: UnifiedAuthInputs) => {
     setIsCheckingUser(true);
     setIdentifier(data.identifier);
@@ -72,11 +103,24 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     try {
       // Determine if it's email or phone
       const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
-      setIdentifierType(isEmail ? 'email' : 'phone');
+      const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(data.identifier) || data.identifier.startsWith('+') || /^\d/.test(data.identifier);
       
-      const checkUserRequest: CheckUserRequest = isEmail 
-        ? { email: data.identifier }
-        : { phoneNumber: data.identifier };
+      // Use the detected type for consistency
+      const detectedType = isEmail ? 'email' : (isPhone ? 'phone' : identifierType);
+      setIdentifierType(detectedType);
+      
+      // Ensure phone numbers always have +91 prefix
+      let processedIdentifier = data.identifier;
+      if (detectedType === 'phone' && !data.identifier.startsWith('+91')) {
+        // Remove any existing country code and add +91
+        const cleanNumber = data.identifier.replace(/^\+?\d{1,4}\s?/, '');
+        processedIdentifier = `+91${cleanNumber}`;
+        setIdentifier(processedIdentifier);
+      }
+      
+      const checkUserRequest: CheckUserRequest = detectedType === 'email' 
+        ? { email: processedIdentifier }
+        : { phoneNumber: processedIdentifier };
 
       const response = await checkUser(checkUserRequest);
               
@@ -98,7 +142,14 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     setIsRequestingOtp(true);
     
     try {
-      const response = await requestOtp(request);
+      // Ensure phone numbers always have +91 prefix
+      let processedRequest = { ...request };
+      if (request.phoneNumber && !request.phoneNumber.startsWith('+91')) {
+        const cleanNumber = request.phoneNumber.replace(/^\+?\d{1,4}\s?/, '');
+        processedRequest.phoneNumber = `+91${cleanNumber}`;
+      }
+      
+      const response = await requestOtp(processedRequest);
       
       if (response.ok) {
         setCurrentStep('otp');
@@ -117,8 +168,20 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     setIsVerifyingOtp(true);
     
     try {
+      // Determine the type based on the identifier value
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+      const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(identifier) || identifier.startsWith('+') || /^\d/.test(identifier);
+      const detectedType = isEmail ? 'email' : (isPhone ? 'phone' : identifierType);
+      
+      // Ensure phone numbers always have +91 prefix
+      let processedIdentifier = identifier;
+      if (detectedType === 'phone' && !identifier.startsWith('+91')) {
+        const cleanNumber = identifier.replace(/^\+?\d{1,4}\s?/, '');
+        processedIdentifier = `+91${cleanNumber}`;
+      }
+      
       const verifyRequest: VerifyOtpRequest = {
-        ...(identifierType === 'email' ? { email: identifier } : { phoneNumber: identifier }),
+        ...(detectedType === 'email' ? { email: processedIdentifier } : { phoneNumber: processedIdentifier }),
         otp: data.otp
       };
 
@@ -143,9 +206,21 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   };
 
   const handleResendOtp = async () => {
-    const request: CheckUserRequest = identifierType === 'email'
-      ? { email: identifier }
-      : { phoneNumber: identifier };
+    // Determine the type based on the identifier value
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+    const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(identifier) || identifier.startsWith('+') || /^\d/.test(identifier);
+    const detectedType = isEmail ? 'email' : (isPhone ? 'phone' : identifierType);
+    
+    // Ensure phone numbers always have +91 prefix
+    let processedIdentifier = identifier;
+    if (detectedType === 'phone' && !identifier.startsWith('+91')) {
+      const cleanNumber = identifier.replace(/^\+?\d{1,4}\s?/, '');
+      processedIdentifier = `+91${cleanNumber}`;
+    }
+    
+    const request: CheckUserRequest = detectedType === 'email'
+      ? { email: processedIdentifier }
+      : { phoneNumber: processedIdentifier };
     
     await handleRequestOtp(request);
   };
@@ -166,83 +241,147 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
   };
 
   const handleIdentifierChange = (value: string) => {
-    // Determine if it's email or phone based on the input
-    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(value) || value.startsWith('+') || /^\d/.test(value);
-    
-    if (isEmail) {
-      setIdentifierType('email');
-    } else if (isPhone) {
-      setIdentifierType('phone');
+    // Store cursor position for email input
+    if (emailInputRef.current) {
+      setCursorPosition(emailInputRef.current.selectionStart || 0);
     }
     
     // Update the form value
     identifierForm.setValue('identifier', value);
+    
+    // Dynamically determine if it's email or phone based on input
+    if (value) {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(value) || value.startsWith('+') || /^\d/.test(value);
+      
+      // Only update identifierType if it's clearly one or the other
+      if (isEmail && identifierType !== 'email') {
+        setIdentifierType('email');
+      } else if (isPhone && identifierType !== 'phone') {
+        setIdentifierType('phone');
+      }
+    }
   };
 
-  const renderIdentifierStep = () => (
-    <div className="space-y-4">
-      <form onSubmit={identifierForm.handleSubmit(handleIdentifierSubmit)} className="space-y-4">
-        <div>
-          <Label htmlFor="identifier">Enter mobile number or email</Label>
-          <div className="space-y-2">
-            {identifierType === 'phone' ? (
-              <PhoneInput
-                value={identifierForm.watch('identifier') || ''}
-                onChange={handleIdentifierChange}
-                placeholder="Enter your phone number"
-                error={identifierForm.formState.errors.identifier?.message}
-              />
-            ) : (
-              <Input
-                id="identifier-email"
-                type="email"
-                placeholder="Enter your email address"
-                {...identifierForm.register("identifier", {
-                  onChange: (e) => handleIdentifierChange(e.target.value)
-                })}
-              />
-            )}
-            
-            {/* Toggle Button */}
-            <div className="flex justify-center">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setIdentifierType(identifierType === 'email' ? 'phone' : 'email');
-                  identifierForm.setValue('identifier', '');
-                }}
-              >
-                {identifierType === 'email' ? 'Use phone number instead' : 'Use email instead'}
-              </Button>
-            </div>
-          </div>
-          {identifierForm.formState.errors.identifier && (
-            <span className="text-sm text-destructive">
-              {identifierForm.formState.errors.identifier.message}
-            </span>
-          )}
-        </div>
+  const handleEmailInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Store cursor position before calling handleIdentifierChange
+    setCursorPosition(e.target.selectionStart || 0);
+    handleIdentifierChange(e.target.value);
+  };
 
-        <Button 
-          type="submit" 
-          className="w-full" 
-          disabled={isCheckingUser}
-        >
-          {isCheckingUser ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Checking...
-            </>
-          ) : (
-            'Continue'
-          )}
-        </Button>
-      </form>
-    </div>
-  );
+  const handleEmailInputFocus = () => {
+    // Store cursor position when input gains focus
+    if (emailInputRef.current) {
+      setCursorPosition(emailInputRef.current.selectionStart || 0);
+    }
+  };
+
+  const handleEmailInputBlur = () => {
+    // Store cursor position when input loses focus
+    if (emailInputRef.current) {
+      setCursorPosition(emailInputRef.current.selectionStart || 0);
+    }
+  };
+
+  const handleIdentifierTypeToggle = () => {
+    const newType = identifierType === 'email' ? 'phone' : 'email';
+    setIdentifierType(newType);
+    identifierForm.setValue('identifier', '');
+    
+    // Reset the form to prevent validation errors
+    identifierForm.clearErrors('identifier');
+    
+    // Reset cursor position
+    setCursorPosition(0);
+  };
+
+  const renderIdentifierStep = () => {
+    // Determine the current input type based on what user is typing
+    const currentValue = identifierForm.watch('identifier') || '';
+    const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentValue);
+    const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(currentValue) || currentValue.startsWith('+') || /^\d/.test(currentValue);
+    
+    // Use the detected type, fallback to the selected type, or default to email
+    const effectiveType = isEmail ? 'email' : (isPhone ? 'phone' : identifierType);
+    
+    // Dynamic label and placeholder
+    const getLabel = () => {
+      if (effectiveType === 'phone') return 'Enter your phone number';
+      if (effectiveType === 'email') return 'Enter your email address';
+      return 'Enter mobile number or email';
+    };
+    
+    const getPlaceholder = () => {
+      if (effectiveType === 'phone') return 'Enter your phone number';
+      if (effectiveType === 'email') return 'Enter your email address';
+      return 'Enter mobile number or email';
+    };
+
+    return (
+      <div className="space-y-4">
+        <form onSubmit={identifierForm.handleSubmit(handleIdentifierSubmit)} className="space-y-4">
+          <div>
+            <Label htmlFor="identifier">{getLabel()}</Label>
+            <div className="space-y-2">
+              {effectiveType === 'phone' ? (
+                <PhoneInput
+                  value={identifierForm.watch('identifier') || ''}
+                  onChange={handleIdentifierChange}
+                  placeholder={getPlaceholder()}
+                  error={identifierForm.formState.errors.identifier?.message}
+                />
+              ) : (
+                <Input
+                  ref={(el) => {
+                    emailInputRef.current = el;
+                  }}
+                  id="identifier-email"
+                  type="email"
+                  placeholder={getPlaceholder()}
+                  onChange={handleEmailInputChange}
+                  onFocus={handleEmailInputFocus}
+                  onBlur={handleEmailInputBlur}
+                  value={identifierForm.watch('identifier') || ''}
+                />
+              )}
+              
+              {/* Toggle Button */}
+              <div className="flex justify-center">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleIdentifierTypeToggle}
+                >
+                  {effectiveType === 'email' ? 'Use phone number instead' : 'Use email instead'}
+                </Button>
+              </div>
+            </div>
+            {identifierForm.formState.errors.identifier && (
+              <span className="text-sm text-destructive">
+                {identifierForm.formState.errors.identifier.message}
+              </span>
+            )}
+          </div>
+
+          <Button 
+            type="submit" 
+            className="w-full" 
+            disabled={isCheckingUser}
+          >
+            {isCheckingUser ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Checking...
+              </>
+            ) : (
+              'Continue'
+            )}
+          </Button>
+        </form>
+      </div>
+    );
+  };
 
   const renderOtpStep = () => (
     <div className="space-y-4">
