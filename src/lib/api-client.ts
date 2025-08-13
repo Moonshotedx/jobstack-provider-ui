@@ -75,6 +75,7 @@ export interface CreateJobRequest {
   title: string;
   description?: string;
   location?: LocationData;
+  status?: string;
   metadata?: Record<string, any>;
 }
 
@@ -85,6 +86,7 @@ export interface JobPosting {
   locationId: string | null;
   location: Record<string, any>;
   contact: Record<string, any>;
+  status?: string;
   metadata: Record<string, any>;
   organizationName: string;
   organizationId: string;
@@ -250,12 +252,20 @@ export const jobsApi = {
   duplicateJob: async (organizationId: string, existingJob: JobPosting): Promise<JobPosting> => {
     console.log('🔄 Duplicating job:', { organizationId, jobId: existingJob.id });
     
+    // Get status from top level first, fallback to metadata for backward compatibility
+    const jobStatus = existingJob.status || existingJob.metadata?.status || 'open';
+    console.log('📋 Preserving original job status:', jobStatus);
+    
+    // Remove status from metadata if it exists there
+    const { status, ...metadataWithoutStatus } = existingJob.metadata || {};
+    
     // Create a new job with the same data but without the ID and timestamps
     const duplicateJobData: CreateJobRequest = {
       title: existingJob.title,
       location: existingJob.location as LocationData, // Cast to LocationData type
+      status: jobStatus, // Preserve the original job's status
       metadata: {
-        ...existingJob.metadata,
+        ...metadataWithoutStatus,
         // Remove any job-specific IDs or timestamps that shouldn't be duplicated
         id: undefined,
         createdAt: undefined,
@@ -352,20 +362,44 @@ export const jobsApi = {
     }
   },
 
-  // Delete a job posting
+  // Delete a job posting (internally archives the job)
   deleteJob: async (organizationId: string, jobId: string): Promise<void> => {
-    console.log('🗑️ Deleting job:', { organizationId, jobId });
+    console.log('🗑️ Archiving job:', { organizationId, jobId });
     
-    const deletePayload = {
-      jobId: jobId
-    };
-    
-    const response = await apiClient.delete<ApiResponse<void>>(
-      `/jobs/${organizationId}`,
-      { data: deletePayload }
-    );
-    
-    console.log('✅ Job deleted successfully:', response.data);
+    try {
+      // First, fetch all jobs to find the specific job data
+      const jobs = await jobsApi.getJobs(organizationId);
+      const jobToArchive = jobs.find(job => job.id === jobId);
+      
+      if (!jobToArchive) {
+        throw new Error(`Job with ID ${jobId} not found`);
+      }
+      
+      console.log('📋 Found job to archive:', jobToArchive);
+      
+      // Create archive payload with status outside metadata
+      const { status, ...metadataWithoutStatus } = jobToArchive.metadata || {};
+      
+      const archivePayload = {
+        jobId: jobId,
+        title: jobToArchive.title,
+        location: jobToArchive.location,
+        status: "archived", // Status moved outside of metadata
+        metadata: metadataWithoutStatus // Metadata without status field
+      };
+      
+      console.log('📦 Archive payload:', archivePayload);
+      
+      const response = await apiClient.put<ApiResponse<void>>(
+        `/jobs/${organizationId}`,
+        archivePayload
+      );
+      
+      console.log('✅ Job archived successfully:', response.data);
+    } catch (error) {
+      console.error('❌ Error archiving job:', error);
+      throw error;
+    }
   },
 };
 
