@@ -105,17 +105,17 @@ export const useUpdateJob = () => {
   });
 };
 
-// Hook to delete a job
+// Hook to delete a job (internally archives the job)
 export const useDeleteJob = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
     mutationFn: async ({ organizationId, jobId }: { organizationId: string; jobId: string }) => {
-      console.log('🗑️ Deleting job:', { organizationId, jobId });
+      console.log('🗑️ Archiving job:', { organizationId, jobId });
       return await jobsApi.deleteJob(organizationId, jobId);
     },
     onSuccess: (_, variables) => {
-      console.log('✅ Job deleted successfully');
+      console.log('✅ Job archived successfully');
       
       // Invalidate and refetch jobs list
       queryClient.invalidateQueries({
@@ -127,7 +127,7 @@ export const useDeleteJob = () => {
       });
     },
     onError: (error: any) => {
-      console.error('❌ Failed to delete job:', error);
+      console.error('❌ Failed to archive job:', error);
       toast.error(error?.response?.data?.message || 'Failed to delete job. Please try again.');
     }
   });
@@ -158,7 +158,11 @@ export const useCurrentOrganizationJobs = () => {
     ...jobsQuery,
     isLoading: !activeOrgId || jobsQuery.isLoading,
     error: !activeOrgId ? new Error('No active organization found') : jobsQuery.error,
-    data: activeOrgId ? jobsQuery.data : [],
+    data: activeOrgId ? (jobsQuery.data || []).filter(job => {
+      const status = (job.status || job.metadata?.status || '').toLowerCase();
+      // Filter out archived/deleted jobs from the UI
+      return status !== 'archive' && status !== 'archived' && status !== 'deleted';
+    }) : [],
   };
 };
 

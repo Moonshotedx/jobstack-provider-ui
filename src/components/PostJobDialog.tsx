@@ -212,11 +212,11 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       const createJobRequest = {
         title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
         location: locationData, // Use the properly structured location data
+        status: status, // Status moved outside of metadata
         metadata: {
           ...formData,
           role: selectedJobRole,
           industry: roleInfo.industry,
-          status: status, // Use the passed status instead of hardcoded 'active'
           // Keep original jobProviderLocation in metadata for reference
           jobProviderLocation: formData.basicInfo?.jobProviderLocation
         }

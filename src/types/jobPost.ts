@@ -163,9 +163,6 @@ export const transformJobDataToCreateJobRequest = (
     
     // Hiring manager details
     hiringManager: jobData.hiringManager,
-    
-    // Status for tracking
-    status: 'active',
   };
 
   // Add role-specific metadata

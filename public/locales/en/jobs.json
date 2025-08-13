@@ -176,7 +176,8 @@
     "draft": "Draft",
     "pending": "Pending",
     "expired": "Expired",
-    "paused": "Paused"
+    "paused": "Paused",
+    "archived": "Archived"
   },
   "search": {
     "searchJobs": "Search jobs...",

@@ -233,8 +233,25 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   <p className="text-muted-foreground">{job.metadata?.role || 'Job Role'}</p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline">
-                    {job.metadata?.status === 'open' ? 'Active' : (job.metadata?.status || 'Active')}
+                  <Badge 
+                    variant="outline"
+                    className={(() => {
+                      const raw = job.status || job.metadata?.status;
+                      const status = (raw || '').toLowerCase();
+                      if (status === 'open' || status === 'active') return 'border-green-300 text-green-800';
+                      if (status === 'archive' || status === 'archived') return 'border-orange-300 text-orange-800';
+                      if (status === 'closed') return 'border-red-300 text-red-800';
+                      if (status === 'draft') return 'border-gray-300 text-gray-800';
+                      return 'border-gray-300 text-gray-800';
+                    })()}
+                  >
+                    {(() => {
+                      const raw = job.status || job.metadata?.status;
+                      const status = (raw || '').toLowerCase();
+                      if (status === 'open' || status === 'active') return 'Active';
+                      if (status === 'archive' || status === 'archived') return 'Archived';
+                      return status ? status.charAt(0).toUpperCase() + status.slice(1) : 'Active';
+                    })()}
                   </Badge>
                 </div>
               </div>
