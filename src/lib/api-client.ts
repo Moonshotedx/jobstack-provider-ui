@@ -352,20 +352,23 @@ export const jobsApi = {
     }
   },
 
-  // Delete a job posting
+  // Archive a job posting (using PUT method)
   deleteJob: async (organizationId: string, jobId: string): Promise<void> => {
-    console.log('🗑️ Deleting job:', { organizationId, jobId });
+    console.log('🗑️ Archiving job:', { organizationId, jobId });
     
-    const deletePayload = {
-      jobId: jobId
+    const archivePayload = {
+      jobId: jobId,
+      metadata: {
+        role: "Archive"
+      }
     };
     
-    const response = await apiClient.delete<ApiResponse<void>>(
+    const response = await apiClient.put<ApiResponse<void>>(
       `/jobs/${organizationId}`,
-      { data: deletePayload }
+      archivePayload
     );
     
-    console.log('✅ Job deleted successfully:', response.data);
+    console.log('✅ Job archived successfully:', response.data);
   },
 };
 
