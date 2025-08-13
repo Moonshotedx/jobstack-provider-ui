@@ -74,7 +74,7 @@ function DashboardContent() {
   // Calculate real-time dashboard stats
   const dashboardStats = {
     activeJobs: jobs?.filter(job => {
-      const status = job.metadata?.status;
+      const status = job.status || job.metadata?.status;
       return status === 'active' || status === 'open';
     }).length || 0,
     totalApplications: jobs?.reduce((total, job) => {

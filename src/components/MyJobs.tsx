@@ -46,12 +46,20 @@ const MyJobs = () => {
   const deleteJobMutation = useDeleteJob();
 
   const getStatusColor = (status: string) => {
-    switch (status) {
+    const normalized = (status || '').toLowerCase();
+    switch (normalized) {
       case 'active':
-      case 'open': return 'bg-green-100 text-green-800';
-      case 'closed': return 'bg-red-100 text-red-800';
-      case 'draft': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-green-100 text-green-800'; // Default to active for now
+      case 'open':
+        return 'bg-green-100 text-green-800';
+      case 'closed':
+        return 'bg-red-100 text-red-800';
+      case 'draft':
+        return 'bg-gray-100 text-gray-800';
+      case 'archive':
+      case 'archived':
+        return 'bg-orange-100 text-orange-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
@@ -84,15 +92,21 @@ const MyJobs = () => {
   };
 
   const getJobStatus = (job: JobPosting) => {
-    // Get status from API response, fallback to metadata
-    const apiStatus = job.metadata?.status;
-    
-    // Map 'open' status to 'active' for display purposes
-    if (apiStatus === 'open') {
+    // Get status from top level, fallback to metadata for backward compatibility
+    const apiStatusRaw = job.status || job.metadata?.status;
+    const apiStatus = (apiStatusRaw || '').toLowerCase();
+
+    // Normalize to keys used in UI/translations
+    if (apiStatus === 'open' || apiStatus === 'active') {
       return 'active';
     }
-    
-    return apiStatus || 'Active';
+
+    if (apiStatus === 'archive' || apiStatus === 'archived' || apiStatus === 'deleted') {
+      return 'archived';
+    }
+
+    if (!apiStatus) return 'active';
+    return apiStatus;
   };
 
   const getApplicationsCount = (job: JobPosting) => {
@@ -178,7 +192,7 @@ const MyJobs = () => {
       setJobToDelete(null);
     } catch (error) {
       // Error handling is done in the mutation hook
-      console.error('Failed to delete job:', error);
+      console.error('Failed to archive job:', error);
     }
   };
 
