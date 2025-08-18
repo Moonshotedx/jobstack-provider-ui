@@ -13,6 +13,8 @@ import {
   exportCandidates, 
   getExportFilename, 
   validateExportData, 
+  previewExportFields,
+  getSampleDataStructure,
   type ExportFormat 
 } from '@/lib/export-utils';
 import type { JobApplicant } from '@/types/jobPost';
@@ -40,6 +42,17 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       });
       return;
     }
+
+    // Debug: Show what fields will be exported
+    const fields = previewExportFields(data);
+    const sampleStructure = getSampleDataStructure(data);
+    
+    console.log('🔍 Export Debug Info:', {
+      totalCandidates: data.length,
+      discoveredFields: fields,
+      fieldCount: fields.length,
+      sampleStructure
+    });
 
     setIsExporting(true);
 
