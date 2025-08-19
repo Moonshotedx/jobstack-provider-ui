@@ -435,26 +435,6 @@
             }
           }
         },
-        "domainKnowledgeSubsection": {
-          "type": "object",
-          "title": "Domain Knowledge",
-          "x-subsection": "domain-knowledge-subsection",
-          "x-ui-subsection": "border",
-          "properties": {
-            "fitterAssessmentScore": {
-              "type": "number",
-              "title": "Trade Assessment Score - Benchmark",
-              "description": "Minimum acceptable score for fitter assessment tasks",
-              "minimum": 0
-            },
-            "intentAssessmentScore": {
-              "type": "number",
-              "title": "Intent Assessment Score - Benchmark",
-              "description": "Minimum acceptable score for intent assessment tasks",
-              "minimum": 0
-            }
-          }
-        },
         "languagesSubsection": {
           "type": "object",
           "title": "Languages",
