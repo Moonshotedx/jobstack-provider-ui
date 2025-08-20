@@ -85,6 +85,16 @@
           "title": "Hiring Urgency",
           "description": "Select the urgency of hiring (e.g., Immediate, Within 1 month, Within 3 months)"
         },
+        "hiringManagerName": {
+          "type": "string",
+          "title": "Hiring Manager Name",
+          "description": "Enter the name of the hiring manager"
+        },
+        "hiringManagerDesignation": {
+          "type": "string",
+          "title": "Hiring Manager Designation",
+          "description": "Enter the designation of the hiring manager"
+        },
         "validTill": {
           "type": "string",
           "title": "Valid Till(dd-mm-yyyy)",
@@ -422,26 +432,6 @@
               "type": "string",
               "title": "Skills Required",
               "description": "Enter the skills required for the job position"
-            }
-          }
-        },
-        "domainKnowledgeSubsection": {
-          "type": "object",
-          "title": "Domain Knowledge",
-          "x-subsection": "domain-knowledge-subsection",
-          "x-ui-subsection": "border",
-          "properties": {
-            "fitterAssessmentScore": {
-              "type": "number",
-              "title": "Trade Assessment Score - Benchmark",
-              "description": "Minimum acceptable score for fitter assessment tasks",
-              "minimum": 0
-            },
-            "intentAssessmentScore": {
-              "type": "number",
-              "title": "Intent Assessment Score - Benchmark",
-              "description": "Minimum acceptable score for intent assessment tasks",
-              "minimum": 0
             }
           }
         },
