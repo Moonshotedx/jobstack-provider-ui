@@ -16,11 +16,6 @@
             "minLength": 1,
             "pattern": "^\\s*\\S+\\s*$"
           },
-          "jobProviderType": {
-            "type": "string",
-            "title": "Job Provider Type",
-            "description": "Select the type of job provider"
-          },
           "jobProviderRegistration": {
             "type": "string",
             "title": "Job Provider Registration Details",
@@ -61,13 +56,6 @@
             "minLength": 1,
             "pattern": "^\\s*\\S+\\s*$"
           },
-          "designation": {
-            "type": "string",
-            "title": "Designation",
-            "description": "Enter the designation for the job position",
-            "minLength": 1,
-            "pattern": "^\\s*\\S+\\s*$"
-          },
           "jobType": {
             "type": "array",
             "title": "Job Type",
@@ -80,11 +68,6 @@
             "uniqueItems": true,
             "minItems": 1
           },
-          "hiringUrgency": {
-            "type": "string",
-            "title": "Hiring Urgency",
-            "description": "Select the urgency of hiring (e.g., Immediate, Within 1 month, Within 3 months)"
-          },
           "hiringManagerName": {
             "type": "string",
             "title": "Hiring Manager Name",
@@ -94,12 +77,6 @@
             "type": "string",
             "title": "Hiring Manager Designation",
             "description": "Enter the designation of the hiring manager"
-          },
-          "validTill": {
-            "type": "string",
-            "title": "Valid Till(dd-mm-yyyy)",
-            "description": "Enter the date until which the job posting is valid",
-            "format": "date"
           },
           "positions": {
             "type": "integer",
@@ -427,11 +404,6 @@
                 },
                 "uniqueItems": true,
                 "minItems": 1
-              },
-              "skillsRequired":{
-                "type": "string",
-                "title": "Skills Required",
-                "description": "Enter the skills required for the job position"
               }
             }
           },
