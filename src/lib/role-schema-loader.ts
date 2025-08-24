@@ -12,8 +12,20 @@ export interface JobRolesConfiguration {
   jobRoles: Record<string, JobRoleConfig>;
 }
 
+// Sector configuration interface
+export interface SectorConfig {
+  description: string;
+  icon: string;
+  roles: string[];
+}
+
+export interface SectorRolesConfiguration {
+  sectors: Record<string, SectorConfig>;
+}
+
 // Cache for configurations and schemas
 let jobRolesConfig: JobRolesConfiguration | null = null;
+let sectorRolesConfig: SectorRolesConfiguration | null = null;
 const schemaCache = new Map<string, RJSFSchema>();
 
 /**
@@ -40,11 +52,70 @@ export const loadJobRolesConfig = async (): Promise<JobRolesConfiguration> => {
 };
 
 /**
+ * Load sector roles configuration from JSON
+ */
+export const loadSectorRolesConfig = async (): Promise<SectorRolesConfiguration> => {
+  if (sectorRolesConfig) {
+    return sectorRolesConfig;
+  }
+
+  try {
+    const response = await fetch('/schemas/sector-roles-config.json');
+    if (!response.ok) {
+      throw new Error(`Failed to load sector roles configuration: ${response.statusText}`);
+    }
+    
+    sectorRolesConfig = await response.json();
+    console.log('🏭 Sector roles configuration loaded:', Object.keys(sectorRolesConfig!.sectors));
+    return sectorRolesConfig!;
+  } catch (error) {
+    console.error('❌ Error loading sector roles configuration:', error);
+    throw error;
+  }
+};
+
+/**
  * Get all available job roles
  */
 export const getAvailableRoles = async (): Promise<string[]> => {
   const config = await loadJobRolesConfig();
   return Object.keys(config.jobRoles);
+};
+
+/**
+ * Get all sectors with their roles
+ */
+export const getSectorsWithRoles = async (): Promise<Record<string, SectorConfig>> => {
+  const config = await loadSectorRolesConfig();
+  return config.sectors;
+};
+
+/**
+ * Get all roles grouped by sectors
+ */
+export const getRolesGroupedBySectors = async (): Promise<Record<string, SectorConfig>> => {
+  return await getSectorsWithRoles();
+};
+
+/**
+ * Get all available roles (for backward compatibility)
+ */
+export const getAllAvailableRoles = async (): Promise<string[]> => {
+  const config = await loadJobRolesConfig();
+  return Object.keys(config.jobRoles);
+};
+
+/**
+ * Get roles that are not in any sector (orphaned roles)
+ */
+export const getOrphanedRoles = async (): Promise<string[]> => {
+  const sectorConfig = await loadSectorRolesConfig();
+  const jobRolesConfig = await loadJobRolesConfig();
+  
+  const allRoles = Object.keys(jobRolesConfig.jobRoles);
+  const sectorRoles = Object.values(sectorConfig.sectors).flatMap(sector => sector.roles);
+  
+  return allRoles.filter(role => !sectorRoles.includes(role));
 };
 
 // Type for job role names (will be dynamically determined)
