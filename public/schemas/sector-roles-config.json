@@ -1,0 +1,40 @@
+{
+  "sectors": {
+    "Garment Manufacturing": {
+      "description": "Textile and garment industry positions",
+      "icon": "scissors",
+      "roles": [
+        "Industrial Tailor",
+        "Warehouse Loader and Picker"
+      ]
+    },
+    "Customer Facing": {
+      "description": "Sales and customer service positions",
+      "icon": "users",
+      "roles": [
+        "Field Salesperson",
+        "Tele Salesperson",
+        "In Store Promoter",
+        "Recruitment Associate"
+      ]
+    },
+    "ITeS": {
+      "description": "Information Technology enabled Services",
+      "icon": "monitor",
+      "roles": [
+        "Data Entry Operator"
+      ]
+    },
+    "ITI/Polytechnic": {
+      "description": "Industrial Training Institute and Polytechnic positions",
+      "icon": "wrench",
+      "roles": [
+        "Electrician",
+        "Fitter",
+        "Mechanic",
+        "Machine Operator",
+        "ITI (Other)"
+      ]
+    }
+  }
+}
