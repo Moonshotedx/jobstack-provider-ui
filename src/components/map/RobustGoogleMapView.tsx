@@ -494,7 +494,13 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
       {/* Map container */}
       <div 
         ref={mapRef} 
-        className="w-full h-full bg-gray-100 min-h-96"
+        className="google-maps-container w-full h-full bg-gray-100 min-h-96"
+        style={{
+          width: '100%',
+          height: '100%',
+          minHeight: '400px',
+          position: 'relative'
+        }}
       />
       
       {/* Search Controls */}
