@@ -58,6 +58,14 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
 
+  // Debug: Log component lifecycle
+  useEffect(() => {
+    console.log('🏗️ GoogleApplicantMapView component mounted');
+    return () => {
+      console.log('🗑️ GoogleApplicantMapView component unmounted');
+    };
+  }, []);
+
   // Manual retry function
   const retryGoogleMapsInitialization = () => {
     setError(null);
@@ -226,9 +234,19 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
         const maxRetries = 50; // 5 seconds total (50 * 100ms)
         
         const waitForContainer = () => {
+          // Add debug information about the container
+          console.log('🔍 Checking container:', {
+            exists: !!mapRef.current,
+            containerElement: mapRef.current,
+            parentElement: mapRef.current?.parentElement,
+            containerHTML: mapRef.current?.outerHTML
+          });
+          
           if (mapRef.current) {
             // Check if the container has proper dimensions
             const rect = mapRef.current.getBoundingClientRect();
+            console.log('📐 Container dimensions:', rect);
+            
             if (rect.width > 0 && rect.height > 0) {
               console.log('✅ Map container found with proper dimensions:', { width: rect.width, height: rect.height });
               createMapInstance();
