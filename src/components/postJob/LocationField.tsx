@@ -221,13 +221,21 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
   // Handle suggestion selection for both Google Maps and Nominatim
   const handleSuggestionSelect = async (suggestion: LocationSuggestionUnion) => {
+    console.log('🎯 Suggestion selected:', suggestion);
+    
     if (isGoogleMapsSuggestion(suggestion)) {
       // Handle Google Maps suggestion
+      console.log('📍 Processing Google Maps suggestion with place_id:', suggestion.place_id);
+      
       if (returnStructuredData) {
         try {
           const placeDetails = await GoogleMapsUtils.getPlaceDetails(suggestion.place_id);
+          console.log('🏢 Place details received:', placeDetails);
+          
           if (placeDetails) {
             const addressComponents = GoogleMapsUtils.parseGoogleMapsAddressComponents(placeDetails.addressComponents);
+            console.log('🗺️ Parsed address components:', addressComponents);
+            
             const locationData: LocationData = {
               address: addressComponents.address || placeDetails.formattedAddress,
               city: addressComponents.city || '',
@@ -239,14 +247,16 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                 lng: placeDetails.lng
               }
             };
+            console.log('📋 Final location data:', locationData);
             onChange(locationData);
             setInputValue(placeDetails.formattedAddress);
           } else {
+            console.warn('⚠️ No place details received, using description only');
             onChange(suggestion.description);
             setInputValue(suggestion.description);
           }
         } catch (error) {
-          console.error('Error getting place details:', error);
+          console.error('❌ Error getting place details:', error);
           onChange(suggestion.description);
           setInputValue(suggestion.description);
         }
@@ -256,6 +266,8 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       }
     } else if (isNominatimSuggestion(suggestion)) {
       // Handle Nominatim suggestion (existing logic)
+      console.log('🗺️ Processing Nominatim suggestion');
+      
       if (returnStructuredData) {
         const addressComponents = parseAddressComponents(suggestion);
         const locationData: LocationData = {
