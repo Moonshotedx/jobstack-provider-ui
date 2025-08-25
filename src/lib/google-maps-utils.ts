@@ -39,33 +39,115 @@ export interface GoogleMapsSuggestion {
 
 let googleMapsLoader: Loader | null = null;
 let isGoogleMapsLoaded = false;
+let loadPromise: Promise<void> | null = null;
+
+// Alternative: Load Google Maps via script tag
+const loadGoogleMapsScript = async (apiKey: string): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    // Check if already loaded
+    if (window.google && window.google.maps) {
+      console.log('✅ Google Maps already loaded via script');
+      resolve();
+      return;
+    }
+
+    // Check if script is already being loaded
+    const existingScript = document.querySelector('script[src*="maps.googleapis.com"]');
+    if (existingScript) {
+      console.log('🔄 Google Maps script already exists, waiting for load...');
+      existingScript.addEventListener('load', () => resolve());
+      existingScript.addEventListener('error', reject);
+      return;
+    }
+
+    console.log('📡 Loading Google Maps via script tag...');
+    
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places,geometry&v=weekly&region=IN&language=en`;
+    script.async = true;
+    script.defer = true;
+    
+    script.onload = () => {
+      console.log('✅ Google Maps script loaded successfully');
+      resolve();
+    };
+    
+    script.onerror = (error) => {
+      console.error('❌ Failed to load Google Maps script:', error);
+      reject(new Error('Failed to load Google Maps script'));
+    };
+    
+    document.head.appendChild(script);
+  });
+};
 
 // Initialize Google Maps loader with the new Places API
 const initializeGoogleMaps = async (): Promise<void> => {
   if (isGoogleMapsLoaded) return;
+  
+  // Return existing load promise if already loading
+  if (loadPromise) {
+    console.log('🔄 Google Maps already loading, waiting...');
+    return loadPromise;
+  }
 
   const apiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  console.log('🔑 Initializing Google Maps with API key:', apiKey ? `${apiKey.substring(0, 10)}...` : 'Not found');
+  
   if (!apiKey || apiKey === 'your_google_maps_api_key_here') {
-    throw new Error('Google Maps API key is not configured. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.');
+    const errorMsg = 'Google Maps API key is not configured. Please set VITE_GOOGLE_MAPS_API_KEY in your environment variables.';
+    console.error('❌', errorMsg);
+    throw new Error(errorMsg);
   }
 
-  if (!googleMapsLoader) {
-    googleMapsLoader = new Loader({
-      apiKey,
-      version: 'weekly',
-      libraries: ['places', 'geometry'],
-      region: 'IN', // Set region to India
-      language: 'en'
-    });
-  }
+  loadPromise = (async () => {
+    try {
+      // Try using the Loader first
+      console.log('🔧 Attempting to load with @googlemaps/js-api-loader...');
+      
+      if (!googleMapsLoader) {
+        googleMapsLoader = new Loader({
+          apiKey,
+          version: 'weekly',
+          libraries: ['places', 'geometry'],
+          region: 'IN',
+          language: 'en'
+        });
+      }
 
-  try {
-    await googleMapsLoader.load();
-    isGoogleMapsLoaded = true;
-  } catch (error) {
-    console.error('Failed to load Google Maps:', error);
-    throw new Error('Failed to initialize Google Maps. Please check your API key and internet connection.');
-  }
+      await googleMapsLoader.load();
+      console.log('✅ Google Maps loaded successfully via Loader');
+      isGoogleMapsLoaded = true;
+      
+    } catch (loaderError) {
+      console.warn('⚠️ Loader failed, trying script tag fallback:', loaderError);
+      
+      try {
+        await loadGoogleMapsScript(apiKey);
+        console.log('✅ Google Maps loaded successfully via script tag');
+        isGoogleMapsLoaded = true;
+      } catch (scriptError) {
+        console.error('❌ Both loader and script tag failed');
+        
+        // More detailed error information
+        if (loaderError instanceof Error) {
+          if (loaderError.message.includes('API key')) {
+            throw new Error('Google Maps API key is invalid or has restrictions. Please check your API key configuration.');
+          }
+          if (loaderError.message.includes('quota')) {
+            throw new Error('Google Maps API quota exceeded. Please check your billing settings.');
+          }
+          if (loaderError.message.includes('referer') || loaderError.message.includes('referrer')) {
+            throw new Error('Google Maps API referrer restriction. Please check your API key HTTP referrer settings.');
+          }
+        }
+        
+        throw new Error(`Failed to initialize Google Maps: ${loaderError instanceof Error ? loaderError.message : 'Unknown error'}. Please check your API key and internet connection.`);
+      }
+    }
+  })();
+
+  return loadPromise;
 };
 
 // Geocoding function using Google Maps Geocoding API
@@ -511,3 +593,33 @@ export const getGoogleMapsLoader = (): Loader | null => {
 export const initializeGoogleMapsInstance = async (): Promise<void> => {
   await initializeGoogleMaps();
 };
+
+// Debug function to test Google Maps loading from browser console
+// Usage: window.testGoogleMaps()
+export const testGoogleMapsLoading = async (): Promise<boolean> => {
+  try {
+    console.log('🧪 Testing Google Maps loading...');
+    await initializeGoogleMaps();
+    
+    if (window.google && window.google.maps) {
+      console.log('✅ Google Maps test successful!');
+      console.log('Available Google Maps services:', {
+        Map: !!window.google.maps.Map,
+        Geocoder: !!window.google.maps.Geocoder,
+        places: !!window.google.maps.places
+      });
+      return true;
+    } else {
+      console.error('❌ Google Maps not available after loading');
+      return false;
+    }
+  } catch (error) {
+    console.error('❌ Google Maps test failed:', error);
+    return false;
+  }
+};
+
+// Make test function available globally for debugging
+if (typeof window !== 'undefined') {
+  (window as any).testGoogleMaps = testGoogleMapsLoading;
+}

@@ -58,6 +58,57 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
 
+  // Manual retry function
+  const retryGoogleMapsInitialization = () => {
+    setError(null);
+    setIsLoaded(false);
+    
+    // Reset the map instance
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current = null;
+    }
+    
+    // Trigger re-initialization
+    const initMap = async () => {
+      try {
+        console.log('🔄 Retrying Google Maps initialization...');
+        await initializeGoogleMapsInstance();
+        
+        if (!mapRef.current) return;
+
+        const map = new window.google.maps.Map(mapRef.current, {
+          center: mapCenter,
+          zoom: zoom,
+          zoomControl: false,
+          mapTypeControl: false,
+          scaleControl: true,
+          streetViewControl: false,
+          rotateControl: false,
+          fullscreenControl: false,
+          restriction: {
+            latLngBounds: {
+              north: 37.09024,
+              south: 8.0883064,
+              west: 68.1766451,
+              east: 97.4025619,
+            },
+            strictBounds: false,
+          },
+        });
+
+        mapInstanceRef.current = map;
+        setIsLoaded(true);
+        toast.success('Google Maps loaded successfully!');
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps';
+        setError(errorMessage);
+        toast.error('Retry failed');
+      }
+    };
+    
+    setTimeout(initMap, 100);
+  };
+
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -138,10 +189,24 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
   useEffect(() => {
     const initMap = async () => {
       try {
-        await initializeGoogleMapsInstance();
+        console.log('🗺️ Initializing Google Maps component...');
+        setError(null);
         
-        if (!mapRef.current) return;
+        await initializeGoogleMapsInstance();
+        console.log('✅ Google Maps instance initialized');
+        
+        if (!mapRef.current) {
+          console.warn('⚠️ Map container ref not available');
+          return;
+        }
 
+        console.log('🗺️ Creating map instance...');
+        
+        // Check if Google Maps is properly loaded
+        if (!window.google || !window.google.maps) {
+          throw new Error('Google Maps JavaScript API is not loaded properly');
+        }
+        
         // Create map instance
         const map = new window.google.maps.Map(mapRef.current, {
           center: mapCenter,
@@ -163,16 +228,21 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
           },
         });
 
+        console.log('✅ Google Maps instance created successfully');
         mapInstanceRef.current = map;
         setIsLoaded(true);
       } catch (error) {
-        console.error('Failed to initialize Google Maps:', error);
-        setError('Failed to load Google Maps. Please check your API key and internet connection.');
+        console.error('❌ Failed to initialize Google Maps:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps. Please check your API key and internet connection.';
+        setError(errorMessage);
         toast.error('Failed to load Google Maps');
       }
     };
 
-    initMap();
+    // Add a small delay to ensure DOM is ready
+    const timeoutId = setTimeout(initMap, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Update map center and zoom
@@ -364,11 +434,34 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
     return (
       <div className={`relative ${className}`}>
         <div className="w-full h-full flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg">
-          <div className="text-center p-8">
-            <div className="text-red-600 mb-2 text-2xl">⚠️</div>
-            <div className="text-gray-700 text-sm mb-2">{error}</div>
-            <div className="text-gray-500 text-xs">
-              Please check your Google Maps API key configuration
+          <div className="text-center p-8 max-w-md">
+            <div className="text-red-600 mb-4 text-4xl">⚠️</div>
+            <div className="text-gray-700 text-sm mb-4 font-medium">Google Maps Error</div>
+            <div className="text-gray-600 text-xs mb-4 bg-red-50 p-3 rounded border text-left">
+              {error}
+            </div>
+            <div className="text-gray-500 text-xs space-y-1">
+              <div>Please check:</div>
+              <div>• Google Maps API key configuration</div>
+              <div>• API key permissions and restrictions</div>
+              <div>• Billing account status</div>
+              <div>• Network connectivity</div>
+            </div>
+            <div className="mt-4 text-xs text-gray-400 bg-gray-50 p-3 rounded">
+              <div>Debug Info:</div>
+              <div>API Key: {import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'Set' : 'Not Set'}</div>
+              <div>Use Google Maps: {import.meta.env.VITE_USE_GOOGLE_MAPS}</div>
+              <div>Window Google: {typeof window !== 'undefined' && window.google ? 'Available' : 'Not Available'}</div>
+            </div>
+            <div className="mt-4">
+              <Button 
+                onClick={retryGoogleMapsInitialization}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                Retry Loading
+              </Button>
             </div>
           </div>
         </div>
@@ -391,7 +484,10 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
 
   return (
     <div className={`relative ${className}`}>
-      <div ref={mapRef} className="w-full h-full" />
+      <div 
+        ref={mapRef} 
+        className="w-full h-full bg-gray-100 min-h-96"
+      />
       
       {/* Map Search and Filter Controls - Mobile Responsive */}
       <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
