@@ -74,31 +74,57 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
         console.log('🔄 Retrying Google Maps initialization...');
         await initializeGoogleMapsInstance();
         
-        if (!mapRef.current) return;
+        // Wait for map container to be available
+        let retries = 0;
+        const maxRetries = 50;
+        
+        const waitForContainer = () => {
+          if (mapRef.current) {
+            const rect = mapRef.current.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              console.log('✅ Map container found during retry with dimensions:', { width: rect.width, height: rect.height });
+              
+              const map = new window.google.maps.Map(mapRef.current, {
+                center: mapCenter,
+                zoom: zoom,
+                zoomControl: false,
+                mapTypeControl: false,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false,
+                restriction: {
+                  latLngBounds: {
+                    north: 37.09024,
+                    south: 8.0883064,
+                    west: 68.1766451,
+                    east: 97.4025619,
+                  },
+                  strictBounds: false,
+                },
+              });
 
-        const map = new window.google.maps.Map(mapRef.current, {
-          center: mapCenter,
-          zoom: zoom,
-          zoomControl: false,
-          mapTypeControl: false,
-          scaleControl: true,
-          streetViewControl: false,
-          rotateControl: false,
-          fullscreenControl: false,
-          restriction: {
-            latLngBounds: {
-              north: 37.09024,
-              south: 8.0883064,
-              west: 68.1766451,
-              east: 97.4025619,
-            },
-            strictBounds: false,
-          },
-        });
-
-        mapInstanceRef.current = map;
-        setIsLoaded(true);
-        toast.success('Google Maps loaded successfully!');
+              mapInstanceRef.current = map;
+              setIsLoaded(true);
+              toast.success('Google Maps loaded successfully!');
+            } else if (retries < maxRetries) {
+              retries++;
+              setTimeout(waitForContainer, 100);
+            } else {
+              setError('Map container has no dimensions');
+              toast.error('Retry failed - container has no dimensions');
+            }
+          } else if (retries < maxRetries) {
+            retries++;
+            setTimeout(waitForContainer, 100);
+          } else {
+            setError('Map container not available after retry');
+            toast.error('Retry failed - container not found');
+          }
+        };
+        
+        waitForContainer();
+        
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps';
         setError(errorMessage);
@@ -195,42 +221,79 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
         await initializeGoogleMapsInstance();
         console.log('✅ Google Maps instance initialized');
         
-        if (!mapRef.current) {
-          console.warn('⚠️ Map container ref not available');
-          return;
-        }
-
-        console.log('🗺️ Creating map instance...');
+        // Wait for map container to be available with retries
+        let retries = 0;
+        const maxRetries = 50; // 5 seconds total (50 * 100ms)
         
-        // Check if Google Maps is properly loaded
-        if (!window.google || !window.google.maps) {
-          throw new Error('Google Maps JavaScript API is not loaded properly');
-        }
+        const waitForContainer = () => {
+          if (mapRef.current) {
+            // Check if the container has proper dimensions
+            const rect = mapRef.current.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              console.log('✅ Map container found with proper dimensions:', { width: rect.width, height: rect.height });
+              createMapInstance();
+            } else if (retries < maxRetries) {
+              retries++;
+              console.log(`⏳ Container exists but has no dimensions, waiting... (attempt ${retries}/${maxRetries})`);
+              setTimeout(waitForContainer, 100);
+            } else {
+              console.error('❌ Map container has no dimensions after maximum retries');
+              setError('Map container has no dimensions. Please check CSS styling.');
+            }
+          } else if (retries < maxRetries) {
+            retries++;
+            console.log(`⏳ Waiting for map container... (attempt ${retries}/${maxRetries})`);
+            setTimeout(waitForContainer, 100);
+          } else {
+            console.error('❌ Map container not available after maximum retries');
+            setError('Map container not available. The DOM element may not be rendered correctly.');
+          }
+        };
         
-        // Create map instance
-        const map = new window.google.maps.Map(mapRef.current, {
-          center: mapCenter,
-          zoom: zoom,
-          zoomControl: false, // We'll add custom controls
-          mapTypeControl: false,
-          scaleControl: true,
-          streetViewControl: false,
-          rotateControl: false,
-          fullscreenControl: false,
-          restriction: {
-            latLngBounds: {
-              north: 37.09024,
-              south: 8.0883064,
-              west: 68.1766451,
-              east: 97.4025619,
-            },
-            strictBounds: false,
-          },
-        });
+        const createMapInstance = () => {
+          try {
+            console.log('🗺️ Creating map instance...');
+            
+            // Check if Google Maps is properly loaded
+            if (!window.google || !window.google.maps) {
+              throw new Error('Google Maps JavaScript API is not loaded properly');
+            }
+            
+            // Create map instance
+            const map = new window.google.maps.Map(mapRef.current!, {
+              center: mapCenter,
+              zoom: zoom,
+              zoomControl: false, // We'll add custom controls
+              mapTypeControl: false,
+              scaleControl: true,
+              streetViewControl: false,
+              rotateControl: false,
+              fullscreenControl: false,
+              restriction: {
+                latLngBounds: {
+                  north: 37.09024,
+                  south: 8.0883064,
+                  west: 68.1766451,
+                  east: 97.4025619,
+                },
+                strictBounds: false,
+              },
+            });
 
-        console.log('✅ Google Maps instance created successfully');
-        mapInstanceRef.current = map;
-        setIsLoaded(true);
+            console.log('✅ Google Maps instance created successfully');
+            mapInstanceRef.current = map;
+            setIsLoaded(true);
+          } catch (mapError) {
+            console.error('❌ Failed to create map instance:', mapError);
+            const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
+            setError(errorMessage);
+            toast.error('Failed to create Google Maps');
+          }
+        };
+        
+        // Start waiting for container
+        waitForContainer();
+        
       } catch (error) {
         console.error('❌ Failed to initialize Google Maps:', error);
         const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps. Please check your API key and internet connection.';
@@ -239,7 +302,7 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
       }
     };
 
-    // Add a small delay to ensure DOM is ready
+    // Add a small delay to ensure DOM is ready, then start initialization
     const timeoutId = setTimeout(initMap, 100);
     
     return () => clearTimeout(timeoutId);
