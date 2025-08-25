@@ -1,24 +1,12 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-import 'leaflet.markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2, RefreshCw } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTakeApplicationAction, useActiveOrganizationId } from '@/hooks/useJobsApi';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-
-
-delete (L.Icon.Default.prototype as any)._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-});
+import { initializeGoogleMapsInstance } from '@/lib/google-maps-utils';
 
 interface ApplicantLocation {
   id: string;
@@ -40,7 +28,7 @@ interface LatLng {
   lng: number;
 }
 
-interface ApplicantMapViewProps {
+interface GoogleApplicantMapViewProps {
   applicants: ApplicantLocation[];
   onApplicantClick?: (applicant: ApplicantLocation | null) => void;
   selectedApplicant?: ApplicantLocation | null;
@@ -51,99 +39,7 @@ interface ApplicantMapViewProps {
   loadingStates?: Record<string, 'accept' | 'reject' | null>;
 }
 
-// Create custom icons for different applicant statuses
-const createCustomIcon = (status: string) => {
-  const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-      case 'shortlisted':
-      case 'closed':
-        return '#16a34a'; // green
-      case 'rejected':
-      case 'archived':
-        return '#dc2626'; // red
-      case 'interview':
-        return '#ea580c'; // orange
-      case 'hired':
-        return '#2563eb'; // blue
-      default:
-        return '#3b82f6'; // blue for all other statuses (including 'open', 'applied', etc.)
-    }
-  };
-
-  const color = getStatusColor(status);
-  
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="
-        background-color: ${color};
-        width: 28px;
-        height: 28px;
-        border-radius: 50%;
-        border: 3px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-        font-size: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        cursor: pointer;
-        transition: transform 0.2s ease;
-      " onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-        1
-      </div>
-    `,
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
-  });
-};
-
-// Custom cluster icon function
-const createClusterIcon = (cluster: any) => {
-  const count = cluster.getChildCount();
-  let size = 44;
-  let color = '#3b82f6';
-  
-  if (count >= 20) {
-    size = 52;
-    color = '#1e3a8a';
-  } else if (count >= 10) {
-    size = 48;
-    color = '#2563eb';
-  } else if (count >= 5) {
-    size = 46;
-    color = '#1d4ed8';
-  }
-  
-  return L.divIcon({
-    html: `
-      <div style="
-        background-color: ${color};
-        width: ${size}px;
-        height: ${size}px;
-        border-radius: 50%;
-        border: 4px solid white;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: bold;
-        color: white;
-        font-size: ${size > 48 ? '16px' : '14px'};
-        box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-        cursor: pointer;
-        transition: transform 0.2s ease;
-      " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-        ${count}
-      </div>
-    `,
-    className: 'custom-cluster',
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-  });
-};
-
-const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
+const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
   applicants = [],
   onApplicantClick,
   selectedApplicant,
@@ -154,13 +50,101 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   loadingStates = {}
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<L.Map | null>(null);
-  const markersRef = useRef<L.Marker[]>([]);
-  const clusterGroupRef = useRef<any>(null);
-  const currentLocationMarkerRef = useRef<L.Marker | null>(null);
-  const previousSelectedApplicantRef = useRef<ApplicantLocation | null>(null);
+  const mapInstanceRef = useRef<google.maps.Map | null>(null);
+  const markersRef = useRef<google.maps.Marker[]>([]);
+  const currentLocationMarkerRef = useRef<google.maps.Marker | null>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const takeApplicationAction = useTakeApplicationAction();
   const activeOrganizationId = useActiveOrganizationId();
+
+  // Debug: Log component lifecycle
+  useEffect(() => {
+    console.log('🏗️ GoogleApplicantMapView component mounted');
+    return () => {
+      console.log('🗑️ GoogleApplicantMapView component unmounted');
+    };
+  }, []);
+
+  // Manual retry function
+  const retryGoogleMapsInitialization = () => {
+    setError(null);
+    setIsLoaded(false);
+    
+    // Reset the map instance
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current = null;
+    }
+    
+    // Trigger re-initialization
+    const initMap = async () => {
+      try {
+        console.log('🔄 Retrying Google Maps initialization...');
+        await initializeGoogleMapsInstance();
+        
+        // Wait for map container to be available
+        let retries = 0;
+        const maxRetries = 50;
+        
+        const waitForContainer = () => {
+          if (mapRef.current) {
+            const rect = mapRef.current.getBoundingClientRect();
+            if (rect.width > 0 && rect.height > 0) {
+              console.log('✅ Map container found during retry with dimensions:', { width: rect.width, height: rect.height });
+              
+              const map = new window.google.maps.Map(mapRef.current, {
+                center: mapCenter,
+                zoom: zoom,
+                zoomControl: false,
+                mapTypeControl: false,
+                scaleControl: true,
+                streetViewControl: false,
+                rotateControl: false,
+                fullscreenControl: false,
+                restriction: {
+                  latLngBounds: {
+                    north: 37.09024,
+                    south: 8.0883064,
+                    west: 68.1766451,
+                    east: 97.4025619,
+                  },
+                  strictBounds: false,
+                },
+              });
+
+              mapInstanceRef.current = map;
+              setIsLoaded(true);
+              toast.success('Google Maps loaded successfully!');
+            } else if (retries < maxRetries) {
+              retries++;
+              setTimeout(waitForContainer, 100);
+            } else {
+              setError('Map container has no dimensions');
+              toast.error('Retry failed - container has no dimensions');
+            }
+          } else if (retries < maxRetries) {
+            retries++;
+            setTimeout(waitForContainer, 100);
+          } else {
+            setError('Map container not available after retry');
+            toast.error('Retry failed - container not found');
+          }
+        };
+        
+        waitForContainer();
+        
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps';
+        setError(errorMessage);
+        toast.error('Retry failed');
+      }
+    };
+    
+    setTimeout(initMap, 100);
+  };
+
+  // State for filtering and search
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleAccept = async () => {
     if (selectedApplicant) {
@@ -215,20 +199,14 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
       }
     }
   };
-  
-  // State for filtering and search
-  const [searchQuery, setSearchQuery] = useState('');
-  // const [currentZoom, setCurrentZoom] = useState(zoom); // Removed unused
-  // const [mapBounds, setMapBounds] = useState<L.LatLngBounds | null>(null); // Removed unused
 
-  // Filter applicants based on search only
-  const filteredApplicants = useMemo(() => {
+  // Filter applicants based on search
+  const filteredApplicants = React.useMemo(() => {
     return applicants.filter(applicant => {
       const matchesSearch = !searchQuery || 
         applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
         applicant.skills.some(skill => {
-          // Handle both string and object skills
           if (typeof skill === 'string') {
             return skill.toLowerCase().includes(searchQuery.toLowerCase());
           } else if (skill && typeof skill === 'object' && 'name' in skill) {
@@ -241,121 +219,180 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
     });
   }, [applicants, searchQuery]);
 
-  // Initialize map
+  // Initialize Google Maps
   useEffect(() => {
-    if (!mapRef.current || mapInstanceRef.current) return;
+    const initMap = async () => {
+      try {
+        console.log('🗺️ Initializing Google Maps component...');
+        setError(null);
+        
+        await initializeGoogleMapsInstance();
+        console.log('✅ Google Maps instance initialized');
+        
+        // Wait for map container to be available with retries
+        let retries = 0;
+        const maxRetries = 50; // 5 seconds total (50 * 100ms)
+        
+        const waitForContainer = () => {
+          // Add debug information about the container
+          console.log('🔍 Checking container:', {
+            exists: !!mapRef.current,
+            containerElement: mapRef.current,
+            parentElement: mapRef.current?.parentElement,
+            containerHTML: mapRef.current?.outerHTML
+          });
+          
+          if (mapRef.current) {
+            // Check if the container has proper dimensions
+            const rect = mapRef.current.getBoundingClientRect();
+            console.log('📐 Container dimensions:', rect);
+            
+            if (rect.width > 0 && rect.height > 0) {
+              console.log('✅ Map container found with proper dimensions:', { width: rect.width, height: rect.height });
+              createMapInstance();
+            } else if (retries < maxRetries) {
+              retries++;
+              console.log(`⏳ Container exists but has no dimensions, waiting... (attempt ${retries}/${maxRetries})`);
+              setTimeout(waitForContainer, 100);
+            } else {
+              console.error('❌ Map container has no dimensions after maximum retries');
+              setError('Map container has no dimensions. Please check CSS styling.');
+            }
+          } else if (retries < maxRetries) {
+            retries++;
+            console.log(`⏳ Waiting for map container... (attempt ${retries}/${maxRetries})`);
+            setTimeout(waitForContainer, 100);
+          } else {
+            console.error('❌ Map container not available after maximum retries');
+            setError('Map container not available. The DOM element may not be rendered correctly.');
+          }
+        };
+        
+        const createMapInstance = () => {
+          try {
+            console.log('🗺️ Creating map instance...');
+            
+            // Check if Google Maps is properly loaded
+            if (!window.google || !window.google.maps) {
+              throw new Error('Google Maps JavaScript API is not loaded properly');
+            }
+            
+            // Create map instance
+            const map = new window.google.maps.Map(mapRef.current!, {
+              center: mapCenter,
+              zoom: zoom,
+              zoomControl: false, // We'll add custom controls
+              mapTypeControl: false,
+              scaleControl: true,
+              streetViewControl: false,
+              rotateControl: false,
+              fullscreenControl: false,
+              restriction: {
+                latLngBounds: {
+                  north: 37.09024,
+                  south: 8.0883064,
+                  west: 68.1766451,
+                  east: 97.4025619,
+                },
+                strictBounds: false,
+              },
+            });
 
-    // Create map instance
-    const map = L.map(mapRef.current, {
-      zoomControl: false,
-      doubleClickZoom: false, // Disable double-click zoom on mobile
-      dragging: true,
-      touchZoom: true,
-      scrollWheelZoom: true,
-      boxZoom: false,
-      keyboard: false,
-      bounceAtZoomLimits: false
-    }).setView([mapCenter.lat, mapCenter.lng], zoom);
-
-    // Add OpenStreetMap tiles
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-      maxZoom: 19,
-    }).addTo(map);
-
-    // Create marker cluster group
-    const clusterGroup = (L as any).markerClusterGroup({
-      chunkedLoading: true,
-      maxClusterRadius: 60,
-      spiderfyOnMaxZoom: true,
-      showCoverageOnHover: true,
-      zoomToBoundsOnClick: true,
-      iconCreateFunction: createClusterIcon,
-      animate: true,
-      animateAddingMarkers: true,
-      disableClusteringAtZoom: 16, // Disable clustering at high zoom levels for better mobile experience
-      spiderfyDistanceMultiplier: 1.5, // Increase distance for better touch targets
-    });
-
-    clusterGroupRef.current = clusterGroup;
-    map.addLayer(clusterGroup);
-
-    // Track zoom and bounds changes
-    map.on('zoomend', () => {
-      // setCurrentZoom(map.getZoom()); // Removed unused
-    });
-
-    map.on('moveend', () => {
-      // setMapBounds(map.getBounds()); // Removed unused
-    });
-
-    // Add touch-friendly interactions
-    map.on('click', () => {
-      // Close any open popups when clicking on the map
-      map.closePopup();
-    });
-
-    mapInstanceRef.current = map;
-
-    return () => {
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
+            console.log('✅ Google Maps instance created successfully');
+            mapInstanceRef.current = map;
+            setIsLoaded(true);
+          } catch (mapError) {
+            console.error('❌ Failed to create map instance:', mapError);
+            const errorMessage = mapError instanceof Error ? mapError.message : 'Failed to create map instance';
+            setError(errorMessage);
+            toast.error('Failed to create Google Maps');
+          }
+        };
+        
+        // Start waiting for container
+        waitForContainer();
+        
+      } catch (error) {
+        console.error('❌ Failed to initialize Google Maps:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to load Google Maps. Please check your API key and internet connection.';
+        setError(errorMessage);
+        toast.error('Failed to load Google Maps');
       }
     };
+
+    // Add a small delay to ensure DOM is ready, then start initialization
+    const timeoutId = setTimeout(initMap, 100);
+    
+    return () => clearTimeout(timeoutId);
   }, []);
 
   // Update map center and zoom
   useEffect(() => {
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.setView([mapCenter.lat, mapCenter.lng], zoom, { animate: true });
+    if (mapInstanceRef.current && isLoaded) {
+      mapInstanceRef.current.setCenter(mapCenter);
+      mapInstanceRef.current.setZoom(zoom);
     }
-  }, [mapCenter.lat, mapCenter.lng, zoom]);
+  }, [mapCenter.lat, mapCenter.lng, zoom, isLoaded]);
+
+  // Create custom marker icon based on status
+  const createMarkerIcon = (status: string): google.maps.Icon => {
+    const getStatusColor = (status: string) => {
+      switch (status.toLowerCase()) {
+        case 'shortlisted':
+        case 'closed':
+          return '#16a34a'; // green
+        case 'rejected':
+        case 'archived':
+          return '#dc2626'; // red
+        case 'interview':
+          return '#ea580c'; // orange
+        case 'hired':
+          return '#2563eb'; // blue
+        default:
+          return '#3b82f6'; // blue for all other statuses
+      }
+    };
+
+    const color = getStatusColor(status);
+    
+    const svg = `
+      <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="14" cy="14" r="10" fill="${color}" stroke="white" stroke-width="3"/>
+        <text x="14" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">1</text>
+      </svg>
+    `;
+
+    return {
+      url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
+      scaledSize: new window.google.maps.Size(28, 28),
+      anchor: new window.google.maps.Point(14, 14),
+    };
+  };
 
   // Update applicant markers
   useEffect(() => {
-    if (!mapInstanceRef.current || !clusterGroupRef.current) return;
+    if (!mapInstanceRef.current || !isLoaded) return;
 
-    // Clear existing markers from cluster group
-    clusterGroupRef.current.clearLayers();
+    // Clear existing markers
+    markersRef.current.forEach(marker => marker.setMap(null));
     markersRef.current = [];
 
-    // Add applicant location markers to cluster group
+    // Add new markers
     filteredApplicants.forEach(applicant => {
-      const marker = L.marker([applicant.lat, applicant.lng], {
-        icon: createCustomIcon(applicant.status)
+      if (!mapInstanceRef.current) return;
+
+      const marker = new window.google.maps.Marker({
+        position: { lat: applicant.lat, lng: applicant.lng },
+        map: mapInstanceRef.current,
+        icon: createMarkerIcon(applicant.status),
+        title: applicant.name,
       });
 
-      // Add popup
-      const popupContent = `
-        <div style="
-          padding: 12px; 
-          min-width: 200px; 
-          max-width: 280px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-        ">
+      // Create info window content
+      const infoWindowContent = `
+        <div style="padding: 12px; min-width: 200px; max-width: 280px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 8px;">
             <h3 style="font-weight: 600; font-size: 14px; margin: 0; color: #1f2937;">${applicant.name}</h3>
-            <button style="
-              background: none;
-              border: none;
-              color: #6b7280;
-              cursor: pointer;
-              font-size: 18px;
-              padding: 0;
-              line-height: 1;
-              width: 20px;
-              height: 20px;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              border-radius: 4px;
-              transition: background-color 0.2s;
-            " onmouseover="this.style.backgroundColor='#f3f4f6'" onmouseout="this.style.backgroundColor='transparent'" onclick="this.closest('.leaflet-popup').remove()">×</button>
-          </div>
-          <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px; line-height: 1.4;">${applicant.location}</p>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-            <span style="font-size: 13px; font-weight: 500; color: #374151;">${applicant.age} years</span>
             <span style="font-size: 11px; padding: 3px 8px; border-radius: 12px; font-weight: 500; ${
               applicant.status === 'shortlisted' || applicant.status === 'closed' ? 'background-color: #dcfce7; color: #166534' :
               applicant.status === 'rejected' || applicant.status === 'archived' ? 'background-color: #fef2f2; color: #dc2626' :
@@ -365,6 +402,10 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
             };">
               ${applicant.status}
             </span>
+          </div>
+          <p style="font-size: 12px; color: #6b7280; margin-bottom: 8px; line-height: 1.4;">${applicant.location}</p>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span style="font-size: 13px; font-weight: 500; color: #374151;">${applicant.age} years</span>
           </div>
           <div style="font-size: 11px; color: #6b7280; margin-bottom: 8px;">
             <div style="font-weight: 500; margin-bottom: 4px; color: #374151;">Skills:</div>
@@ -383,78 +424,46 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         </div>
       `;
 
-      marker.bindPopup(popupContent, {
-        closeButton: false,
-        autoClose: false,
-        className: 'custom-popup',
-        offset: [0, -35], // Position popup further above the marker to avoid covering it
-        maxWidth: 300,
-        minWidth: 200,
-        maxHeight: 400,
-        keepInView: true,
-        autoPan: true,
-        autoPanPadding: [50, 50]
+      const infoWindow = new window.google.maps.InfoWindow({
+        content: infoWindowContent,
       });
 
-      // Add click handler
-      marker.on('click', () => {
-        // Set flag to maintain individual markers when user clicks on a marker
-        setMaintainIndividualMarkers(true);
+      marker.addListener('click', () => {
+        // Close all other info windows
+        markersRef.current.forEach(m => {
+          if ((m as any).infoWindow) {
+            (m as any).infoWindow.close();
+          }
+        });
+
+        infoWindow.open(mapInstanceRef.current, marker);
         onApplicantClick?.(applicant);
+        
+        // Center map on clicked marker
         if (mapInstanceRef.current) {
-          mapInstanceRef.current.flyTo([applicant.lat, applicant.lng], 15, { // Zoom to level 15
-            animate: true,
-            duration: 1,
-          });
+          mapInstanceRef.current.panTo({ lat: applicant.lat, lng: applicant.lng });
+          mapInstanceRef.current.setZoom(15);
         }
       });
 
-      clusterGroupRef.current.addLayer(marker);
+      // Store info window reference on marker
+      (marker as any).infoWindow = infoWindow;
       markersRef.current.push(marker);
     });
-  }, [filteredApplicants, onApplicantClick]);
-
-  // Track if we should maintain individual markers (when user clicks on a marker)
-  const [maintainIndividualMarkers, setMaintainIndividualMarkers] = useState(false);
-
-  // Refresh cluster group when selectedApplicant changes to null (modal closed)
-  useEffect(() => {
-    // Check if we just closed the modal (had a selected applicant, now null)
-    if (previousSelectedApplicantRef.current && selectedApplicant === null && clusterGroupRef.current && mapInstanceRef.current) {
-      // Only refresh clusters if we're not maintaining individual markers
-      if (!maintainIndividualMarkers) {
-        // Add a small delay to ensure the modal is fully closed before refreshing clusters
-        setTimeout(() => {
-          if (clusterGroupRef.current && mapInstanceRef.current) {
-            // Force refresh the cluster group to regain proper clustering
-            const currentCenter = mapInstanceRef.current.getCenter();
-            const currentZoom = mapInstanceRef.current.getZoom();
-            
-            // Temporarily remove and re-add the cluster group to force refresh
-            mapInstanceRef.current.removeLayer(clusterGroupRef.current);
-            mapInstanceRef.current.addLayer(clusterGroupRef.current);
-            
-            // Restore the view
-            mapInstanceRef.current.setView(currentCenter, currentZoom);
-          }
-        }, 100); // Small delay to ensure modal animation is complete
-      }
-    }
-    
-    // Update the previous selected applicant ref
-    previousSelectedApplicantRef.current = selectedApplicant || null;
-  }, [selectedApplicant, maintainIndividualMarkers]);
+  }, [filteredApplicants, onApplicantClick, isLoaded]);
 
   // Map control handlers
   const handleZoomIn = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomIn();
+      const currentZoom = mapInstanceRef.current.getZoom() || 5;
+      mapInstanceRef.current.setZoom(currentZoom + 1);
     }
   };
 
   const handleZoomOut = () => {
     if (mapInstanceRef.current) {
-      mapInstanceRef.current.zoomOut();
+      const currentZoom = mapInstanceRef.current.getZoom() || 5;
+      mapInstanceRef.current.setZoom(Math.max(currentZoom - 1, 1));
     }
   };
 
@@ -466,49 +475,100 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
           const latLng = { lat: latitude, lng: longitude };
 
           if (mapInstanceRef.current) {
-            mapInstanceRef.current.flyTo(latLng, 15);
+            mapInstanceRef.current.panTo(latLng);
+            mapInstanceRef.current.setZoom(15);
 
             // Add or move the current location marker
             if (currentLocationMarkerRef.current) {
-              currentLocationMarkerRef.current.setLatLng(latLng);
+              currentLocationMarkerRef.current.setPosition(latLng);
             } else {
-              const customIcon = L.divIcon({
-                className: 'current-location-marker',
-                html: `<div style="background-color: #ff4b4b; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 0 5px #ff4b4b;"></div>`,
-                iconSize: [20, 20],
-                iconAnchor: [10, 10],
+              const icon = {
+                url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(`
+                  <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="10" cy="10" r="8" fill="#ff4b4b" stroke="white" stroke-width="2"/>
+                  </svg>
+                `),
+                scaledSize: new window.google.maps.Size(20, 20),
+                anchor: new window.google.maps.Point(10, 10),
+              };
+              
+              currentLocationMarkerRef.current = new window.google.maps.Marker({
+                position: latLng,
+                map: mapInstanceRef.current,
+                icon: icon,
+                title: 'Your Location'
               });
-              currentLocationMarkerRef.current = L.marker(latLng, { icon: customIcon }).addTo(mapInstanceRef.current);
             }
           }
         },
         (error) => {
           console.error("Error getting current location:", error);
-          // Optionally, show an error message to the user
+          toast.error("Could not get your current location");
         }
       );
+    } else {
+      toast.error("Geolocation is not supported by this browser");
     }
   };
 
-  const handleResetClustering = () => {
-    setMaintainIndividualMarkers(false);
-    if (clusterGroupRef.current && mapInstanceRef.current) {
-      // Force refresh the cluster group
-      const currentCenter = mapInstanceRef.current.getCenter();
-      const currentZoom = mapInstanceRef.current.getZoom();
-      
-      mapInstanceRef.current.removeLayer(clusterGroupRef.current);
-      mapInstanceRef.current.addLayer(clusterGroupRef.current);
-      
-      mapInstanceRef.current.setView(currentCenter, currentZoom);
-    }
-  };
+  if (error) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="w-full h-full flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg">
+          <div className="text-center p-8 max-w-md">
+            <div className="text-red-600 mb-4 text-4xl">⚠️</div>
+            <div className="text-gray-700 text-sm mb-4 font-medium">Google Maps Error</div>
+            <div className="text-gray-600 text-xs mb-4 bg-red-50 p-3 rounded border text-left">
+              {error}
+            </div>
+            <div className="text-gray-500 text-xs space-y-1">
+              <div>Please check:</div>
+              <div>• Google Maps API key configuration</div>
+              <div>• API key permissions and restrictions</div>
+              <div>• Billing account status</div>
+              <div>• Network connectivity</div>
+            </div>
+            <div className="mt-4 text-xs text-gray-400 bg-gray-50 p-3 rounded">
+              <div>Debug Info:</div>
+              <div>API Key: {import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? 'Set' : 'Not Set'}</div>
+              <div>Use Google Maps: {import.meta.env.VITE_USE_GOOGLE_MAPS}</div>
+              <div>Window Google: {typeof window !== 'undefined' && window.google ? 'Available' : 'Not Available'}</div>
+            </div>
+            <div className="mt-4">
+              <Button 
+                onClick={retryGoogleMapsInitialization}
+                variant="outline"
+                size="sm"
+                className="text-xs"
+              >
+                Retry Loading
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  
+  if (!isLoaded) {
+    return (
+      <div className={`relative ${className}`}>
+        <div className="w-full h-full flex items-center justify-center bg-gray-100 border border-gray-300 rounded-lg">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <div className="text-gray-600 text-sm">Loading Google Maps...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`relative ${className}`}>
-      <div ref={mapRef} className="w-full h-full" />
+      <div 
+        ref={mapRef} 
+        className="w-full h-full bg-gray-100 min-h-96"
+      />
       
       {/* Map Search and Filter Controls - Mobile Responsive */}
       <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
@@ -516,7 +576,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
               <MapPin className="h-4 w-4" />
-              Applicant Locations
+              Applicant Locations (Google Maps)
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -534,11 +594,6 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
             {/* Stats */}
             <div className="text-xs text-muted-foreground">
               Showing {filteredApplicants.length} of {applicants.length} applicants
-              {maintainIndividualMarkers && (
-                <div className="mt-1 text-blue-600 font-medium">
-                  Individual markers active
-                </div>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -570,17 +625,6 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
         >
           <Crosshair className="h-4 w-4" />
         </Button>
-        {maintainIndividualMarkers && (
-          <Button
-            variant="outline"
-            size="icon"
-            className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-10 w-10 md:h-9 md:w-9"
-            onClick={handleResetClustering}
-            title="Reset clustering"
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
-        )}
       </div>
       
       {/* Selected Applicant Info - Mobile Responsive */}
@@ -603,10 +647,7 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => {
-                      onApplicantClick?.(null);
-                      // Don't reset maintainIndividualMarkers here - let user decide
-                    }}
+                    onClick={() => onApplicantClick?.(null)}
                     className="h-8 w-8 p-0 hover:bg-muted"
                   >
                     <X className="h-4 w-4" />
@@ -710,4 +751,4 @@ const ApplicantMapView: React.FC<ApplicantMapViewProps> = ({
   );
 };
 
-export default ApplicantMapView;
+export default GoogleApplicantMapView;

@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import * as GoogleMapsUtils from '@/lib/google-maps-utils';
 
 // Structured location data interface
 export interface LocationData {
@@ -39,6 +40,30 @@ interface LocationSuggestion {
   };
 }
 
+// Google Maps suggestion interface
+interface GoogleMapsSuggestion {
+  description: string;
+  place_id: string;
+  terms: Array<{ offset: number; value: string }>;
+}
+
+// Union type for suggestions
+type LocationSuggestionUnion = LocationSuggestion | GoogleMapsSuggestion;
+
+// Type guard functions
+const isNominatimSuggestion = (suggestion: LocationSuggestionUnion): suggestion is LocationSuggestion => {
+  return 'display_name' in suggestion;
+};
+
+const isGoogleMapsSuggestion = (suggestion: LocationSuggestionUnion): suggestion is GoogleMapsSuggestion => {
+  return 'place_id' in suggestion;
+};
+
+// Check if Google Maps should be used
+const shouldUseGoogleMaps = (): boolean => {
+  return import.meta.env.VITE_USE_GOOGLE_MAPS === 'true';
+};
+
 interface LocationFieldProps {
   label: string;
   value: string | LocationData;
@@ -62,7 +87,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 }) => {
   const [status, setStatus] = useState<LocationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [suggestions, setSuggestions] = useState<LocationSuggestion[]>([]);
+  const [suggestions, setSuggestions] = useState<LocationSuggestionUnion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -135,7 +160,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
 
 
-  // Search for address suggestions
+  // Search for address suggestions using either Google Maps or Nominatim
   const searchAddressSuggestions = async (query: string) => {
     if (!query.trim() || query.length < 3) {
       setSuggestions([]);
@@ -145,22 +170,30 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
     setIsSearching(true);
     try {
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=in`,
-        {
-          headers: {
-            'User-Agent': 'JobPortal/1.0'
+      if (shouldUseGoogleMaps()) {
+        console.log('🗺️ Using Google Maps for address suggestions');
+        const googleSuggestions = await GoogleMapsUtils.searchAddressSuggestions(query);
+        setSuggestions(googleSuggestions);
+        setShowSuggestions(googleSuggestions.length > 0);
+      } else {
+        console.log('🗺️ Using Nominatim for address suggestions');
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1&countrycodes=in`,
+          {
+            headers: {
+              'User-Agent': 'JobPortal/1.0'
+            }
           }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch suggestions');
         }
-      );
 
-      if (!response.ok) {
-        throw new Error('Failed to fetch suggestions');
+        const data = await response.json();
+        setSuggestions(data || []);
+        setShowSuggestions(data && data.length > 0);
       }
-
-      const data = await response.json();
-      setSuggestions(data || []);
-      setShowSuggestions(data && data.length > 0);
     } catch (error) {
       console.error('Search suggestions error:', error);
       setSuggestions([]);
@@ -186,27 +219,75 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     }, 300);
   };
 
-  // Handle suggestion selection
-  const handleSuggestionSelect = (suggestion: LocationSuggestion) => {
-    if (returnStructuredData) {
-      const addressComponents = parseAddressComponents(suggestion);
-      const locationData: LocationData = {
-        address: addressComponents.address || suggestion.display_name,
-        city: addressComponents.city || '',
-        state: addressComponents.state || '',
-        country: addressComponents.country || 'India',
-        tag: addressComponents.city || 'job-location',
-        gps: {
-          lat: parseFloat(suggestion.lat),
-          lng: parseFloat(suggestion.lon)
+  // Handle suggestion selection for both Google Maps and Nominatim
+  const handleSuggestionSelect = async (suggestion: LocationSuggestionUnion) => {
+    console.log('🎯 Suggestion selected:', suggestion);
+    
+    if (isGoogleMapsSuggestion(suggestion)) {
+      // Handle Google Maps suggestion
+      console.log('📍 Processing Google Maps suggestion with place_id:', suggestion.place_id);
+      
+      if (returnStructuredData) {
+        try {
+          const placeDetails = await GoogleMapsUtils.getPlaceDetails(suggestion.place_id);
+          console.log('🏢 Place details received:', placeDetails);
+          
+          if (placeDetails) {
+            const addressComponents = GoogleMapsUtils.parseGoogleMapsAddressComponents(placeDetails.addressComponents);
+            console.log('🗺️ Parsed address components:', addressComponents);
+            
+            const locationData: LocationData = {
+              address: addressComponents.address || placeDetails.formattedAddress,
+              city: addressComponents.city || '',
+              state: addressComponents.state || '',
+              country: addressComponents.country || 'India',
+              tag: addressComponents.city || 'job-location',
+              gps: {
+                lat: placeDetails.lat,
+                lng: placeDetails.lng
+              }
+            };
+            console.log('📋 Final location data:', locationData);
+            onChange(locationData);
+            setInputValue(placeDetails.formattedAddress);
+          } else {
+            console.warn('⚠️ No place details received, using description only');
+            onChange(suggestion.description);
+            setInputValue(suggestion.description);
+          }
+        } catch (error) {
+          console.error('❌ Error getting place details:', error);
+          onChange(suggestion.description);
+          setInputValue(suggestion.description);
         }
-      };
-      onChange(locationData);
-    } else {
-      onChange(suggestion.display_name);
+      } else {
+        onChange(suggestion.description);
+        setInputValue(suggestion.description);
+      }
+    } else if (isNominatimSuggestion(suggestion)) {
+      // Handle Nominatim suggestion (existing logic)
+      console.log('🗺️ Processing Nominatim suggestion');
+      
+      if (returnStructuredData) {
+        const addressComponents = parseAddressComponents(suggestion);
+        const locationData: LocationData = {
+          address: addressComponents.address || suggestion.display_name,
+          city: addressComponents.city || '',
+          state: addressComponents.state || '',
+          country: addressComponents.country || 'India',
+          tag: addressComponents.city || 'job-location',
+          gps: {
+            lat: parseFloat(suggestion.lat),
+            lng: parseFloat(suggestion.lon)
+          }
+        };
+        onChange(locationData);
+      } else {
+        onChange(suggestion.display_name);
+      }
+      setInputValue(suggestion.display_name);
     }
     
-    setInputValue(suggestion.display_name);
     setShowSuggestions(false);
     setSuggestions([]);
     setStatus('success');
@@ -220,70 +301,132 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     if (returnStructuredData) {
       setStatus('loading');
       try {
-        // Try to geocode the manual entry to get structured data
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(inputValue)}&limit=1&addressdetails=1&countrycodes=in`,
-          {
-            headers: {
-              'User-Agent': 'JobPortal/1.0'
+        if (shouldUseGoogleMaps()) {
+          console.log('🗺️ Using Google Maps for manual entry geocoding');
+          // Try to geocode the manual entry to get structured data using Google Maps
+          const coordinates = await GoogleMapsUtils.geocodeLocation(inputValue);
+          
+          if (coordinates) {
+            // Get address details using reverse geocoding
+            const addressResult = await GoogleMapsUtils.reverseGeocode(coordinates.lat, coordinates.lng);
+            
+            if (addressResult) {
+              const addressComponents = GoogleMapsUtils.parseGoogleMapsAddressComponents(addressResult.addressComponents);
+              
+              const locationData: LocationData = {
+                address: addressComponents.address || inputValue,
+                city: addressComponents.city || '',
+                state: addressComponents.state || '',
+                country: addressComponents.country || 'India',
+                tag: addressComponents.city || 'job-location',
+                gps: {
+                  lat: coordinates.lat,
+                  lng: coordinates.lng
+                }
+              };
+              
+              onChange(locationData);
+              setStatus('success');
+              toast.success('Address parsed successfully!');
+            } else {
+              // Fallback: use the input with basic parsing
+              const parsedComponents = parseManualAddress(inputValue);
+              const locationData: LocationData = {
+                address: parsedComponents.address,
+                city: parsedComponents.city,
+                state: parsedComponents.state,
+                country: parsedComponents.country,
+                tag: parsedComponents.city || 'job-location',
+                gps: coordinates
+              };
+              
+              onChange(locationData);
+              setStatus('success');
+              toast.success('Address parsed with coordinates!');
             }
+          } else {
+            // No geocoding result, use basic parsing
+            const parsedComponents = parseManualAddress(inputValue);
+            const locationData: LocationData = {
+              address: parsedComponents.address,
+              city: parsedComponents.city,
+              state: parsedComponents.state,
+              country: parsedComponents.country,
+              tag: parsedComponents.city || 'job-location',
+              gps: { lat: 0, lng: 0 }
+            };
+            
+            onChange(locationData);
+            setStatus('success');
+            toast.success('Address parsed (coordinates not available)');
           }
-        );
-
-        if (!response.ok) {
-          throw new Error('Failed to parse address');
-        }
-
-        const data = await response.json();
-        
-        if (data && data.length > 0) {
-          // Parse the geocoded result to extract address components
-          const result = data[0];
-          const addressComponents = parseAddressComponents(result);
-          
-          const locationData: LocationData = {
-            address: addressComponents.address || inputValue,
-            city: addressComponents.city || '',
-            state: addressComponents.state || '',
-            country: addressComponents.country || 'India',
-            tag: addressComponents.city || 'job-location',
-            gps: {
-              lat: parseFloat(result.lat),
-              lng: parseFloat(result.lon)
-            }
-          };
-          
-          onChange(locationData);
-          setStatus('success');
-          toast.success('Address parsed successfully!');
         } else {
-          // If no geocoding result, use the input as-is but try to parse common patterns
-          const parsedComponents = parseManualAddress(inputValue);
-          const locationData: LocationData = {
-            address: parsedComponents.address,
-            city: parsedComponents.city,
-            state: parsedComponents.state,
-            country: parsedComponents.country,
-            tag: parsedComponents.city || 'job-location',
-            gps: { lat: 0, lng: 0 } // No coordinates available
-          };
+          console.log('🗺️ Using Nominatim for manual entry geocoding');
+          // Try to geocode the manual entry to get structured data using Nominatim (existing logic)
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(inputValue)}&limit=1&addressdetails=1&countrycodes=in`,
+            {
+              headers: {
+                'User-Agent': 'JobPortal/1.0'
+              }
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error('Failed to parse address');
+          }
+
+          const data = await response.json();
           
-          onChange(locationData);
-          setStatus('success');
-          toast.success('Address parsed (coordinates not available)');
+          if (data && data.length > 0) {
+            // Parse the geocoded result to extract address components
+            const result = data[0];
+            const addressComponents = parseAddressComponents(result);
+            
+            const locationData: LocationData = {
+              address: addressComponents.address || inputValue,
+              city: addressComponents.city || '',
+              state: addressComponents.state || '',
+              country: addressComponents.country || 'India',
+              tag: addressComponents.city || 'job-location',
+              gps: {
+                lat: parseFloat(result.lat),
+                lng: parseFloat(result.lon)
+              }
+            };
+            
+            onChange(locationData);
+            setStatus('success');
+            toast.success('Address parsed successfully!');
+          } else {
+            // If no geocoding result, use the input as-is but try to parse common patterns
+            const parsedComponents = parseManualAddress(inputValue);
+            const locationData: LocationData = {
+              address: parsedComponents.address,
+              city: parsedComponents.city,
+              state: parsedComponents.state,
+              country: parsedComponents.country,
+              tag: parsedComponents.city || 'job-location',
+              gps: { lat: 0, lng: 0 } // No coordinates available
+            };
+            
+            onChange(locationData);
+            setStatus('success');
+            toast.success('Address parsed (coordinates not available)');
+          }
         }
       } catch (error) {
         console.error('Manual entry parsing error:', error);
         // Fallback: use the input as-is with basic parsing
         const parsedComponents = parseManualAddress(inputValue);
-                 const locationData: LocationData = {
-           address: parsedComponents.address,
-           city: parsedComponents.city,
-           state: parsedComponents.state,
-           country: parsedComponents.country,
-           tag: parsedComponents.city || 'job-location',
-           gps: { lat: 0, lng: 0 }
-         };
+        const locationData: LocationData = {
+          address: parsedComponents.address,
+          city: parsedComponents.city,
+          state: parsedComponents.state,
+          country: parsedComponents.country,
+          tag: parsedComponents.city || 'job-location',
+          gps: { lat: 0, lng: 0 }
+        };
         
         onChange(locationData);
         setStatus('success');
@@ -378,67 +521,117 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     setStatus('loading');
     setErrorMessage('');
 
+    // Enhanced options for better mobile performance
     const options = {
       enableHighAccuracy: true,
-      timeout: 10000,
+      timeout: 15000, // Increased timeout for slower mobile connections
       maximumAge: 300000 // 5 minutes
     };
 
     try {
+      // Check permissions explicitly on mobile devices
+      if ('permissions' in navigator) {
+        const permission = await navigator.permissions.query({ name: 'geolocation' });
+        if (permission.state === 'denied') {
+          throw new Error('Location access is denied. Please enable location access in your browser settings.');
+        }
+      }
+
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, options);
       });
 
       const { latitude, longitude } = position.coords;
       
-      // Use OpenStreetMap Nominatim API for reverse geocoding
-      const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-        {
-          headers: {
-            'User-Agent': 'JobPortal/1.0'
-          }
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to get address information');
-      }
-
-      const data = await response.json();
-      
-      if (data && data.display_name) {
-        if (returnStructuredData) {
-          // Return structured location data
-          const addressComponents = parseAddressComponents(data);
-          const locationData: LocationData = {
-            address: addressComponents.address || data.display_name,
-            city: addressComponents.city || '',
-            state: addressComponents.state || '',
-            country: addressComponents.country || 'India',
-            tag: addressComponents.city || 'job-location', // Use city as tag or default
-            gps: {
-              lat: latitude,
-              lng: longitude
-            }
-          };
-          
-          onChange(locationData);
-          setInputValue(locationData.address);
-          setStatus('success');
-          toast.success('Location detected successfully!');
-        } else {
-          // Return just the address string (legacy behavior)
-          onChange(data.display_name);
-          setInputValue(data.display_name);
-          setStatus('success');
-          toast.success('Location detected successfully!');
-        }
+      if (shouldUseGoogleMaps()) {
+        console.log('🗺️ Using Google Maps for reverse geocoding');
+        // Use Google Maps for reverse geocoding
+        const result = await GoogleMapsUtils.reverseGeocode(latitude, longitude);
         
-        // Reset status after 3 seconds
-        setTimeout(() => setStatus('idle'), 3000);
+        if (result) {
+          if (returnStructuredData) {
+            // Return structured location data
+            const addressComponents = GoogleMapsUtils.parseGoogleMapsAddressComponents(result.addressComponents);
+            const locationData: LocationData = {
+              address: addressComponents.address || result.formattedAddress,
+              city: addressComponents.city || '',
+              state: addressComponents.state || '',
+              country: addressComponents.country || 'India',
+              tag: addressComponents.city || 'job-location',
+              gps: {
+                lat: latitude,
+                lng: longitude
+              }
+            };
+            
+            onChange(locationData);
+            setInputValue(locationData.address);
+            setStatus('success');
+            toast.success('Location detected successfully!');
+          } else {
+            // Return just the address string
+            onChange(result.formattedAddress);
+            setInputValue(result.formattedAddress);
+            setStatus('success');
+            toast.success('Location detected successfully!');
+          }
+          
+          // Reset status after 3 seconds
+          setTimeout(() => setStatus('idle'), 3000);
+        } else {
+          throw new Error('No address found for this location');
+        }
       } else {
-        throw new Error('No address found for this location');
+        console.log('🗺️ Using Nominatim for reverse geocoding');
+        // Use OpenStreetMap Nominatim API for reverse geocoding (existing logic)
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
+          {
+            headers: {
+              'User-Agent': 'JobPortal/1.0'
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error('Failed to get address information');
+        }
+
+        const data = await response.json();
+        
+        if (data && data.display_name) {
+          if (returnStructuredData) {
+            // Return structured location data
+            const addressComponents = parseAddressComponents(data);
+            const locationData: LocationData = {
+              address: addressComponents.address || data.display_name,
+              city: addressComponents.city || '',
+              state: addressComponents.state || '',
+              country: addressComponents.country || 'India',
+              tag: addressComponents.city || 'job-location',
+              gps: {
+                lat: latitude,
+                lng: longitude
+              }
+            };
+            
+            onChange(locationData);
+            setInputValue(locationData.address);
+            setStatus('success');
+            toast.success('Location detected successfully!');
+          } else {
+            // Return just the address string (legacy behavior)
+            onChange(data.display_name);
+            setInputValue(data.display_name);
+            setStatus('success');
+            toast.success('Location detected successfully!');
+          }
+          
+          // Reset status after 3 seconds
+          setTimeout(() => setStatus('idle'), 3000);
+        } else {
+          throw new Error('No address found for this location');
+        }
       }
     } catch (error: any) {
       setStatus('error');
@@ -469,19 +662,26 @@ export const LocationField: React.FC<LocationFieldProps> = ({
   const getStatusIcon = () => {
     switch (status) {
       case 'loading':
-        return <Loader2 className="h-4 w-4 animate-spin text-blue-600" />;
+        return <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin text-blue-600" />;
       case 'success':
-        return <CheckCircle className="h-4 w-4 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 md:h-4 md:w-4 text-green-600" />;
       case 'error':
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
+        return <AlertCircle className="h-5 w-5 md:h-4 md:w-4 text-red-600" />;
       default:
         return (
           <Tooltip>
             <TooltipTrigger asChild>
-              <MapPin 
-                className="h-4 w-4 text-blue-600 cursor-pointer hover:text-blue-700 transition-colors" 
+              <button
+                type="button"
+                className="p-1 -m-1 touch-manipulation"
                 onClick={getCurrentLocation}
-              />
+                aria-label="Get current location"
+                title="Get current location"
+              >
+                <MapPin 
+                  className="h-5 w-5 md:h-4 md:w-4 text-blue-600 hover:text-blue-700 transition-colors" 
+                />
+              </button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Get current location</p>
@@ -560,13 +760,13 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                 handleManualEntry();
               }
             }}
-            placeholder={placeholder || "Type to search for locations or click map pin for current location"}
-            className={`pr-10 ${getInputBorderClass()} ${required && (!inputValue || (typeof inputValue === 'string' && inputValue.trim() === '')) ? 'border-red-300' : ''}`}
+            placeholder={placeholder || "Type to search for locations or tap map pin for current location"}
+            className={`pr-12 md:pr-10 h-12 md:h-10 text-base md:text-sm ${getInputBorderClass()} ${required && (!inputValue || (typeof inputValue === 'string' && inputValue.trim() === '')) ? 'border-red-300' : ''}`}
           />
           
           <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
             {isSearching && (
-              <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+              <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin text-gray-400" />
             )}
             {getStatusIcon()}
           </div>
@@ -576,25 +776,36 @@ export const LocationField: React.FC<LocationFieldProps> = ({
         {showSuggestions && suggestions.length > 0 && (
           <div 
             ref={suggestionsRef}
-            className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto"
+            className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-40 md:max-h-60 overflow-y-auto"
           >
             {suggestions.map((suggestion, index) => (
               <div
                 key={index}
-                className="px-4 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                className="px-4 py-3 md:py-2 hover:bg-gray-100 active:bg-gray-200 cursor-pointer border-b border-gray-100 last:border-b-0 touch-manipulation min-h-[44px] md:min-h-0"
                 onClick={() => handleSuggestionSelect(suggestion)}
               >
-                <div className="text-sm font-medium">{suggestion.display_name}</div>
-                {suggestion.address && (
-                  <div className="text-xs text-gray-500 mt-1">
-                    {suggestion.address.city && `${suggestion.address.city}, `}
-                    {suggestion.address.state && `${suggestion.address.state}, `}
-                    {suggestion.address.country}
-                  </div>
-                )}
+                {isNominatimSuggestion(suggestion) ? (
+                  <>
+                    <div className="text-base md:text-sm font-medium">{suggestion.display_name}</div>
+                    {suggestion.address && (
+                      <div className="text-sm md:text-xs text-gray-500 mt-1">
+                        {suggestion.address.city && `${suggestion.address.city}, `}
+                        {suggestion.address.state && `${suggestion.address.state}, `}
+                        {suggestion.address.country}
+                      </div>
+                    )}
+                  </>
+                ) : isGoogleMapsSuggestion(suggestion) ? (
+                  <>
+                    <div className="text-base md:text-sm font-medium">{suggestion.description}</div>
+                    <div className="text-sm md:text-xs text-gray-500 mt-1">
+                      {suggestion.terms.slice(1, 3).map(term => term.value).join(', ')}
+                    </div>
+                  </>
+                ) : null}
               </div>
             ))}
-            <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-200">
+            <div className="px-4 py-3 md:py-2 text-sm md:text-xs text-gray-500 border-t border-gray-200">
               Press Enter to use your typed address if no suggestion matches
             </div>
           </div>
