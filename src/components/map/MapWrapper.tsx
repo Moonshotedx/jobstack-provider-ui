@@ -1,5 +1,6 @@
 import React from 'react';
-import { ApplicantMapView, GoogleApplicantMapView } from './index';
+import { ApplicantMapView } from './index';
+import RobustGoogleMapView from './RobustGoogleMapView';
 
 interface ApplicantLocation {
   id: string;
@@ -41,7 +42,7 @@ const MapWrapper: React.FC<MapWrapperProps> = (props) => {
   console.log('🗺️ MapWrapper rendering, useGoogleMaps:', shouldUseGoogleMaps());
   
   if (shouldUseGoogleMaps()) {
-    return <GoogleApplicantMapView {...props} />;
+    return <RobustGoogleMapView {...props} />;
   } else {
     return <ApplicantMapView {...props} />;
   }
