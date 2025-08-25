@@ -1,6 +1,6 @@
 import React from 'react';
 import { ApplicantMapView } from './index';
-import RobustGoogleMapView from './RobustGoogleMapView';
+import ReliableMapWrapper from './ReliableMapWrapper';
 
 interface ApplicantLocation {
   id: string;
@@ -42,7 +42,14 @@ const MapWrapper: React.FC<MapWrapperProps> = (props) => {
   console.log('🗺️ MapWrapper rendering, useGoogleMaps:', shouldUseGoogleMaps());
   
   if (shouldUseGoogleMaps()) {
-    return <RobustGoogleMapView {...props} />;
+    // Use the new reliable implementation with @react-google-maps/api
+    return (
+      <ReliableMapWrapper 
+        {...props}
+        active={true} // Always active by default
+        className={props.className || "w-full h-full"}
+      />
+    );
   } else {
     return <ApplicantMapView {...props} />;
   }
