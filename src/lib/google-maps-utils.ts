@@ -240,7 +240,7 @@ export const getPlaceDetails = async (placeId: string): Promise<{ lat: number; l
       throw new Error('Google Maps API key is not configured');
     }
 
-    console.log('🗺️ Google Maps: Using Places API (New) for place details');
+    console.log('🗺️ Google Maps: Using Places API (New) for place details, placeId:', placeId);
 
     // Use the new Places API (New) with Fetch API
     const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
@@ -248,7 +248,7 @@ export const getPlaceDetails = async (placeId: string): Promise<{ lat: number; l
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': apiKey,
-        'X-Goog-FieldMask': 'location,formattedAddress,addressComponents'
+        'X-Goog-FieldMask': 'location,displayName,formattedAddress,addressComponents'
       }
     });
 
@@ -259,12 +259,13 @@ export const getPlaceDetails = async (placeId: string): Promise<{ lat: number; l
     }
 
     const data = await response.json();
+    console.log('🗺️ Place details response:', data);
 
     if (data.location && data.location.latitude && data.location.longitude) {
       return {
         lat: data.location.latitude,
         lng: data.location.longitude,
-        formattedAddress: data.formattedAddress || '',
+        formattedAddress: data.formattedAddress || data.displayName?.text || '',
         addressComponents: data.addressComponents || []
       };
     }
@@ -361,27 +362,50 @@ export const parseGoogleMapsAddressComponents = (components: any[]): Partial<Loc
   let sublocality = '';
   let postalCode = '';
 
+  console.log('🔍 Parsing Google Maps address components:', components);
+
   components.forEach(component => {
-    const types = component.types;
+    // Handle both legacy and new API formats
+    const types = component.types || [];
+    const longName = component.longText || component.long_name || '';
+    const shortName = component.shortText || component.short_name || '';
     
+    console.log(`Component: ${longName} (${shortName}) - Types:`, types);
+    
+    // City detection - try multiple types
     if (types.includes('locality')) {
-      city = component.long_name;
+      city = longName;
     } else if (types.includes('administrative_area_level_2') && !city) {
-      city = component.long_name;
-    } else if (types.includes('administrative_area_level_1')) {
-      state = component.long_name;
-    } else if (types.includes('country')) {
-      country = component.long_name;
-    } else if (types.includes('street_number')) {
-      streetNumber = component.long_name;
+      city = longName;
+    } else if (types.includes('sublocality_level_1') && !city) {
+      city = longName;
+    } else if (types.includes('administrative_area_level_3') && !city) {
+      city = longName;
+    }
+    
+    // State detection
+    if (types.includes('administrative_area_level_1')) {
+      state = longName;
+    }
+    
+    // Country detection
+    if (types.includes('country')) {
+      country = longName;
+    }
+    
+    // Address components
+    if (types.includes('street_number')) {
+      streetNumber = longName;
     } else if (types.includes('route')) {
-      route = component.long_name;
+      route = longName;
     } else if (types.includes('sublocality') || types.includes('sublocality_level_1')) {
-      sublocality = component.long_name;
+      sublocality = longName;
     } else if (types.includes('postal_code')) {
-      postalCode = component.long_name;
+      postalCode = longName;
     }
   });
+
+  console.log(`Parsed components - City: "${city}", State: "${state}", Country: "${country}"`);
 
   // Build a cleaner address
   const addressParts = [];

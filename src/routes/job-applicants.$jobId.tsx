@@ -24,7 +24,7 @@ import {
 import ExportButton from '@/components/ExportButton';
 import type { JobApplicant } from '@/types/jobPost';
 import CandidateDetails from '@/components/CandidateDetails';
-import ApplicantMapView from '@/components/map/ApplicantMapView';
+import { MapWrapper } from '@/components/map';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import React from 'react';
@@ -936,7 +936,7 @@ function JobApplicantsPage() {
                       <span className="ml-2">Loading map...</span>
                     </div>
                   ) : (
-                    <ApplicantMapView
+                    <MapWrapper
                       applicants={applicantLocations}
                       onApplicantClick={handleMapApplicantClick}
                       selectedApplicant={selectedMapApplicant}
