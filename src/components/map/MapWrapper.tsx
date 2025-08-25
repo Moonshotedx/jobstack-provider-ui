@@ -38,6 +38,8 @@ const shouldUseGoogleMaps = (): boolean => {
 };
 
 const MapWrapper: React.FC<MapWrapperProps> = (props) => {
+  console.log('🗺️ MapWrapper rendering, useGoogleMaps:', shouldUseGoogleMaps());
+  
   if (shouldUseGoogleMaps()) {
     return <GoogleApplicantMapView {...props} />;
   } else {
