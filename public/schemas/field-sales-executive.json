@@ -195,7 +195,7 @@
           "pattern": "^.+$"
         }
       },
-      "required": ["jobProviderRegistration"]
+      "required": ["jobProviderName", "jobProviderRegistration"]
     },
     "hiringManager": {
       "type": "object",

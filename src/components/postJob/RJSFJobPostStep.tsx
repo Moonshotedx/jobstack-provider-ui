@@ -165,6 +165,11 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                   return; // Skip location validation for all jobs
                 }
                 
+                // Skip jobProviderName validation for drafts only
+                if (isDraft && requiredField === 'jobProviderName') {
+                  return; // Skip jobProviderName validation for drafts
+                }
+                
                 // Check if field is empty, null, undefined, whitespace-only, or empty array
                 const isEmpty = fieldValue === null || 
                                fieldValue === undefined || 
@@ -191,9 +196,10 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                     }
                   }
                   
-                  // Additional validation for job title and job provider location to prevent whitespace-only values
+                  // Additional validation for job provider name (except for drafts), job title, and job provider location to prevent whitespace-only values
                   // Skip location validation for drafts
                   if (requiredField === 'title' || 
+                      (!isDraft && requiredField === 'jobProviderName') ||
                       (!isDraft && requiredField === 'jobProviderLocation')) {
                     if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
                       const fieldSchema = sectionSchema.properties[requiredField];
