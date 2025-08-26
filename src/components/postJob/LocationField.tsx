@@ -711,10 +711,20 @@ export const LocationField: React.FC<LocationFieldProps> = ({
       return value;
     } else if (value && typeof value === 'object' && 'address' in value) {
       // For structured data, show the full formatted address
-      const parts = [value.address];
-      if (value.city) parts.push(value.city);
-      if (value.state) parts.push(value.state);
-      if (value.country && value.country !== 'India') parts.push(value.country);
+      // Add null checks for all properties to handle incomplete location data
+      const parts = [];
+      if (value.address && typeof value.address === 'string') {
+        parts.push(value.address);
+      }
+      if (value.city && typeof value.city === 'string') {
+        parts.push(value.city);
+      }
+      if (value.state && typeof value.state === 'string') {
+        parts.push(value.state);
+      }
+      if (value.country && typeof value.country === 'string' && value.country !== 'India') {
+        parts.push(value.country);
+      }
       return parts.join(', ');
     }
     return '';
@@ -849,7 +859,7 @@ export const LocationField: React.FC<LocationFieldProps> = ({
               <span><strong>City:</strong> {value.city || 'Not detected'}</span>
               <span><strong>State:</strong> {value.state || 'Not detected'}</span>
               <span><strong>Country:</strong> {value.country || 'India'}</span>
-              <span><strong>GPS:</strong> {value.gps.lat.toFixed(4)}, {value.gps.lng.toFixed(4)}</span>
+              <span><strong>GPS:</strong> {value.gps && typeof value.gps === 'object' && value.gps.lat !== undefined && value.gps.lng !== undefined ? `${value.gps.lat.toFixed(4)}, ${value.gps.lng.toFixed(4)}` : 'Not available'}</span>
             </div>
           </div>
         )}

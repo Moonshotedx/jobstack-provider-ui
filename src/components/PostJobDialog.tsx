@@ -141,12 +141,23 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
   };
 
   // Helper function to extract and structure location data
-  const extractLocationData = (formData: any): { address: string; city: string; state: string; country: string; tag: string; gps: { lat: number; lng: number } } => {
+  const extractLocationData = (formData: any): { address: string; city: string; state: string; country: string; tag: string; gps: { lat: number; lng: number } } | undefined => {
     const jobProviderLocation = formData.basicInfo?.jobProviderLocation;
     
     // If jobProviderLocation is a structured LocationData object
     if (jobProviderLocation && typeof jobProviderLocation === 'object' && 'address' in jobProviderLocation) {
       const locationData = jobProviderLocation as LocationData;
+      
+      // Check if the location data actually has meaningful content
+      const hasAddress = locationData.address && locationData.address.trim() !== '';
+      const hasCity = locationData.city && locationData.city.trim() !== '';
+      const hasState = locationData.state && locationData.state.trim() !== '';
+      
+      // If no meaningful location data is provided, return undefined
+      if (!hasAddress && !hasCity && !hasState) {
+        return undefined;
+      }
+      
       return {
         address: locationData.address || '',
         city: locationData.city || '',
@@ -161,7 +172,7 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     }
     
     // If jobProviderLocation is a string (fallback)
-    if (jobProviderLocation && typeof jobProviderLocation === 'string') {
+    if (jobProviderLocation && typeof jobProviderLocation === 'string' && jobProviderLocation.trim() !== '') {
       return {
         address: jobProviderLocation,
         city: '',
@@ -172,15 +183,8 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       };
     }
     
-    // Default fallback
-    return {
-      address: '',
-      city: '',
-      state: '',
-      country: 'India',
-      tag: 'job-location', // Default tag
-      gps: { lat: 0, lng: 0 }
-    };
+    // If no location provided or location is empty, return undefined (location is optional)
+    return undefined;
   };
 
   const handleJobSubmit = async (formData: any, status: 'open' | 'draft' = 'open') => {
@@ -198,20 +202,15 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       // Get role category for metadata (now async)
       const roleInfo = await getRoleDisplayInfo(selectedJobRole);
       
-      // Extract and structure location data
+      // Extract and structure location data (location is now optional for all jobs)
       const locationData = extractLocationData(formData);
-      
-      if (!locationData.address) {
-        toast.error('Job Provider Location is required.');
-        return;
-      }
       
       console.log('🗺️ Extracted location data:', locationData);
       
       // Transform RJSF form data to match backend API
       const createJobRequest = {
         title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
-        location: locationData, // Use the properly structured location data
+        location: locationData, // This can be null for drafts
         status: status, // Status moved outside of metadata
         metadata: {
           ...formData,
