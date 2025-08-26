@@ -24,7 +24,7 @@ import {
 import ExportButton from '@/components/ExportButton';
 import type { JobApplicant } from '@/types/jobPost';
 import CandidateDetails from '@/components/CandidateDetails';
-import ApplicantMapView from '@/components/map/ApplicantMapView';
+import { MapWrapper } from '@/components/map';
 import { useTranslation } from 'react-i18next';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import React from 'react';
@@ -237,7 +237,7 @@ function JobApplicantsPage() {
   const [applicantLocations, setApplicantLocations] = useState<ApplicantLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.5937, lng: 78.9629 });
   const [selectedMapApplicant, setSelectedMapApplicant] = useState<ApplicantLocation | null>(null);
-  const [isLoadingMap, setIsLoadingMap] = useState(false);
+  const [isLoadingMap, setIsLoadingMap] = useState(true); // Start with true to prevent early mounting
   // --- DYNAMIC TABLE COLUMN LOGIC START ---
   // Helper to format any cell value for safe rendering
   const formatValue = (value: any) => {
@@ -311,6 +311,7 @@ function JobApplicantsPage() {
     const convertToMapLocations = async () => {
       if (applicants.length === 0) {
         setApplicantLocations([]);
+        setIsLoadingMap(false); // Set to false when no applicants to process
         return;
       }
 
@@ -936,7 +937,7 @@ function JobApplicantsPage() {
                       <span className="ml-2">Loading map...</span>
                     </div>
                   ) : (
-                    <ApplicantMapView
+                    <MapWrapper
                       applicants={applicantLocations}
                       onApplicantClick={handleMapApplicantClick}
                       selectedApplicant={selectedMapApplicant}

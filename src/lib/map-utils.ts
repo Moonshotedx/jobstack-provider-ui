@@ -1,4 +1,5 @@
 // Utility functions for map functionality
+import * as GoogleMapsUtils from './google-maps-utils';
 
 export interface ApplicantLocation {
   id: string;
@@ -15,8 +16,13 @@ export interface ApplicantLocation {
   expectedSalary?: string;
 }
 
-// Geocoding function using OpenStreetMap Nominatim API
-export const geocodeLocation = async (location: string): Promise<{ lat: number; lng: number } | null> => {
+// Check if Google Maps should be used
+const shouldUseGoogleMaps = (): boolean => {
+  return import.meta.env.VITE_USE_GOOGLE_MAPS === 'true';
+};
+
+// Geocoding function using OpenStreetMap Nominatim API (existing implementation)
+const geocodeLocationNominatim = async (location: string): Promise<{ lat: number; lng: number } | null> => {
   if (!location) return null;
 
   try {
@@ -24,7 +30,7 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
     const cleanLocation = location.trim();
     if (!cleanLocation) return null;
 
-    console.log(`🔍 Searching for coordinates: "${cleanLocation}"`);
+    console.log(`🔍 Nominatim: Searching for coordinates: "${cleanLocation}"`);
     
     // First, try with the exact location string
     const response = await fetch(
@@ -49,7 +55,7 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
         return searchTerms.some(term => displayName.includes(term));
       }) || data[0]; // Fallback to first result if no exact match
 
-      console.log(`📍 Found location: "${bestMatch.display_name}"`);
+      console.log(`📍 Nominatim: Found location: "${bestMatch.display_name}"`);
       
       // Validate that we're not getting a generic Indian location
       const displayName = bestMatch.display_name.toLowerCase();
@@ -87,7 +93,7 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
             return searchTerms.some(term => displayName.includes(term));
           }) || retryData[0];
 
-          console.log(`📍 Found location (retry): "${bestMatch.display_name}"`);
+          console.log(`📍 Nominatim: Found location (retry): "${bestMatch.display_name}"`);
           
           // Validate that we're not getting a generic Indian location
           const displayName = bestMatch.display_name.toLowerCase();
@@ -111,11 +117,22 @@ export const geocodeLocation = async (location: string): Promise<{ lat: number; 
       }
     }
 
-    console.warn(`❌ No coordinates found for location: "${cleanLocation}"`);
+    console.warn(`❌ Nominatim: No coordinates found for location: "${cleanLocation}"`);
     return null;
   } catch (error) {
     console.error('Error during geocoding:', error);
     return null;
+  }
+};
+
+// Main geocoding function that delegates to the appropriate service
+export const geocodeLocation = async (location: string): Promise<{ lat: number; lng: number } | null> => {
+  if (shouldUseGoogleMaps()) {
+    console.log('🗺️ Using Google Maps for geocoding');
+    return GoogleMapsUtils.geocodeLocation(location);
+  } else {
+    console.log('🗺️ Using Nominatim for geocoding');
+    return geocodeLocationNominatim(location);
   }
 };
 
@@ -152,6 +169,13 @@ export const testGeocoding = async (location: string) => {
 export const convertApplicantsToMapLocations = async (
   applicants: any[]
 ): Promise<ApplicantLocation[]> => {
+  if (shouldUseGoogleMaps()) {
+    console.log('🗺️ Using Google Maps for converting applicants to map locations');
+    return GoogleMapsUtils.convertApplicantsToMapLocations(applicants);
+  }
+
+  // Use Nominatim (existing implementation)
+  console.log('🗺️ Using Nominatim for converting applicants to map locations');
   const locations: ApplicantLocation[] = [];
 
   for (const applicant of applicants) {
