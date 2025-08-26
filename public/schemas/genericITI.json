@@ -37,7 +37,7 @@
             "format": "data-url"
           }
         },
-        "required": ["jobProviderName", "jobProviderLocation"]
+        "required": ["jobProviderLocation"]
       },
       "jobDetails": {
         "type": "object",

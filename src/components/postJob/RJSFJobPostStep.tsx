@@ -191,9 +191,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                     }
                   }
                   
-                  // Additional validation for job provider name, job title, and job provider location to prevent whitespace-only values
+                  // Additional validation for job title and job provider location to prevent whitespace-only values
                   // Skip location validation for drafts
-                  if (requiredField === 'jobProviderName' || requiredField === 'title' || 
+                  if (requiredField === 'title' || 
                       (!isDraft && requiredField === 'jobProviderLocation')) {
                     if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
                       const fieldSchema = sectionSchema.properties[requiredField];
@@ -1133,7 +1133,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{editJobData ? 'Update Job' : 'Post a New Job'}</DialogTitle>
+          <DialogTitle>{editJobData ? 'Post Job' : 'Post a New Job'}</DialogTitle>
           {selectedJobRole && roleDisplayInfo && (
             <div className="flex items-center gap-2 mt-2">
               <Badge variant="secondary">{roleDisplayInfo.industry}</Badge>
@@ -1174,7 +1174,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               className="flex-1" 
               disabled={loading || isSubmitting || !schema}
             >
-              {isSubmitting ? (editJobData ? 'Updating Job...' : 'Posting Job...') : (editJobData ? 'Update Job' : 'Post Job')}
+              {isSubmitting ? (editJobData ? 'Posting Job...' : 'Posting Job...') : (editJobData ? 'Post Job' : 'Post Job')}
             </Button>
             <Button variant="outline" onClick={handleSaveDraft} disabled={isSubmitting}>
               Save Draft
