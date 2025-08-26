@@ -20,6 +20,10 @@ interface ApplicantLocation {
   phone: string;
   experience?: string;
   expectedSalary?: string;
+  groupIndex?: number;
+  groupSize?: number;
+  originalLat?: number;
+  originalLng?: number;
 }
 
 interface LatLng {
@@ -95,8 +99,8 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
     },
   };
 
-  // Create marker icon
-  const createMarkerIcon = useCallback((status: string) => {
+  // Create marker icon with optional count indicator
+  const createMarkerIcon = useCallback((status: string, count: number = 1, isGroupCenter: boolean = false) => {
     const getStatusColor = (status: string) => {
       switch (status.toLowerCase()) {
         case 'shortlisted':
@@ -115,15 +119,23 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
     };
 
     const color = getStatusColor(status);
-    const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="14" cy="14" r="10" fill="${color}" stroke="white" stroke-width="3"/>
-      <text x="14" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">1</text>
+    const size = count > 1 && isGroupCenter ? 36 : 28; // Larger for group centers
+    const radius = count > 1 && isGroupCenter ? 14 : 10;
+    const fontSize = count > 1 && isGroupCenter ? 12 : 10;
+    const textY = count > 1 && isGroupCenter ? size/2 + 4 : 18;
+    
+    // Show count if more than 1, otherwise just show individual marker
+    const displayText = count > 1 && isGroupCenter ? count.toString() : '•';
+    
+    const svg = `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="${size/2}" cy="${size/2}" r="${radius}" fill="${color}" stroke="white" stroke-width="3"/>
+      <text x="${size/2}" y="${textY}" font-family="Arial, sans-serif" font-size="${fontSize}" font-weight="bold" text-anchor="middle" fill="white">${displayText}</text>
     </svg>`;
 
     return {
       url: 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg),
-      scaledSize: new window.google.maps.Size(28, 28),
-      anchor: new window.google.maps.Point(14, 14),
+      scaledSize: new window.google.maps.Size(size, size),
+      anchor: new window.google.maps.Point(size/2, size/2),
     };
   }, []);
 
@@ -141,6 +153,64 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
       );
     });
   }, [applicants, searchQuery]);
+
+  // Group applicants by location and create offset positions to avoid overlapping markers
+  const applicantsWithOffsets = React.useMemo(() => {
+    const locationGroups = new Map<string, ApplicantLocation[]>();
+    
+    // Group applicants by their coordinates (rounded to avoid floating point precision issues)
+    filteredApplicants.forEach(applicant => {
+      const locationKey = `${applicant.lat.toFixed(4)},${applicant.lng.toFixed(4)}`;
+      if (!locationGroups.has(locationKey)) {
+        locationGroups.set(locationKey, []);
+      }
+      locationGroups.get(locationKey)!.push(applicant);
+    });
+    
+    // Create offset positions for applicants at the same location
+    const offsetApplicants: (ApplicantLocation & { originalLat: number; originalLng: number; groupSize: number; groupIndex: number })[] = [];
+    
+    locationGroups.forEach((group, _) => {
+      if (group.length === 1) {
+        // Single applicant, no offset needed
+        offsetApplicants.push({
+          ...group[0],
+          originalLat: group[0].lat,
+          originalLng: group[0].lng,
+          groupSize: 1,
+          groupIndex: 0
+        });
+      } else {
+        // Multiple applicants at the same location, create circular offset pattern
+        const baseRadius = 0.001; // Approximately 100 meters
+        const radius = Math.max(baseRadius, baseRadius * Math.sqrt(group.length / 4)); // Scale radius based on group size
+        
+        group.forEach((applicant, index) => {
+          let offsetLat = applicant.lat;
+          let offsetLng = applicant.lng;
+          
+          if (index > 0) {
+            // Create circular pattern around the original position
+            const angle = (2 * Math.PI * index) / group.length;
+            offsetLat = applicant.lat + (radius * Math.cos(angle));
+            offsetLng = applicant.lng + (radius * Math.sin(angle));
+          }
+          
+          offsetApplicants.push({
+            ...applicant,
+            lat: offsetLat,
+            lng: offsetLng,
+            originalLat: applicant.lat,
+            originalLng: applicant.lng,
+            groupSize: group.length,
+            groupIndex: index
+          });
+        });
+      }
+    });
+    
+    return offsetApplicants;
+  }, [filteredApplicants]);
 
   // Action handlers
   const handleAccept = async (applicant: ApplicantLocation) => {
@@ -255,56 +325,146 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
         }}
         options={mapOptions}
       >
-        {/* Render Markers */}
-        {filteredApplicants.map((applicant) => (
-          <Marker
-            key={applicant.id}
-            position={{ lat: applicant.lat, lng: applicant.lng }}
-            title={applicant.name}
-            icon={createMarkerIcon(applicant.status)}
-            onClick={() => {
-              setSelectedMarker(applicant);
-              onApplicantClick?.(applicant);
-              if (mapRef) {
-                mapRef.panTo({ lat: applicant.lat, lng: applicant.lng });
-                mapRef.setZoom(15);
-              }
-            }}
-          />
-        ))}
+        {/* Render Markers with offset positions */}
+        {applicantsWithOffsets.map((applicant) => {
+          const isGroupCenter = applicant.groupIndex === 0 && applicant.groupSize > 1;
+          const title = applicant.groupSize > 1 && isGroupCenter 
+            ? `${applicant.groupSize} applicants at this location` 
+            : applicant.name;
+          
+          return (
+            <Marker
+              key={applicant.id}
+              position={{ lat: applicant.lat, lng: applicant.lng }}
+              title={title}
+              icon={createMarkerIcon(applicant.status, applicant.groupSize, isGroupCenter)}
+              onClick={() => {
+                setSelectedMarker(applicant);
+                onApplicantClick?.(applicant);
+                if (mapRef) {
+                  // Pan to original location for group centers, or offset location for individuals
+                  const panLat = isGroupCenter ? applicant.originalLat : applicant.lat;
+                  const panLng = isGroupCenter ? applicant.originalLng : applicant.lng;
+                  mapRef.panTo({ lat: panLat, lng: panLng });
+                  mapRef.setZoom(15);
+                }
+              }}
+            />
+          );
+        })}
 
         {/* Info Window for Selected Marker */}
-        {selectedMarker && (
-          <InfoWindow
-            position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
-            onCloseClick={() => {
-              setSelectedMarker(null);
-              onApplicantClick?.(null);
-            }}
-          >
-            <div style={{ padding: '12px', minWidth: '200px', maxWidth: '280px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
-                <h3 style={{ fontWeight: '600', fontSize: '14px', margin: '0', color: '#1f2937' }}>{selectedMarker.name}</h3>
-                <span style={{ 
-                  fontSize: '11px', 
-                  padding: '3px 8px', 
-                  borderRadius: '12px', 
-                  fontWeight: '500', 
-                  backgroundColor: '#f3f4f6', 
-                  color: '#374151' 
-                }}>
-                  {selectedMarker.status}
-                </span>
+        {selectedMarker && (() => {
+          const isGroupCenter = selectedMarker.groupIndex! === 0 && selectedMarker.groupSize! > 1;
+          const sameLocationApplicants = isGroupCenter 
+            ? applicantsWithOffsets.filter(app => 
+                app.originalLat.toFixed(4) === selectedMarker.originalLat!.toFixed(4) && 
+                app.originalLng.toFixed(4) === selectedMarker.originalLng!.toFixed(4)
+              )
+            : [selectedMarker];
+          
+          return (
+            <InfoWindow
+              position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+              onCloseClick={() => {
+                setSelectedMarker(null);
+                onApplicantClick?.(null);
+              }}
+            >
+              <div style={{ padding: '12px', minWidth: '200px', maxWidth: '320px', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+                {isGroupCenter ? (
+                  // Group info window
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                      <h3 style={{ fontWeight: '600', fontSize: '14px', margin: '0', color: '#1f2937' }}>
+                        {selectedMarker.groupSize} Applicants at this Location
+                      </h3>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        padding: '3px 8px', 
+                        borderRadius: '12px', 
+                        fontWeight: '500', 
+                        backgroundColor: '#e0f2fe', 
+                        color: '#0277bd' 
+                      }}>
+                        Group
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '12px' }}>{selectedMarker.location}</p>
+                    <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                      {sameLocationApplicants.map((applicant, index) => (
+                        <div key={applicant.id} style={{ 
+                          marginBottom: '8px', 
+                          padding: '6px', 
+                          backgroundColor: index % 2 === 0 ? '#f9fafb' : 'white',
+                          borderRadius: '4px',
+                          cursor: 'pointer'
+                        }} onClick={() => onApplicantClick?.(applicant)}>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontWeight: '500', fontSize: '12px', color: '#1f2937' }}>{applicant.name}</span>
+                            <span style={{ 
+                              fontSize: '10px', 
+                              padding: '2px 6px', 
+                              borderRadius: '8px', 
+                              backgroundColor: {
+                                'shortlisted': '#dcfce7', 'closed': '#dcfce7',
+                                'rejected': '#fef2f2', 'archived': '#fef2f2',
+                                'interview': '#fff7ed',
+                                'hired': '#dbeafe'
+                              }[applicant.status.toLowerCase()] || '#f3f4f6',
+                              color: {
+                                'shortlisted': '#166534', 'closed': '#166534',
+                                'rejected': '#dc2626', 'archived': '#dc2626',
+                                'interview': '#c2410c',
+                                'hired': '#1e40af'
+                              }[applicant.status.toLowerCase()] || '#374151'
+                            }}>
+                              {applicant.status}
+                            </span>
+                          </div>
+                          <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '2px' }}>
+                            Age: {applicant.age} • {applicant.email}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '8px', fontStyle: 'italic' }}>
+                      💡 Click on any applicant above to view details, or zoom in to see individual markers
+                    </div>
+                  </>
+                ) : (
+                  // Individual applicant info window
+                  <>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '8px' }}>
+                      <h3 style={{ fontWeight: '600', fontSize: '14px', margin: '0', color: '#1f2937' }}>{selectedMarker.name}</h3>
+                      <span style={{ 
+                        fontSize: '11px', 
+                        padding: '3px 8px', 
+                        borderRadius: '12px', 
+                        fontWeight: '500', 
+                        backgroundColor: '#f3f4f6', 
+                        color: '#374151' 
+                      }}>
+                        {selectedMarker.status}
+                      </span>
+                    </div>
+                    <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{selectedMarker.location}</p>
+                    <div style={{ fontSize: '12px', color: '#374151' }}>Age: {selectedMarker.age} years</div>
+                    <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '8px' }}>
+                      📧 {selectedMarker.email}<br/>
+                      📞 {selectedMarker.phone}
+                    </div>
+                    {selectedMarker.groupSize! > 1 && (
+                      <div style={{ fontSize: '10px', color: '#6b7280', marginTop: '8px', fontStyle: 'italic' }}>
+                        💡 Part of a group of {selectedMarker.groupSize} applicants at this location
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
-              <p style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>{selectedMarker.location}</p>
-              <div style={{ fontSize: '12px', color: '#374151' }}>Age: {selectedMarker.age} years</div>
-              <div style={{ fontSize: '11px', color: '#6b7280', marginTop: '8px' }}>
-                📧 {selectedMarker.email}<br/>
-                📞 {selectedMarker.phone}
-              </div>
-            </div>
-          </InfoWindow>
-        )}
+            </InfoWindow>
+          );
+        })()}
       </GoogleMap>
 
       {/* Search Controls */}

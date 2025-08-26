@@ -259,7 +259,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <MapPin className="h-4 w-4" />
-                  <span>{job.location?.city}, {job.location?.state}</span>
+                  <span>{job.location?.city || 'Unknown City'}, {job.location?.state || 'Unknown State'}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
@@ -293,7 +293,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                 <CardContent className="space-y-4">
                   {renderField('Job Provider Name', job.metadata?.basicInfo?.jobProviderName, <Building2 className="h-4 w-4" />)}
                   {renderField('Registration Number', job.metadata?.basicInfo?.jobProviderRegistration, <FileText className="h-4 w-4" />)}
-                  {renderField('Location', job.metadata?.basicInfo?.jobProviderLocation.city + ', ' + job.metadata?.basicInfo?.jobProviderLocation.state, <MapPin className="h-4 w-4" />)}
+                  {renderField('Location', job.metadata?.basicInfo?.jobProviderLocation ? (job.metadata.basicInfo.jobProviderLocation.city || 'Unknown City') + ', ' + (job.metadata.basicInfo.jobProviderLocation.state || 'Unknown State') : 'Location not available', <MapPin className="h-4 w-4" />)}
                   {renderField('Contact Person', job.metadata?.basicInfo?.contactPersonName, <Users className="h-4 w-4" />)}
                   {renderField('Contact Email', job.metadata?.basicInfo?.contactEmail, <Mail className="h-4 w-4" />)}
                   {renderField('Contact Phone', job.metadata?.basicInfo?.contactPhone, <Phone className="h-4 w-4" />)}

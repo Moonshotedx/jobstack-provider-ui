@@ -133,7 +133,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   }, [selectedJobRole, isOpen, editJobData]);
 
   // Enhanced validation function to handle both section-level and root-level requirements
-  const validateFormData = (schema: RJSFSchema, formData: any): { isValid: boolean; errors: string[] } => {
+  const validateFormData = (schema: RJSFSchema, formData: any, isDraft: boolean = false): { isValid: boolean; errors: string[] } => {
     const errors: string[] = [];
     
     // Check root-level required sections
@@ -159,6 +159,11 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             if (sectionSchema.required) {
               sectionSchema.required.forEach((requiredField: string) => {
                 const fieldValue = formData[sectionKey][requiredField];
+                
+                // Skip location validation for all jobs (location is now optional)
+                if (requiredField === 'jobProviderLocation' || requiredField.toLowerCase().includes('location')) {
+                  return; // Skip location validation for all jobs
+                }
                 
                 // Check if field is empty, null, undefined, whitespace-only, or empty array
                 const isEmpty = fieldValue === null || 
@@ -187,7 +192,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                   }
                   
                   // Additional validation for job provider name, job title, and job provider location to prevent whitespace-only values
-                  if (requiredField === 'jobProviderName' || requiredField === 'title' || requiredField === 'jobProviderLocation') {
+                  // Skip location validation for drafts
+                  if (requiredField === 'jobProviderName' || requiredField === 'title' || 
+                      (!isDraft && requiredField === 'jobProviderLocation')) {
                     if (typeof fieldValue === 'string' && fieldValue.trim() === '') {
                       const fieldSchema = sectionSchema.properties[requiredField];
                       const fieldTitle = fieldSchema?.title || requiredField;
@@ -258,8 +265,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   const handleSaveDraft = () => {
     if (!schema || !formData) return;
 
-    // Validate the form data with enhanced validation
-    const validation = validateFormData(schema, formData);
+    // Validate the form data with relaxed validation for drafts (skip location validation)
+    const validation = validateFormData(schema, formData, true);
     
     if (!validation.isValid) {
       // Show toast error with summary
