@@ -219,8 +219,11 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 onError={(e) => {
                   const target = e.target as HTMLVideoElement;
                   target.style.display = 'none';
-                  const errorDiv = target.parentElement?.querySelector('.media-error');
-                  if (errorDiv) errorDiv.classList.remove('hidden');
+                  const errorDiv = target.parentElement?.querySelector('.media-error') as HTMLElement;
+                  if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.classList.add('flex');
+                  }
                 }}
               >
                 <source src={url} type="video/mp4" />
@@ -243,8 +246,11 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 onError={(e) => {
                   const target = e.target as HTMLImageElement;
                   target.style.display = 'none';
-                  const errorDiv = target.parentElement?.querySelector('.media-error');
-                  if (errorDiv) errorDiv.classList.remove('hidden');
+                  const errorDiv = target.parentElement?.querySelector('.media-error') as HTMLElement;
+                  if (errorDiv) {
+                    errorDiv.classList.remove('hidden');
+                    errorDiv.classList.add('flex');
+                  }
                 }}
               />
               <div className="absolute top-2 left-2 bg-black bg-opacity-50 text-white px-2 py-1 rounded text-xs">
@@ -254,7 +260,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             </div>
           )}
           
-          <div className="media-error hidden absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="media-error hidden absolute inset-0 items-center justify-center bg-gray-100">
             <div className="text-center text-gray-500 p-4">
               <AlertCircle className="h-6 w-6 sm:h-8 sm:w-8 mx-auto mb-2" />
               <p className="text-sm">Failed to load media</p>
@@ -413,9 +419,21 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       formatted = 'Task Media';
     }
     
+
+    // Special case for qrCodeScan field
+    if (fieldName === 'qrCodeScan') {
+      formatted = 'Verification Links';
+    }
+    
     // Check if the value is a verification URL first (more reliable than field name)
     if (typeof value === 'string' && isVerificationUrl(value)) {
-      formatted = 'QR Code Scan';
+      formatted = 'Verification Link';
+    }
+    // Check if it's an array of verification URLs
+    else if (Array.isArray(value) && value.length > 0 && 
+             value.every(item => typeof item === 'string' && isVerificationUrl(item))) {
+      formatted = 'Verification Links';
+
     }
     // Only check field name for specific verification-related terms (avoid generic 'vc')
     else if (fieldName.toLowerCase().includes('qr') || 
@@ -425,7 +443,8 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
              fieldName.toLowerCase() === 'vc' || // Only exact match for 'vc'
              fieldName.toLowerCase().startsWith('vc_') || // vc_ prefix
              fieldName.toLowerCase().endsWith('_vc')) { // _vc suffix
-      formatted = 'QR Code Scan';
+      formatted = Array.isArray(value) && value.length > 1 ? 'Verification Links' : 'Verification Link';
+
     }
     
     return formatted;
@@ -482,6 +501,13 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       return <Award className="h-4 w-4 text-green-600" />;
     }
     
+
+    // Check if it's an array of verification URLs
+    if (Array.isArray(value) && value.length > 0 && 
+        value.every(item => typeof item === 'string' && isVerificationUrl(item))) {
+      return <Award className="h-4 w-4 text-green-600" />;
+    }
+
     return iconMap[fieldName] || <Info className="h-4 w-4 text-muted-foreground" />;
   };
 
@@ -490,6 +516,59 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     if (value === null || value === undefined) return 'N/A';
     
     if (Array.isArray(value)) {
+      // Check if all array items are URLs (especially for qrCodeScan)
+      const allUrls = value.every(item => typeof item === 'string' && (isUrl(item) || isVerificationUrl(item)));
+      
+      if (allUrls && value.length > 0) {
+        return (
+          <div className="space-y-2">
+            {value.map((url, index) => {
+              const isVerificationLink = isVerificationUrl(url) || 
+                                        fieldName.toLowerCase().includes('qr') || 
+                                        fieldName.toLowerCase().includes('scan') ||
+                                        fieldName.toLowerCase().includes('verification') ||
+                                        fieldName.toLowerCase().includes('credential') ||
+                                        fieldName.toLowerCase().includes('vc') ||
+                                        url.includes('verify.jobs.onest.dhiway.net') ||
+                                        url.includes('dhiway.net') ||
+                                        url.includes('/jobs/');
+
+              if (isVerificationLink) {
+                return (
+                  <a 
+                    key={index}
+                    href={url.startsWith('http') ? url : `https://${url}`} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-green-600 hover:text-green-800 underline break-all font-medium flex items-center gap-1 mb-1"
+                    onClick={(e) => e.stopPropagation()}
+                    title="Click to open verification credential in new tab"
+                  >
+                    {url}
+                    <Maximize2 className="h-3 w-3 text-green-500" />
+                  </a>
+                );
+              }
+
+              return (
+                <a 
+                  key={index}
+                  href={url.startsWith('http') ? url : `https://${url}`} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1 mb-1"
+                  onClick={(e) => e.stopPropagation()}
+                  title="Click to open link in new tab"
+                >
+                  {url}
+                  <Maximize2 className="h-3 w-3 text-blue-500" />
+                </a>
+              );
+            })}
+          </div>
+        );
+      }
+      
       return value.join(', ');
     }
     

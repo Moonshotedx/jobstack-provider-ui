@@ -167,6 +167,7 @@ export interface JobApplication {
         jukiMachineExperience: string;
         qualityScoreExplanation: string;
         taskVideo?: string;
+        qrCodeScan?: string[]; // Array of verification/QR code URLs
         [key: string]: any; // Allow additional properties like media URLs
       };
       whatIWant: {
