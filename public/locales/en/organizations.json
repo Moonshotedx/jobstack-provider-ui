@@ -22,7 +22,7 @@
     "contactEmail": "Contact Email *",
     "contactEmailPlaceholder": "contact@company.com",
     "contactPhone": "Contact Phone *",
-    "contactPhonePlaceholder": "+91 98765 43210",
+    "contactPhonePlaceholder": "Enter phone number",
     "agreementText": "By creating an organization, you agree to the terms and conditions applicable to organizations for posting jobs and managing candidates.",
     "creating": "Creating...",
     "createButton": "Create Organization",

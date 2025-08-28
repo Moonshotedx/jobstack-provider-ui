@@ -50,9 +50,50 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
 }) => {
   const { t } = useTranslation('candidates');
 
+  // Helper function to check if a URL is a verification/QR code link
+  const isVerificationUrl = (url: string): boolean => {
+    if (!url || typeof url !== 'string') return false;
+    
+    const verificationIndicators = [
+      'verify.',
+      'verification',
+      'credential',
+      'qr',
+      'scan',
+      '/jobs/',
+      'dhiway.net',
+      'onest.dhiway.net',
+      'verify.jobs.onest.dhiway.net',
+      'verify.jobs'
+    ];
+    
+    // Check for specific verification URL patterns
+    const verificationPatterns = [
+      /verify\.[^\s]+/i,              // verify.domain.com
+      /verification[^\s]*/i,          // Contains "verification"
+      /credential[^\s]*/i,            // Contains "credential"
+      /qr[^\s]*/i,                    // Contains "qr"
+      /scan[^\s]*/i,                  // Contains "scan"
+      /dhiway\.net[^\s]*/i,           // Contains dhiway.net
+      /\/jobs\/[a-f0-9\-]+/i,         // Ends with /jobs/uuid pattern
+      /verify\.jobs/i                 // Contains verify.jobs
+    ];
+    
+    const hasIndicator = verificationIndicators.some(indicator => 
+      url.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    const hasPattern = verificationPatterns.some(pattern => pattern.test(url));
+    
+    return hasIndicator || hasPattern;
+  };
+
   // Helper function to check if URL is a media file
   const isMediaUrl = (url: string): boolean => {
     if (!url || typeof url !== 'string') return false;
+    
+    // First check if it's a verification URL - if so, it's NOT a media URL
+    if (isVerificationUrl(url)) return false;
     
     const mediaExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.mp4', '.avi', '.mov', '.wmv', '.mkv', '.webm'];
     const hasExtension = mediaExtensions.some(ext => url.toLowerCase().includes(ext));
@@ -62,6 +103,45 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     const isDataUrl = url.startsWith('data:image/') || url.startsWith('data:video/');
     
     return hasExtension || isGCS || isMediaPattern || isDataUrl;
+  };
+
+  // Helper function to check if a string is a URL
+  const isUrl = (str: string): boolean => {
+    if (!str || typeof str !== 'string') return false;
+    
+    // Trim whitespace
+    str = str.trim();
+    
+    // Must be longer than a few characters to be a URL
+    if (str.length < 4) return false;
+    
+    // Check for explicit URL patterns that start with protocol or www
+    const explicitUrlPatterns = [
+      /^https?:\/\//i,           // http:// or https://
+      /^www\./i,                 // www.
+    ];
+    
+    // Check if it explicitly starts with a URL pattern
+    const startsWithUrlPattern = explicitUrlPatterns.some(pattern => pattern.test(str));
+    
+    if (startsWithUrlPattern) {
+      return true;
+    }
+    
+    // Check for domain patterns (must contain a dot and valid TLD)
+    const domainPattern = /^[a-zA-Z0-9-]+\.[a-zA-Z]{2,}(\.[a-zA-Z]{2,})*(\/.*)*/i;
+    const hasDomainPattern = domainPattern.test(str);
+    
+    // Only consider it a URL if it has a domain pattern AND contains common URL indicators
+    const urlIndicators = [
+      '.com', '.org', '.net', '.in', '.co', '.io', '.app', 'dhiway.net'
+    ];
+    
+    const hasUrlIndicator = urlIndicators.some(indicator => 
+      str.toLowerCase().includes(indicator.toLowerCase())
+    );
+    
+    return hasDomainPattern && hasUrlIndicator;
   };
 
   // Helper function to determine media type
@@ -325,17 +405,34 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
   };
 
   // Helper function to format field names
-  const formatFieldName = (fieldName: string) => {
+  const formatFieldName = (fieldName: string, value?: any) => {
     let formatted = fieldName.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    
     // Special case for taskVideo to show as "Task Media"
     if (fieldName === 'taskVideo') {
       formatted = 'Task Media';
     }
+    
+    // Check if the value is a verification URL first (more reliable than field name)
+    if (typeof value === 'string' && isVerificationUrl(value)) {
+      formatted = 'QR Code Scan';
+    }
+    // Only check field name for specific verification-related terms (avoid generic 'vc')
+    else if (fieldName.toLowerCase().includes('qr') || 
+             fieldName.toLowerCase().includes('scan') ||
+             fieldName.toLowerCase().includes('verification') ||
+             fieldName.toLowerCase().includes('credential') ||
+             fieldName.toLowerCase() === 'vc' || // Only exact match for 'vc'
+             fieldName.toLowerCase().startsWith('vc_') || // vc_ prefix
+             fieldName.toLowerCase().endsWith('_vc')) { // _vc suffix
+      formatted = 'QR Code Scan';
+    }
+    
     return formatted;
   };
 
   // Helper function to get appropriate icon for a field
-  const getFieldIcon = (fieldName: string) => {
+  const getFieldIcon = (fieldName: string, value?: any) => {
     const iconMap: Record<string, React.ReactNode> = {
       name: <User className="h-4 w-4 text-muted-foreground" />,
       age: <Calendar className="h-4 w-4 text-muted-foreground" />,
@@ -362,14 +459,34 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       skills: <Award className="h-4 w-4 text-muted-foreground" />,
       education: <GraduationCap className="h-4 w-4 text-muted-foreground" />,
       experience: <Briefcase className="h-4 w-4 text-muted-foreground" />,
-      certificates: <Award className="h-4 w-4 text-muted-foreground" />
+      certificates: <Award className="h-4 w-4 text-muted-foreground" />,
+      // QR code related fields
+      qrCode: <Award className="h-4 w-4 text-green-600" />,
+      qrCodeScan: <Award className="h-4 w-4 text-green-600" />,
+      scanLink: <Award className="h-4 w-4 text-green-600" />,
+      verificationLink: <Award className="h-4 w-4 text-green-600" />,
+      vc: <Award className="h-4 w-4 text-green-600" />
     };
+    
+    // Check for QR code/verification related fields dynamically
+    if (fieldName.toLowerCase().includes('qr') || 
+        fieldName.toLowerCase().includes('scan') ||
+        fieldName.toLowerCase().includes('verification') ||
+        fieldName.toLowerCase().includes('credential') ||
+        fieldName.toLowerCase().includes('vc')) {
+      return <Award className="h-4 w-4 text-green-600" />;
+    }
+    
+    // Check if the value is a verification URL
+    if (typeof value === 'string' && isVerificationUrl(value)) {
+      return <Award className="h-4 w-4 text-green-600" />;
+    }
     
     return iconMap[fieldName] || <Info className="h-4 w-4 text-muted-foreground" />;
   };
 
   // Helper function to format field values
-  const formatFieldValue = (value: any, fieldName: string) => {
+  const formatFieldValue = (value: any, fieldName: string): React.ReactNode => {
     if (value === null || value === undefined) return 'N/A';
     
     if (Array.isArray(value)) {
@@ -381,28 +498,121 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     }
     
     if (typeof value === 'string') {
+      // Trim the value
+      const trimmedValue = value.trim();
+      
+      // Enhanced URL detection - be more aggressive for verification URLs
+      const isVerificationLink = isVerificationUrl(trimmedValue) || 
+                                fieldName.toLowerCase().includes('qr') || 
+                                fieldName.toLowerCase().includes('scan') ||
+                                fieldName.toLowerCase().includes('verification') ||
+                                fieldName.toLowerCase().includes('credential') ||
+                                fieldName.toLowerCase().includes('vc') ||
+                                trimmedValue.includes('verify.jobs.onest.dhiway.net') ||
+                                trimmedValue.includes('dhiway.net') ||
+                                trimmedValue.includes('/jobs/') ||
+                                /^https?:\/\/.*verify.*jobs.*/.test(trimmedValue) ||
+                                /verify\.jobs/i.test(trimmedValue);
+
+      // Debug logging (remove in production)
+      if (trimmedValue.includes('verify.jobs') || fieldName.toLowerCase().includes('qr') || 
+          fieldName.toLowerCase().includes('scan') ||
+          fieldName.toLowerCase().includes('verification') ||
+          fieldName.toLowerCase().includes('credential') ||
+          fieldName.toLowerCase().includes('vc')) {
+        console.log('QR Debug:', {
+          fieldName,
+          value: trimmedValue,
+          isVerificationUrl: isVerificationUrl(trimmedValue),
+          isUrl: isUrl(trimmedValue),
+          isVerificationLink,
+          startsWithHttp: trimmedValue.startsWith('http://') || trimmedValue.startsWith('https://'),
+          containsVerifyJobs: trimmedValue.includes('verify.jobs'),
+          containsDhiway: trimmedValue.includes('dhiway.net'),
+          willReturnLink: true
+        });
+      }
+      
+      // Check if the value is a URL and make it clickable
+      const startsWithHttp = trimmedValue.startsWith('http://') || trimmedValue.startsWith('https://');
+      const isGeneralUrl = isUrl(trimmedValue);
+      
+      // Force verification URLs to be clickable
+      if (trimmedValue.includes('verify.jobs') || trimmedValue.includes('dhiway.net')) {
+        console.log('🔗 Creating verification link for:', trimmedValue);
+        return (
+          <a 
+            href={trimmedValue.startsWith('http') ? trimmedValue : `https://${trimmedValue}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-green-600 hover:text-green-800 underline break-all font-medium inline-flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+            title="Click to open verification credential in new tab"
+          >
+            {trimmedValue}
+            <Maximize2 className="h-3 w-3 text-green-500" />
+          </a>
+        );
+      }
+      
+      if (startsWithHttp || isGeneralUrl || isVerificationLink) {
+        // Special handling for verification/QR code scan URLs
+        if (isVerificationLink) {
+          return (
+            <a 
+              href={trimmedValue.startsWith('http') ? trimmedValue : `https://${trimmedValue}`} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-green-600 hover:text-green-800 underline break-all font-medium inline-flex items-center gap-1"
+              onClick={(e) => e.stopPropagation()}
+              title="Click to open verification credential in new tab"
+            >
+              {trimmedValue}
+              <Maximize2 className="h-3 w-3 text-green-500" />
+            </a>
+          );
+        }
+        
+        // Regular URL handling
+        return (
+          <a 
+            href={trimmedValue.startsWith('http') ? trimmedValue : `https://${trimmedValue}`} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:text-blue-800 underline break-all inline-flex items-center gap-1"
+            onClick={(e) => e.stopPropagation()}
+            title="Click to open link in new tab"
+          >
+            {trimmedValue}
+            <Maximize2 className="h-3 w-3 text-blue-500" />
+          </a>
+        );
+      }
+      
       // Add currency symbol for money fields
       if (fieldName.toLowerCase().includes('cost') || fieldName.toLowerCase().includes('salary') || 
           fieldName.toLowerCase().includes('preferred') || fieldName.toLowerCase().includes('pfesic')) {
-        return `₹${value}`;
+        return `₹${trimmedValue}`;
       }
       
       // Add units for specific fields
       if (fieldName.toLowerCase().includes('hours')) {
-        return `${value} hours`;
+        return `${trimmedValue} hours`;
       }
       
       if (fieldName.toLowerCase().includes('age')) {
-        return `${value} years`;
+        return `${trimmedValue} years`;
       }
       
       if (fieldName.toLowerCase().includes('score')) {
-        return `${value}/10`;
+        return `${trimmedValue}/10`;
       }
       
       if (fieldName.toLowerCase().includes('speed')) {
-        return `${value} units`;
+        return `${trimmedValue} units`;
       }
+      
+      return trimmedValue;
     }
     
     return String(value);
@@ -448,10 +658,12 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
             {fields.map(([key, value]) => (
               <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                 <div className="flex items-center gap-2">
-                  {getFieldIcon(key)}
-                  <span className="font-medium text-sm sm:text-base">{formatFieldName(key)}:</span>
+                  {getFieldIcon(key, value)}
+                  <span className="font-medium text-sm sm:text-base">{formatFieldName(key, value)}:</span>
                 </div>
-                <span className="text-sm sm:text-base text-muted-foreground sm:ml-6">{formatFieldValue(value, key)}</span>
+                <div className="text-sm sm:text-base text-muted-foreground sm:ml-6">
+                  {formatFieldValue(value, key)}
+                </div>
               </div>
             ))}
           </div>
@@ -622,10 +834,12 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                     return (
                       <div key={key} className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                         <div className="flex items-center gap-2">
-                          {getFieldIcon(key)}
-                          <span className="font-medium text-sm sm:text-base">{formatFieldName(key)}:</span>
+                          {getFieldIcon(key, value)}
+                          <span className="font-medium text-sm sm:text-base">{formatFieldName(key, value)}:</span>
                         </div>
-                        <span className="text-sm sm:text-base text-muted-foreground sm:ml-6">{formatFieldValue(value, key)}</span>
+                        <div className="text-sm sm:text-base text-muted-foreground sm:ml-6">
+                          {formatFieldValue(value, key)}
+                        </div>
                       </div>
                     );
                   })}

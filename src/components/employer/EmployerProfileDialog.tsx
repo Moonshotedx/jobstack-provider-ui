@@ -195,7 +195,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     const trimmedAddress = formData.address.trim();
     const trimmedContactPerson = formData.contactPersonName.trim();
     const trimmedEmail = formData.contactEmail.trim();
-    const trimmedPhone = formData.contactPhone.replace(/\s/g, '');
+    const trimmedPhone = formData.contactPhone.trim();
 
     // Check for empty or whitespace-only fields
     if (!trimmedName) {
@@ -232,11 +232,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       return;
     }
 
-    // Validate phone number (exactly 10 digits)
-    if (!/^\d{10}$/.test(trimmedPhone)) {
-      toast.error("Phone number must be exactly 10 digits.");
-      return;
-    }
 
     // Validate phone number format (only allowed characters)
     if (!/^[\d\s+\-()]+$/.test(formData.contactPhone)) {
@@ -284,12 +279,18 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
           console.log('ℹ️ [EmployerProfileDialog] No GST number change detected, skipping slug check');
         }
 
+        // Add +91 country code if not present
+        let processedPhone = trimmedPhone;
+        if (processedPhone && !processedPhone.startsWith('+')) {
+          processedPhone = '+91' + processedPhone;
+        }
+        
         const metadata = {
           address: trimmedAddress,
           gstNumber: currentGstNumber,
           contactPersonName: trimmedContactPerson,
           contactEmail: trimmedEmail,
-          contactPhone: trimmedPhone,
+          contactPhone: processedPhone,
           website: formData.website?.trim() || '',
           description: formData.description?.trim() || ''
         };
@@ -486,7 +487,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                       const value = e.target.value.replace(/[^\d\s+\-()]/g, '');
                       handleInputChange('contactPhone', value);
                     }}
-                    placeholder="+91 9876543210"
+                    placeholder="Enter phone number"
                     disabled={isSubmitting}
                   />
                 </div>

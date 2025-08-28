@@ -50,9 +50,6 @@ const FormSchema = z.object({
     .refine((val) => val.trim().length > 0, {
       message: 'Contact phone cannot be empty or contain only spaces'
     })
-    .refine((val) => /^\d{10}$/.test(val.replace(/\s/g, '')), {
-      message: 'Phone number must be exactly 10 digits'
-    })
     .refine((val) => /^[\d\s+\-()]+$/.test(val), {
       message: 'Phone number can only contain digits, spaces, +, -, and parentheses'
     }),
@@ -119,12 +116,18 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       }
 
       // Prepare metadata with extended fields - trim whitespace from string fields
+      // Add +91 country code if not present
+      let processedPhone = data.contactPhone.trim();
+      if (processedPhone && !processedPhone.startsWith('+')) {
+        processedPhone = '+91' + processedPhone;
+      }
+      
       const metadata = {
         address: data.address.trim(),
         gstNumber: data.gstNumber?.trim() || '',
         contactPersonName: data.contactPersonName.trim(),
         contactEmail: data.contactEmail.trim(),
-        contactPhone: data.contactPhone.replace(/\s/g, ''), // Remove all spaces from phone
+        contactPhone: processedPhone,
         website: data.website?.trim() || '',
         description: data.description?.trim() || ''
       };
@@ -163,7 +166,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
           logo: data.logo || '',
           contactPersonName: data.contactPersonName.trim(),
           contactEmail: data.contactEmail.trim(),
-          contactPhone: data.contactPhone.replace(/\s/g, ''),
+          contactPhone: processedPhone,
           website: data.website?.trim() || '',
           description: data.description?.trim() || ''
         };
@@ -498,7 +501,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                     <FormControl>
                       <Input 
                         type="tel" 
-                        placeholder={t('create.contactPhonePlaceholder')} 
+                        placeholder={t('create.contactPhonePlaceholder')}
                         {...field}
                         onChange={(e) => {
                           // Only allow digits, spaces, +, -, and parentheses

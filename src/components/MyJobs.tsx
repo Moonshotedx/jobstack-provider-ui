@@ -84,8 +84,64 @@ const MyJobs = () => {
     const details = job.metadata.jobDetails;
     const parts = [];
 
+    // Check for salary range fields first
+    if (details.minMonthlyInHand && details.maxMonthlyInHand) {
+      return `₹${details.minMonthlyInHand.toLocaleString()} - ₹${details.maxMonthlyInHand.toLocaleString()}`;
+    }
+
+    // Check for individual salary fields
     if (details.monthlyInHand) {
       parts.push(`₹${details.monthlyInHand.toLocaleString()} in-hand`);
+    }
+
+    // Check for basic salary field (from older schemas)
+    if (details.salary && typeof details.salary === 'string') {
+      return details.salary;
+    }
+
+    // Check for CTC salary
+    if (details.salaryCTC) {
+      parts.push(`₹${details.salaryCTC.toLocaleString()} CTC`);
+    }
+
+    // Check for PF & ESIC benefits
+    if (details.monthlyPfEsicBenefits) {
+      parts.push(`₹${details.monthlyPfEsicBenefits.toLocaleString()} benefits`);
+    }
+
+    // Check for overtime (handle both variations)
+    if (details.monthlyAverageOT) {
+      parts.push(`₹${details.monthlyAverageOT} OT`);
+    }
+    if (details.monthlyAverageOt) {
+      parts.push(`₹${details.monthlyAverageOt} OT`);
+    }
+
+    // Check for additional benefits
+    if (details.monthlyIncentivePossible) {
+      parts.push(`₹${details.monthlyIncentivePossible} incentive`);
+    }
+
+    if (details.monthlyTravellingAllowance) {
+      parts.push(`₹${details.monthlyTravellingAllowance} TA`);
+    }
+
+    // Check for additional performance and benefits
+    if (details.monthlyMaxPerformanceBasedVariable) {
+      parts.push(`₹${details.monthlyMaxPerformanceBasedVariable} variable`);
+    }
+
+    if (details.monthlyPfHealthInsurance) {
+      parts.push(`₹${details.monthlyPfHealthInsurance} insurance`);
+    }
+
+    // Check for additional bonuses and rates
+    if (details.monthlyAttendanceBonus) {
+      parts.push(`₹${details.monthlyAttendanceBonus} bonus`);
+    }
+
+    if (details.otPerHourRate) {
+      parts.push(`₹${details.otPerHourRate}/hr OT`);
     }
 
     return parts.length > 0 ? parts.join(' + ') : 'Salary not specified';
