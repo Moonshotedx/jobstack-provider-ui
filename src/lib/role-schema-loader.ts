@@ -230,7 +230,14 @@ export const getRoleUISchema = (schema: RJSFSchema): UiSchema => {
 /**
  * Get initial form data with default values
  */
-export const getRoleInitialData = (schema: RJSFSchema, roleName?: JobRoleName): Record<string, any> => {
+export const getRoleInitialData = (
+  schema: RJSFSchema, 
+  roleName?: JobRoleName,
+  prepopulationData?: {
+    jobProviderName?: string;
+    jobProviderRegistration?: string;
+  }
+): Record<string, any> => {
   const initialData: Record<string, any> = {};
   
   if (schema.properties) {
@@ -247,7 +254,17 @@ export const getRoleInitialData = (schema: RJSFSchema, roleName?: JobRoleName): 
           // Special handling for job title - pre-fill with selected role name
           if (nestedKey === 'title' && roleName) {
             initialData[key][nestedKey] = roleName;
-          } else if (nested.default !== undefined) {
+          }
+          // Prepopulate jobProviderName from organization data
+          else if (nestedKey === 'jobProviderName' && prepopulationData?.jobProviderName) {
+            initialData[key][nestedKey] = prepopulationData.jobProviderName;
+          }
+          // Prepopulate jobProviderRegistration from organization data
+          else if ((nestedKey === 'jobProviderRegistration' || nestedKey === 'jobProviderRegistrationDetails') && 
+                   prepopulationData?.jobProviderRegistration) {
+            initialData[key][nestedKey] = prepopulationData.jobProviderRegistration;
+          }
+          else if (nested.default !== undefined) {
             initialData[key][nestedKey] = nested.default;
           } else if (nested.type === 'array' && nested.default) {
             initialData[key][nestedKey] = nested.default;

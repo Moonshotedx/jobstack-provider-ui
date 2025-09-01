@@ -126,5 +126,14 @@ export const JOB_ROLES_BY_INDUSTRY = {
   ],
   'Machine Operator': [
     'Machine Operator'
+  ],
+  'CNC Operator': [
+    'CNC Operator'
+  ],
+  'Welder': [
+    'Welder'
+  ],
+  'Lathe Operator': [
+    'Lathe Operator'
   ]
-}; 
+};

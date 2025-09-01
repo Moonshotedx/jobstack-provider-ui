@@ -29,6 +29,7 @@ import {
   type JobRoleConfig
 } from '@/lib/role-schema-loader';
 import { validateRegistrationNumber } from '@/lib/registration-validator';
+import { useOrganizationPrepopulation } from '@/hooks/useOrganizationPrepopulation';
 
 import type { JobPosting } from '@/lib/api-client';
 
@@ -59,6 +60,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   
   // Add search state at component level
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
+  
+  // Hook for organization prepopulation
+  const { prepopulationData, isLoading: isPrepopLoading } = useOrganizationPrepopulation();
 
   // Reset form state when selectedJobRole changes to prevent caching issues
   useEffect(() => {
@@ -95,6 +99,11 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
         return;
       }
 
+      // Don't load if still loading prepopulation data (for new jobs)
+      if (!editJobData && isPrepopLoading) {
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -105,9 +114,12 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           getRoleDisplayInfo(selectedJobRole)
         ]);
         
-        let initialData = getRoleInitialData(roleSchema, selectedJobRole);
+        // Prepare prepopulation data for new jobs (not editing)
+        const prepopData = editJobData ? undefined : (prepopulationData || undefined);
         
-        // If editing, merge with existing job data
+        let initialData = getRoleInitialData(roleSchema, selectedJobRole, prepopData);
+        
+        // If editing, merge with existing job data (takes precedence over prepopulation)
         if (editJobData && editJobData.metadata) {
           initialData = {
             ...initialData,
@@ -130,7 +142,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     if (isOpen && selectedJobRole) {
       loadSchemaAndInfo();
     }
-  }, [selectedJobRole, isOpen, editJobData]);
+  }, [selectedJobRole, isOpen, editJobData, prepopulationData, isPrepopLoading]);
 
   // Enhanced validation function to handle both section-level and root-level requirements
   const validateFormData = (schema: RJSFSchema, formData: any, isDraft: boolean = false): { isValid: boolean; errors: string[] } => {

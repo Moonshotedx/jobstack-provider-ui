@@ -33,6 +33,9 @@
         "Fitter",
         "Mechanic",
         "Machine Operator",
+        "CNC Operator",
+        "Welder",
+        "Lathe Operator",
         "ITI (Other)"
       ]
     }

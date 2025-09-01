@@ -60,6 +60,21 @@
       "schemaFile": "genericITI.json",
       "industry": "ITI",
       "description": "ITI  student positions across various trades"
+    },
+    "CNC Operator": {
+      "schemaFile": "cnc-operator.json",
+      "industry": "ITI",
+      "description": "CNC machine operation and programming positions"
+    },
+    "Welder": {
+      "schemaFile": "welder.json",
+      "industry": "ITI",
+      "description": "Welding and fabrication positions"
+    },
+    "Lathe Operator": {
+      "schemaFile": "lathe-operator.json",
+      "industry": "ITI",
+      "description": "Lathe machine operation and maintenance positions"
     }
   }
-} 
+}
