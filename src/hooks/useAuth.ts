@@ -3,6 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { authClient, forgetPassword as authForgetPassword, resetPassword as authResetPassword } from '@/lib/auth-client';
 import { useUserStore } from '@/stores/authStore';
 import { toast } from 'sonner';
+import { sessionManager } from '@/lib/session-manager';
 
 interface LoginData {
   email: string;
@@ -114,29 +115,17 @@ export const useAuth = (): UseAuthReturn => {
       setIsCheckingSession(true);
       setUserLoading(true);
       
-      // Check for auth token first
-      const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
+      // Use session manager to get session data (with caching)
+      const sessionUser = await sessionManager.getSession();
       
-      if (!authToken) {
-        // No token available, clear user and return
-        clearUser();
-        return;
-      }
-      
-      // Use custom session API with Bearer token
-      const { getCustomSession } = await import('@/lib/api-client');
-      const sessionData = await getCustomSession();
-      
-      if (sessionData?.user) {
-        const customUser = sessionData.user;
-        
-        const profile = await loadOrganizationProfile(sessionData);
+      if (sessionUser) {
+        const profile = await loadOrganizationProfile({ user: sessionUser });
         
         const mappedUser = {
-          id: customUser.id,
-          email: customUser.email,
+          id: sessionUser.id,
+          email: sessionUser.email,
           role: 'organization' as const, // default for now
-          isVerified: customUser.emailVerified || customUser.phoneNumberVerified || false,
+          isVerified: sessionUser.emailVerified || sessionUser.phoneNumberVerified || false,
           profile: profile,
         };
         
@@ -157,11 +146,13 @@ export const useAuth = (): UseAuthReturn => {
       } else {
         // No user in session, ensure user is cleared
         clearUser();
+        sessionManager.invalidateSession();
       }
     } catch (error) {
       console.error('Session check failed:', error);
       // On session check failure, clear user to ensure consistent state
       clearUser();
+      sessionManager.invalidateSession();
     } finally {
       setUserLoading(false);
       setIsCheckingSession(false);
@@ -178,6 +169,24 @@ export const useAuth = (): UseAuthReturn => {
       
       if (loginRequest.data?.user) {
         const betterAuthUser = loginRequest.data.user;
+        
+        // Update session manager with the new user data
+        sessionManager.updateSession({
+          id: betterAuthUser.id,
+          email: betterAuthUser.email,
+          emailVerified: betterAuthUser.emailVerified || false,
+          phoneNumberVerified: false,
+          name: betterAuthUser.name || '',
+          image: betterAuthUser.image || '',
+          createdAt: betterAuthUser.createdAt?.toISOString() || new Date().toISOString(),
+          updatedAt: betterAuthUser.updatedAt?.toISOString() || new Date().toISOString(),
+          role: 'user',
+          banned: false,
+          banReason: '',
+          banExpires: null,
+          phoneNumber: ''
+        });
+        
         const profile = await loadOrganizationProfile(loginRequest.data);
         
         const mappedUser = {
@@ -241,6 +250,9 @@ export const useAuth = (): UseAuthReturn => {
       clearUser();
       setPendingVerificationEmail(undefined);
       
+      // Clear session manager cache
+      sessionManager.clearSession();
+      
       // Clear any cached queries
       await queryClient.clear();
       
@@ -272,6 +284,7 @@ export const useAuth = (): UseAuthReturn => {
       // Ensure user is cleared regardless of server response
       clearUser();
       setPendingVerificationEmail(undefined);
+      sessionManager.clearSession();
     }
   };
 
@@ -283,11 +296,16 @@ export const useAuth = (): UseAuthReturn => {
         return false;
       }
       
-      const { getCustomSession } = await import('@/lib/api-client');
-      const sessionData = await getCustomSession();
+      // Use session manager to get cached session data first
+      let sessionUser = sessionManager.getCachedUser();
       
-      if (sessionData?.user) {
-        const isVerified = sessionData.user.emailVerified || sessionData.user.phoneNumberVerified || false;
+      // If no cached data, get fresh session (this will cache it)
+      if (!sessionUser) {
+        sessionUser = await sessionManager.getSession();
+      }
+      
+      if (sessionUser) {
+        const isVerified = sessionUser.emailVerified || sessionUser.phoneNumberVerified || false;
         const currentUser = useUserStore.getState().user;
         
         // Only update user state if verification status has changed
@@ -365,13 +383,12 @@ export const useAuth = (): UseAuthReturn => {
         sessionStorage.setItem('auth-token', verificationData.token);
       }
 
-      // Use custom session API to get complete user data
-      const { getCustomSession } = await import('@/lib/api-client');
-      const sessionData = await getCustomSession();
+      // Use session manager to get session data (this will make one fresh API call and cache it)
+      const customUser = await sessionManager.getSession(true); // Force refresh after OTP
       
-      if (sessionData?.user) {
-        const customUser = sessionData.user;
-        const profile = await loadOrganizationProfile(sessionData);
+      if (customUser) {
+        // Session manager already has the user cached now
+        const profile = await loadOrganizationProfile({ user: customUser });
         
         const userData = {
           id: customUser.id,
@@ -383,7 +400,7 @@ export const useAuth = (): UseAuthReturn => {
 
         setUser(userData);
       } else {
-        // Fallback to OTP verification data if custom session fails
+        // Fallback to OTP verification data if session manager fails
         const userData = {
           id: verificationData.user.id,
           email: verificationData.user.email,
@@ -392,6 +409,23 @@ export const useAuth = (): UseAuthReturn => {
           profile: undefined // Don't set profile yet, let the organization check handle it
         };
         setUser(userData);
+        
+        // Update session manager with fallback data
+        sessionManager.updateSession({
+          id: verificationData.user.id,
+          email: verificationData.user.email,
+          emailVerified: verificationData.user.emailVerified || false,
+          phoneNumberVerified: verificationData.user.phoneNumberVerified || false,
+          name: verificationData.user.name || '',
+          image: verificationData.user.image || '',
+          createdAt: verificationData.user.createdAt || new Date().toISOString(),
+          updatedAt: verificationData.user.updatedAt || new Date().toISOString(),
+          role: verificationData.user.role || 'user',
+          banned: verificationData.user.banned || false,
+          banReason: verificationData.user.banReason || '',
+          banExpires: verificationData.user.banExpires || null,
+          phoneNumber: verificationData.user.phoneNumber || ''
+        });
       }
       
       // Clear any pending verification email
@@ -406,10 +440,19 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  // Check session on mount only once
+  // Check session on mount only once - but only if SessionManager hasn't already initialized
   useEffect(() => {
     if (!hasInitialCheck && !isCheckingSession) {
       setHasInitialCheck(true);
+      
+      // Check if SessionManager has already initialized the session
+      if (sessionManager.isInitialized()) {
+        console.log('🚀 useAuth: SessionManager already initialized, skipping initial check');
+        // SessionManager has already handled initialization, no need for additional API call
+        return;
+      }
+      
+      console.log('⚠️ useAuth: SessionManager not initialized, performing fallback check');
       checkSession();
     }
   }, []); // Empty dependency array is intentional - we only want this to run once

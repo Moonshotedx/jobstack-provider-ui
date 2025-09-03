@@ -8,8 +8,6 @@ import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/stores/authStore';
 import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
 
-import { authClient } from '@/lib/auth-client';
-
 export const Route = createFileRoute('/')({
   component: RouteComponent,
   beforeLoad: () => {
@@ -39,7 +37,7 @@ function RouteComponent() {
     }
   }, [user, navigate]);
 
-  // Only clear session if user is not authenticated
+  // Simplified session cleanup - let session manager handle the details
   useEffect(() => {
     const checkAndClearSession = async () => {
       try {
@@ -58,26 +56,18 @@ function RouteComponent() {
           return;
         }
 
-        // Check server session to see if user is actually logged in
-        const session = await authClient.getSession(undefined, { credentials: 'include' });
+        // No user and no token - safe to clear local state
+        clearUser();
         
-        if (session.data?.user) {
-          // User has an active session but not in store, this might be a race condition
-          // Don't clear the session, let the SessionInitializer handle it
-          return;
-        } else {
-          // No active session, safe to clear local state
-          clearUser();
-          
-          // Clear any persisted data from localStorage
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('user-storage');
-            localStorage.removeItem('auth-token');
-            sessionStorage.clear();
-          }
+        // Clear any persisted data from localStorage
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('user-storage');
+          localStorage.removeItem('auth-token');
+          sessionStorage.clear();
         }
-      } catch (sessionError) {
-        // Session check failed, which means no valid session anyway
+      } catch (error) {
+        console.warn('Session cleanup error:', error);
+        // Clear local state on error
         clearUser();
         
         if (typeof window !== 'undefined') {

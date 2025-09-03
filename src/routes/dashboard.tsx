@@ -502,11 +502,16 @@ function DashboardContent() {
 
 function DashboardComponent() {
   const user = useUserStore((state) => state.user);
-  const { checkSession } = useAuth();
+  const isLoading = useUserStore((state) => state.isLoading);
   
-  // Check for auth token or user in store
+  // Check for auth token or user in store (simplified)
   useEffect(() => {
     const checkAuth = async () => {
+      // Don't redirect while still loading
+      if (isLoading) {
+        return;
+      }
+      
       const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
       
       if (!user && !authToken) {
@@ -516,15 +521,27 @@ function DashboardComponent() {
       }
       
       if (authToken && !user) {
-        // We have a token but no user in store, try to check session
-        await checkSession();
+        // We have a token but no user in store, SessionManager should handle initialization
+        console.log('Auth token found, SessionManager should handle initialization');
       }
     };
     
     checkAuth();
-  }, [user, checkSession]);
+  }, [user, isLoading]);
 
-  // Show loading while checking authentication
+  // Show loading while initializing session
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show login prompt if no user and not loading
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">

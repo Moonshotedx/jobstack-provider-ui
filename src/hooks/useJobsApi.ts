@@ -182,9 +182,9 @@ export const useActiveOrganizationId = () => {
       const { getOrganizationList } = await import('@/lib/api-client');
       return await getOrganizationList();
     },
-    staleTime: 0, // Always fetch fresh session data
-    refetchOnWindowFocus: true,
-    refetchOnMount: true,
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes instead of always refetching
+    refetchOnWindowFocus: false, // Don't refetch on focus
+    refetchOnMount: false, // Don't refetch on mount if cache is fresh
     retry: 2,
   });
 

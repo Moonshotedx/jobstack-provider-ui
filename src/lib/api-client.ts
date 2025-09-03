@@ -1,5 +1,4 @@
 import axios, { type AxiosInstance, type AxiosResponse } from 'axios';
-import { authClient } from './auth-client';
 
 // Base API configuration
 const API_BASE_URL = import.meta.env.VITE_API_ENDPOINT + '/api/v1'; // TODO: remove this once we have a proper API endpoint
@@ -18,25 +17,26 @@ const apiClient: AxiosInstance = axios.create({
 apiClient.interceptors.request.use(
   async (config) => {
     try {
-      // Skip session check for logout-related requests to avoid conflicts
+      // Skip session/auth operations for logout-related requests to avoid conflicts
       if (config.url?.includes('/auth/signout') || config.url?.includes('/signout') || 
           config.url?.includes('/auth/sign-out') || config.url?.includes('/sign-out')) {
         return config;
       }
       
-      // Check for auth token in localStorage/sessionStorage
+      // Check for auth token in localStorage/sessionStorage first
       const authToken = localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token');
       
       if (authToken) {
         // Add Authorization header with the token
         config.headers.Authorization = `Bearer ${authToken}`;
       } else {
-        // Fallback to session check for cookie-based auth
-        await authClient.getSession(undefined, { credentials: 'include' });
+        // REMOVED: No longer make additional session calls here
+        // The session manager will handle session validation when needed
+        // This prevents the cascade of session calls on every API request
       }
     } catch (error) {
-      // Silently handle session check errors in production
-      // This prevents errors during logout when session is being cleared
+      // Silently handle any errors to prevent request failures
+      console.warn('API interceptor error:', error);
     }
     return config;
   },

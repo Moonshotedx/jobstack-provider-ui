@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
 import * as TanStackQueryProvider from './integrations/tanstack-query/root-provider.tsx'
 import { Toaster } from "@/components/ui/sonner"
+import { SessionManager } from '@/components/SessionManager'
 
 // Import i18n configuration
 import './lib/i18n'
@@ -65,8 +66,10 @@ function App() {
   return (
     <div className='w-dvw h-dvh bg-background'>
       <TanStackQueryProvider.Provider>
-        <Toaster position='top-center' richColors theme='light' />
-        <RouterProvider router={router} />
+        <SessionManager>
+          <Toaster position='top-center' richColors theme='light' />
+          <RouterProvider router={router} />
+        </SessionManager>
       </TanStackQueryProvider.Provider>
     </div>
   );

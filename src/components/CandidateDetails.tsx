@@ -418,7 +418,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     if (fieldName === 'taskVideo') {
       formatted = 'Task Media';
     }
-    
 
     // Special case for qrCodeScan field
     if (fieldName === 'qrCodeScan') {

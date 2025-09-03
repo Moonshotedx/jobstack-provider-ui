@@ -285,18 +285,18 @@ const Header = () => {
       />
 
       {/* Create Organization Dialog */}
-      <CreateOrg
-        isOpen={showCreateOrg}
-        onClose={() => setShowCreateOrg(false)}
-        onSuccess={async () => {
-          setShowCreateOrg(false);
-          // Force session reload and invalidate all caches
-          await checkSession();
-          // Invalidate all queries to ensure fresh data
-          queryClient.invalidateQueries();
-          toast.success('Organization created successfully!');
-        }}
-      />
+        <CreateOrg
+          isOpen={showCreateOrg}
+          onClose={() => setShowCreateOrg(false)}
+          onSuccess={async () => {
+            setShowCreateOrg(false);
+            // Session manager will handle the refresh automatically
+            await checkSession();
+            // Invalidate all queries to ensure fresh data
+            queryClient.invalidateQueries();
+            toast.success('Organization created successfully!');
+          }}
+        />
 
       {/* Unified Auth Dialog */}
       <UnifiedAuthDialog
