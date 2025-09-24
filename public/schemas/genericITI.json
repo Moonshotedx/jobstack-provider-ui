@@ -16,13 +16,6 @@
             "minLength": 1,
             "pattern": "^\\s*\\S+\\s*$"
           },
-          "jobProviderRegistration": {
-            "type": "string",
-            "title": "Job Provider Registration Details",
-            "description": "GST, CIN, TAN, PAN or other registration number",
-            "minLength": 1,
-            "pattern": "^.+$"
-          },
           "jobProviderLocation": {
             "type": "string",
             "title": "Job Provider Location",
@@ -160,12 +153,6 @@
             "type": "number",
             "title": "Overtime Per Hour Rate (INR)",
             "description": "Enter overtime per hour rate",
-            "minimum": 0
-          },
-           "monthlyPfEsicBenefits": {
-            "type": "number",
-            "title": "Monthly PF & ESIC Benefits (INR)",
-            "description": "Enter monthly PF & ESIC benefits amount",
             "minimum": 0
           },
           "foodProvided": {

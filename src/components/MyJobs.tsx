@@ -25,12 +25,16 @@ import JobDetailsDialog from './JobDetailsDialog';
 import PostJobDialog from './PostJobDialog';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDropdownIOSFix } from '@/hooks/use-ios-safari-fix';
 
 const MyJobs = () => {
   const { t } = useTranslation('jobs');
   const { data: jobs, isLoading, error } = useCurrentOrganizationJobs();
   const activeOrganizationId = useActiveOrganizationId();
   const isMobile = useIsMobile();
+  
+  // Fix iOS Safari dropdown interaction issues
+  useDropdownIOSFix();
   
   // State for dialogs
   const [selectedJob, setSelectedJob] = useState<JobPosting | null>(null);

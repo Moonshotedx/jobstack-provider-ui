@@ -6,11 +6,13 @@ import PostJobDialog from './PostJobDialog';
 import { CreateOrg } from './organisation/CreateOrg';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Briefcase, Users, CheckCircle, Plus } from 'lucide-react';
+import { Briefcase, Users, CheckCircle, Plus, Building2, ChevronDown } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 import { useUserStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
-import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId } from '@/hooks/useJobsApi';
+import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId, useGetOrganizationList } from '@/hooks/useJobsApi';
+import { SelectOrg } from './organisation/SelectOrg';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
 
 const ProviderDashboard = () => {
@@ -18,6 +20,7 @@ const ProviderDashboard = () => {
   const [showPostJob, setShowPostJob] = useState(false);
   const [showCreateOrg, setShowCreateOrg] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [showOrgSelector, setShowOrgSelector] = useState(false);
   
   // const { user } = useAuth();
   const user = useUserStore((state) => state.user);
@@ -27,6 +30,10 @@ const ProviderDashboard = () => {
   const { data: jobs } = useCurrentOrganizationJobs();
   const activeOrganizationId = useActiveOrganizationId();
   const { stats: candidateStats } = useOrganizationCandidateStats(activeOrganizationId || '');
+  
+  // Get organization list to display current organization name
+  const { data: organizations } = useGetOrganizationList();
+  const currentOrganization = organizations?.find(org => org.id === activeOrganizationId);
 
   // Calculate real-time dashboard stats
   const dashboardStats = {
@@ -149,14 +156,47 @@ const ProviderDashboard = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">{t('title')}</h1>
-          <p className="text-muted-foreground">
-            {t('subtitle')}
-          </p>
+          <div className="flex items-center gap-4 mt-2">
+            <p className="text-muted-foreground">
+              {t('subtitle')}
+            </p>
+            {currentOrganization && (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">
+                  Your Organization: {currentOrganization.name}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
-        <Button onClick={() => setShowPostJob(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          {t('quickActions.postNewJob')}
-        </Button>
+        <div className="flex items-center gap-3">
+          {/* Organization Selector Dropdown */}
+          {organizations && organizations.length > 1 && (
+            <DropdownMenu open={showOrgSelector} onOpenChange={setShowOrgSelector}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Building2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">
+                    {currentOrganization?.name || 'Select Organization'}
+                  </span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-[250px]">
+                <SelectOrg 
+                  isOpen={false} // Use as a component, not a dialog
+                  onSuccess={() => setShowOrgSelector(false)}
+                />
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+          
+          <Button onClick={() => setShowPostJob(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            {t('quickActions.postNewJob')}
+          </Button>
+        </div>
       </div>
 
       {/* Quick Stats */}
@@ -204,6 +244,13 @@ const ProviderDashboard = () => {
       <CreateOrg 
         isOpen={showCreateOrg}
         onClose={() => setShowCreateOrg(false)}
+      />
+
+      {/* Organization Selector Dialog */}
+      <SelectOrg
+        isOpen={showOrgSelector}
+        onClose={() => setShowOrgSelector(false)}
+        onSuccess={() => setShowOrgSelector(false)}
       />
 
       {/* Unified Auth Dialog */}

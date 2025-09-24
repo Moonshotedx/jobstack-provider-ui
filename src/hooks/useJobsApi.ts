@@ -289,6 +289,10 @@ export const useUpdateOrganization = () => {
       queryClient.invalidateQueries({ queryKey: ['organizations'] });
       queryClient.invalidateQueries({ queryKey: ['organizations-with-metadata'] });
       queryClient.invalidateQueries({ queryKey: ['session'] });
+      
+      // Also invalidate user profile to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      queryClient.invalidateQueries({ queryKey: ['profile'] });
     },
     onError: (error: any) => {
       console.error('❌ Failed to update organization:', error);

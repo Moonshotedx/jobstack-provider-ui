@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
+import { useDropdownIOSFix } from '@/hooks/use-ios-safari-fix';
 
 const Header = () => {
   const [showPostJob, setShowPostJob] = useState(false);
@@ -22,6 +23,9 @@ const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { t } = useTranslation('navigation');
+  
+  // Fix iOS Safari dropdown interaction issues
+  useDropdownIOSFix();
   
 
   const user = useUserStore((state) => state.user);

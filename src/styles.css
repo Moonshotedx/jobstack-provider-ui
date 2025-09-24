@@ -372,6 +372,35 @@
     min-height: 44px; /* Better touch target */
   }
 
+  /* iOS Safari dropdown menu fixes */
+  [data-slot="dropdown-menu-trigger"],
+  .dropdown-toggle {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation !important;
+    cursor: pointer !important;
+  }
+
+  [data-slot="dropdown-menu-content"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  [data-slot="dropdown-menu-item"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    cursor: pointer;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  /* Force iOS Safari to recognize buttons as clickable */
+  button {
+    cursor: pointer !important;
+    touch-action: manipulation !important;
+    -webkit-tap-highlight-color: transparent;
+  }
+
   /* Larger buttons for mobile */
   button, 
   .btn {

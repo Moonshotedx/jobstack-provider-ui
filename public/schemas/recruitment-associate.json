@@ -15,13 +15,6 @@
           "minLength": 1,
           "pattern": "^\\s*\\S+\\s*$"
         },
-        "jobProviderRegistration": {
-          "type": "string",
-          "title": "Job Provider Registration Details",
-          "description": "GST, CIN, TAN, PAN or other registration number",
-          "minLength": 1,
-          "pattern": "^.+$"
-        },
         "jobProviderLocation": {
           "type": "string",
           "title": "Job Provider Location",
@@ -132,12 +125,6 @@
           "type": "number",
           "title": "Monthly MAX Performance Based Variable Accrued (INR)",
           "description": "Enter maximum performance based variable amount",
-          "minimum": 0
-        },
-        "monthlyPfHealthInsurance": {
-          "type": "number",
-          "title": "Monthly PF & Health Insurance (INR)",
-          "description": "Enter monthly PF & health insurance amount",
           "minimum": 0
         },
         "devicesProvided": {

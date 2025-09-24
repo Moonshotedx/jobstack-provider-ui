@@ -186,16 +186,9 @@
           "title": "Job Provider Name",
           "minLength": 1,
           "pattern": "^\\s*\\S+\\s*$"
-        },
-        "jobProviderRegistration": {
-          "type": "string",
-          "title": "Job Provider Registration Details",
-          "description": "GST, CIN, TAN, PAN or other registration number",
-          "minLength": 1,
-          "pattern": "^.+$"
         }
       },
-      "required": ["jobProviderName", "jobProviderRegistration"]
+      "required": ["jobProviderName"]
     },
     "hiringManager": {
       "type": "object",

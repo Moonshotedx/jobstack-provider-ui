@@ -10,6 +10,7 @@ import { useUpdateOrganization } from '@/hooks/useJobsApi';
 import { Loader2, Upload, Building, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
+import { useUserStore } from '@/stores/authStore';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
@@ -84,6 +85,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   }, [employer]);
 
   const updateOrganizationMutation = useUpdateOrganization();
+  const updateProfile = useUserStore((state) => state.updateProfile);
 
   const handleLogoUpload = async () => {
     // Create a file input element
@@ -303,6 +305,19 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
             logo: formData.logo,
             slug: newSlug // Always use properly generated slug
           }
+        });
+
+        // Update the user profile in the store to reflect the changes immediately
+        updateProfile({
+          name: trimmedName,
+          address: trimmedAddress,
+          gstNumber: currentGstNumber,
+          logo: formData.logo,
+          contactPersonName: trimmedContactPerson,
+          contactEmail: trimmedEmail,
+          contactPhone: processedPhone,
+          website: formData.website?.trim() || '',
+          description: formData.description?.trim() || ''
         });
 
         toast.success("Organization updated successfully!");

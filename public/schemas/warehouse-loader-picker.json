@@ -16,13 +16,6 @@
           "minLength": 1,
           "pattern": "^\\s*\\S+\\s*$"
         },
-        "jobProviderRegistration": {
-          "type": "string",
-          "title": "Job Provider Registration Details",
-          "description": "GST, CIN, TAN, PAN or other registration number",
-          "minLength": 1,
-          "pattern": "^.+$"
-        },
         "jobProviderLocation": {
           "type": "string",
           "title": "Job Provider Location",
@@ -103,12 +96,6 @@
           "description": "Enter maximum monthly in-hand salary amount",
           "minimum": 0,
           "maximum": 1000000
-        },
-        "monthlyPfEsicBenefits": {
-          "type": "number",
-          "title": "Monthly PF & ESIC Benefits (INR)",
-          "description": "Enter monthly PF & ESIC benefits amount",
-          "minimum": 0
         },
         "monthlyAverageOt": {
           "type": "string",
