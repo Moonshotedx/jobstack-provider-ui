@@ -76,13 +76,15 @@ export const useOrganizationManager = () => {
       if (selectedOrg) {
         const metadata = loadOrganizationMetadata(selectedOrg);
         
+        const contactEmail = typeof metadata.contactEmail === 'string' ? metadata.contactEmail.trim() : '';
+
         const organizationProfile = {
           name: selectedOrg.name || '',
           address: metadata.address || '',
           gstNumber: metadata.gstNumber || '',
           logo: selectedOrg.logo || '',
           contactPersonName: metadata.contactPersonName || '',
-          contactEmail: metadata.contactEmail || '',
+          contactEmail,
           contactPhone: metadata.contactPhone || '',
           website: metadata.website || '',
           description: metadata.description || ''

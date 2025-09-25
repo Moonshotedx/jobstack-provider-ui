@@ -190,13 +190,6 @@
             "minimum": 18,
             "maximum": 100
           },
-          "genderPreference": {
-            "type": "string",
-            "title": "Gender Preference",
-            "description": "Select the gender preference",
-            "enum": ["Male", "Female", "Other", "No Preference"],
-            "enumNames": ["Male", "Female", "Other", "No Preference"]
-          },
           "educationSubsection": {
             "type": "object",
             "title": "Education Qualification",

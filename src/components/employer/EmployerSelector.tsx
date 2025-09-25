@@ -13,7 +13,7 @@ interface EmployerProfile {
   gstNumber: string;
   logo?: string;
   contactPersonName: string;
-  contactEmail: string;
+  contactEmail?: string;
   contactPhone: string;
   website?: string;
   description: string;
@@ -136,7 +136,9 @@ const EmployerSelector: React.FC<EmployerSelectorProps> = ({ onAddEmployer }) =>
                     <Crown className="h-3 w-3 text-amber-500" />
                   )}
                 </div>
-                <span className="text-xs text-muted-foreground">{employer.contactEmail}</span>
+                {employer.contactEmail && (
+                  <span className="text-xs text-muted-foreground">{employer.contactEmail}</span>
+                )}
               </div>
             </div>
           </DropdownMenuItem>

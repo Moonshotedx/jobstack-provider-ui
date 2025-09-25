@@ -44,7 +44,11 @@ const FormSchema = z.object({
     .refine((val) => /^[a-zA-Z\s]+$/.test(val.trim()), {
       message: 'Contact person name can only contain letters and spaces'
     }),
-  contactEmail: z.string().email('Valid email is required'),
+  contactEmail: z.string()
+    .trim()
+    .refine((val) => val === '' || z.string().email().safeParse(val).success, {
+      message: 'Valid email is required'
+    }),
   contactPhone: z.string()
     .min(1, 'Contact phone is required')
     .refine((val) => val.trim().length > 0, {
@@ -66,10 +70,11 @@ interface CreateOrgProps {
 }
 
 export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps) {
-  const { t } = useTranslation('organizations');
+  const { t } = useTranslation(['organizations', 'common']);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const { updateProfile } = useUserStore();
+  const contactEmailLabel = t('create.contactEmail').replace(/\s*\*$/, '');
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -126,7 +131,9 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         address: data.address.trim(),
         gstNumber: data.gstNumber?.trim() || '',
         contactPersonName: data.contactPersonName.trim(),
-        contactEmail: data.contactEmail.trim(),
+
+  contactEmail: data.contactEmail?.trim() ?? '',
+
         contactPhone: processedPhone,
         website: data.website?.trim() || '',
         description: data.description?.trim() || ''
@@ -165,7 +172,8 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
           gstNumber: data.gstNumber?.trim() || '',
           logo: data.logo || '',
           contactPersonName: data.contactPersonName.trim(),
-          contactEmail: data.contactEmail.trim(),
+          contactEmail: data.contactEmail?.trim() ?? '',
+
           contactPhone: processedPhone,
           website: data.website?.trim() || '',
           description: data.description?.trim() || ''
@@ -477,7 +485,10 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 name="contactEmail"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>{t('create.contactEmail')}</FormLabel>
+                    <FormLabel className="flex items-center gap-2">
+                      <span>{contactEmailLabel}</span>
+                      <span className="text-xs text-muted-foreground">{t('common:labels.optional')}</span>
+                    </FormLabel>
                     <FormControl>
                       <Input 
                         type="email" 

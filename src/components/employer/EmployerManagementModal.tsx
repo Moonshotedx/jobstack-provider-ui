@@ -16,7 +16,7 @@ interface EmployerProfile {
   gstNumber: string;
   logo?: string;
   contactPersonName: string;
-  contactEmail: string;
+  contactEmail?: string;
   contactPhone: string;
   website?: string;
   description: string;

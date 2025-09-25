@@ -11,7 +11,7 @@ interface EmployerProfile {
   gstNumber: string;
   logo?: string;
   contactPersonName: string;
-  contactEmail: string;
+  contactEmail?: string;
   contactPhone: string;
   website?: string;
   description: string;
@@ -69,10 +69,12 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
       
       <CardContent className="space-y-3">
         <div className="space-y-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            {employer.contactEmail}
-          </div>
+          {employer.contactEmail && (
+            <div className="flex items-center gap-2">
+              <Mail className="h-4 w-4" />
+              {employer.contactEmail}
+            </div>
+          )}
           <div className="flex items-center gap-2">
             <Phone className="h-4 w-4" />
             {employer.contactPhone}

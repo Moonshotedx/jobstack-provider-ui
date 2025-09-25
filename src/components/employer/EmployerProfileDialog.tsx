@@ -20,7 +20,7 @@ interface EmployerProfile {
   gstNumber: string;
   logo?: string;
   contactPersonName: string;
-  contactEmail: string;
+  contactEmail?: string;
   contactPhone: string;
   website?: string;
   description: string;
@@ -40,7 +40,10 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   onClose, 
   employer 
 }) => {
-  const { t } = useTranslation('organizations');
+  const { t } = useTranslation(['organizations', 'common']);
+  const emailLabel = t('organizations:create.contactEmail').replace(/\s*\*$/, '');
+  const emailPlaceholder = t('organizations:create.contactEmailPlaceholder');
+  const optionalLabel = t('common:labels.optional');
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -62,7 +65,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
         address: employer.address || '',
         gstNumber: employer.gstNumber || '',
         contactPersonName: employer.contactPersonName || '',
-        contactEmail: employer.contactEmail || '',
+  contactEmail: employer.contactEmail || '',
         contactPhone: employer.contactPhone || '',
         website: employer.website || '',
         description: employer.description || '',
@@ -196,7 +199,9 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     const trimmedName = formData.name.trim();
     const trimmedAddress = formData.address.trim();
     const trimmedContactPerson = formData.contactPersonName.trim();
-    const trimmedEmail = formData.contactEmail.trim();
+
+  const trimmedEmail = formData.contactEmail.trim();
+
     const trimmedPhone = formData.contactPhone.trim();
 
     // Check for empty or whitespace-only fields
@@ -212,10 +217,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       toast.error("Contact person name cannot be empty or contain only spaces.");
       return;
     }
-    if (!trimmedEmail) {
-      toast.error("Contact email is required.");
-      return;
-    }
     if (!trimmedPhone) {
       toast.error("Contact phone cannot be empty or contain only spaces.");
       return;
@@ -223,7 +224,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
 
     // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    if (trimmedEmail && !emailRegex.test(trimmedEmail)) {
       toast.error("Please enter a valid email address.");
       return;
     }
@@ -479,13 +480,16 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="empEmail">Email *</Label>
+                  <Label htmlFor="empEmail" className="flex items-center gap-2">
+                    <span>{emailLabel}</span>
+                    <span className="text-xs text-muted-foreground">{optionalLabel}</span>
+                  </Label>
                   <Input
                     id="empEmail"
                     type="email"
                     value={formData.contactEmail}
                     onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-                    placeholder="company@example.com"
+                    placeholder={emailPlaceholder}
                     disabled={isSubmitting}
                   />
                 </div>
