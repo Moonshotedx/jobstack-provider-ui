@@ -199,7 +199,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     const trimmedName = formData.name.trim();
     const trimmedAddress = formData.address.trim();
     const trimmedContactPerson = formData.contactPersonName.trim();
-
   const trimmedEmail = formData.contactEmail.trim();
 
     const trimmedPhone = formData.contactPhone.trim();

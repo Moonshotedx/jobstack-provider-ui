@@ -131,7 +131,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         address: data.address.trim(),
         gstNumber: data.gstNumber?.trim() || '',
         contactPersonName: data.contactPersonName.trim(),
-
   contactEmail: data.contactEmail?.trim() ?? '',
 
         contactPhone: processedPhone,
@@ -173,7 +172,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
           logo: data.logo || '',
           contactPersonName: data.contactPersonName.trim(),
           contactEmail: data.contactEmail?.trim() ?? '',
-
           contactPhone: processedPhone,
           website: data.website?.trim() || '',
           description: data.description?.trim() || ''

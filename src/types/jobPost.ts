@@ -197,8 +197,6 @@ export interface JobApplicant {
   appliedFor: string;
   applicationDate: string;
   status: 'open' | 'closed' | 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected' | 'archived';
-  trustScore: number;
-  matchScore: number;
   experience: string;
   skills: (string | { name: string; code?: string })[];
   avatar?: string;

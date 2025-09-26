@@ -9,13 +9,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
   MapPin,
-  Star,
-  TrendingUp,
   Users,
   ArrowLeft,
   ChevronRight,
-  ArrowUp,
-  ArrowDown,
   Loader2,
   CheckCircle,
   XCircle,
@@ -194,8 +190,6 @@ function JobApplicantsPage() {
             }
             return apiStatus;
           })(),
-          trustScore: 0, // No trust score available
-          matchScore: 0, // No match score available
           experience: nestedMetadata?.whoIAm?.location || '',
           skills: app.metadata.skills || [],
           avatar: undefined, // No avatar in new API
@@ -230,8 +224,6 @@ function JobApplicantsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
-  const [sortBy, setSortBy] = useState<'trustScore' | 'matchScore' | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   
   // Map-related state
   const [applicantLocations, setApplicantLocations] = useState<ApplicantLocation[]>([]);
@@ -357,15 +349,7 @@ function JobApplicantsPage() {
 
     convertToMapLocations();
   }, [applicants, mapCenter]);
-  // Sorting handler
-  const handleSort = (column: 'trustScore' | 'matchScore') => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('desc');
-    }
-  };
+  
   // Filter and sort applicants
   React.useEffect(() => {
     let filtered = applicants;
@@ -395,18 +379,8 @@ function JobApplicantsPage() {
       filtered = filtered.filter(applicant => applicant.status === statusFilter);
     }
 
-    // Sorting
-    if (sortBy) {
-      filtered = [...filtered].sort((a, b) => {
-        const aVal = a[sortBy] ?? 0;
-        const bVal = b[sortBy] ?? 0;
-        if (sortOrder === 'asc') return aVal - bVal;
-        return bVal - aVal;
-      });
-    }
-
     setFilteredApplicants(filtered);
-  }, [applicants, searchQuery, statusFilter, sortBy, sortOrder]);
+  }, [applicants, searchQuery, statusFilter]);
 
   const handleViewCandidate = (candidate: JobApplicant) => {
     // Find the original JobApplication data using the application ID
@@ -823,30 +797,6 @@ function JobApplicantsPage() {
                         {allWhatIWantKeys.map(key => (
                           <th key={key} className="text-left p-4 font-medium">{key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase())}</th>
                         ))}
-                        <th className="text-left p-4 font-medium">
-                          <div className="flex items-center gap-1">
-                            Trust Score
-                            <button
-                              type="button"
-                              className={sortBy === 'trustScore' ? 'text-blue-600' : 'text-gray-400'}
-                              onClick={e => { e.stopPropagation(); handleSort('trustScore'); }}
-                            >
-                              {sortBy === 'trustScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
-                            </button>
-                          </div>
-                        </th>
-                        <th className="text-left p-4 font-medium">
-                          <div className="flex items-center gap-1">
-                            Match Score
-                            <button
-                              type="button"
-                              className={sortBy === 'matchScore' ? 'text-green-600' : 'text-gray-400'}
-                              onClick={e => { e.stopPropagation(); handleSort('matchScore'); }}
-                            >
-                              {sortBy === 'matchScore' && sortOrder === 'desc' ? <ArrowDown className="inline h-4 w-4" /> : <ArrowUp className="inline h-4 w-4" />}
-                            </button>
-                          </div>
-                        </th>
                         <th className="text-left p-4 font-medium">Actions</th>
                       </tr>
                     </thead>
@@ -887,25 +837,13 @@ function JobApplicantsPage() {
                               </td>
                             ))}
                             <td className="p-4">
-                              <div className="flex items-center gap-1">
-                                <Star className="h-3 w-3 text-blue-600" />
-                                <span className="text-sm font-medium">{applicant.trustScore}%</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
-                              <div className="flex items-center gap-1">
-                                <TrendingUp className="h-3 w-3 text-green-600" />
-                                <span className="text-sm font-medium">{applicant.matchScore}%</span>
-                              </div>
-                            </td>
-                            <td className="p-4">
                               {renderActionButtons(applicant)}
                             </td>
                           </tr>
                         ))
                       ) : (
                         <tr>
-                          <td colSpan={11} className="p-8 text-center">
+                          <td colSpan={9} className="p-8 text-center">
                             <h3 className="text-lg font-medium mb-2">{t('search.noResults')}</h3>
                             <p className="text-muted-foreground">
                               No applicants found matching your criteria.

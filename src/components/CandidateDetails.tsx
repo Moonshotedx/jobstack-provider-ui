@@ -418,7 +418,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     if (fieldName === 'taskVideo') {
       formatted = 'Task Media';
     }
-
     // Special case for qrCodeScan field
     if (fieldName === 'qrCodeScan') {
       formatted = 'Verification Links';
@@ -432,7 +431,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     else if (Array.isArray(value) && value.length > 0 && 
              value.every(item => typeof item === 'string' && isVerificationUrl(item))) {
       formatted = 'Verification Links';
-
     }
     // Only check field name for specific verification-related terms (avoid generic 'vc')
     else if (fieldName.toLowerCase().includes('qr') || 
@@ -443,7 +441,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
              fieldName.toLowerCase().startsWith('vc_') || // vc_ prefix
              fieldName.toLowerCase().endsWith('_vc')) { // _vc suffix
       formatted = Array.isArray(value) && value.length > 1 ? 'Verification Links' : 'Verification Link';
-
     }
     
     return formatted;
@@ -500,13 +497,11 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       return <Award className="h-4 w-4 text-green-600" />;
     }
     
-
     // Check if it's an array of verification URLs
     if (Array.isArray(value) && value.length > 0 && 
         value.every(item => typeof item === 'string' && isVerificationUrl(item))) {
       return <Award className="h-4 w-4 text-green-600" />;
     }
-
     return iconMap[fieldName] || <Info className="h-4 w-4 text-muted-foreground" />;
   };
 

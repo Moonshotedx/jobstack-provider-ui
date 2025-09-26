@@ -11,7 +11,6 @@ import {
   Download,
   MapPin, 
   Calendar, 
-  Star,
   Eye,
   UserCheck,
   UserX
@@ -27,8 +26,6 @@ interface Candidate {
   appliedFor: string;
   applicationDate: string;
   status: 'applied' | 'reviewed' | 'shortlisted' | 'interview' | 'hired' | 'rejected';
-  trustScore: number;
-  matchScore: number;
   experience: string;
   skills: string[];
   avatar?: string;
@@ -39,64 +36,7 @@ const CandidateManagement = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
   
-  const [candidates] = useState<Candidate[]>([
-    {
-      id: '1',
-      name: 'Priya Sharma',
-      email: 'priya.sharma@email.com',
-      phone: '+91 98765 43210',
-      location: 'Mumbai, Maharashtra',
-      appliedFor: 'Senior React Developer',
-      applicationDate: '2024-01-15',
-      status: 'shortlisted',
-      trustScore: 85,
-      matchScore: 92,
-      experience: '5 years',
-      skills: ['React', 'JavaScript', 'TypeScript', 'Node.js']
-    },
-    {
-      id: '2',
-      name: 'Rajesh Kumar',
-      email: 'rajesh.kumar@email.com',
-      phone: '+91 87654 32109',
-      location: 'Bangalore, Karnataka',
-      appliedFor: 'UI/UX Designer',
-      applicationDate: '2024-01-14',
-      status: 'interview',
-      trustScore: 78,
-      matchScore: 88,
-      experience: '3 years',
-      skills: ['Figma', 'Adobe XD', 'Photoshop', 'User Research']
-    },
-    {
-      id: '3',
-      name: 'Anita Patel',
-      email: 'anita.patel@email.com',
-      phone: '+91 76543 21098',
-      location: 'Ahmedabad, Gujarat',
-      appliedFor: 'Product Manager',
-      applicationDate: '2024-01-13',
-      status: 'applied',
-      trustScore: 92,
-      matchScore: 85,
-      experience: '7 years',
-      skills: ['Product Strategy', 'Analytics', 'Agile', 'Leadership']
-    },
-    {
-      id: '4',
-      name: 'Vikram Singh',
-      email: 'vikram.singh@email.com',
-      phone: '+91 65432 10987',
-      location: 'Delhi, Delhi',
-      appliedFor: 'DevOps Engineer',
-      applicationDate: '2024-01-12',
-      status: 'reviewed',
-      trustScore: 88,
-      matchScore: 90,
-      experience: '4 years',
-      skills: ['AWS', 'Docker', 'Kubernetes', 'Jenkins']
-    }
-  ]);
+  const [candidates] = useState<Candidate[]>([]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -217,14 +157,6 @@ const CandidateManagement = () => {
                     </div>
 
                     <div className="flex items-center gap-6 mb-3">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="text-sm font-medium">{t('details.trustScore', { score: candidate.trustScore })}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 rounded-full bg-green-500"></div>
-                        <span className="text-sm font-medium">{t('details.matchScore', { score: candidate.matchScore })}</span>
-                      </div>
                       <div className="text-sm">
                         <span className="font-medium">{t('details.experience', { years: candidate.experience })}</span>
                       </div>
