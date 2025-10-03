@@ -929,6 +929,7 @@ function JobApplicantsPage() {
                         }
                       }}
                       loadingStates={loadingStates}
+                      enableFullscreen={true} // Enable fullscreen functionality
                     />
                   )}
                 </div>

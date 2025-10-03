@@ -41,6 +41,7 @@ interface MapWrapperProps {
   onTakeAction?: (applicantId: string, action: 'accept' | 'reject') => Promise<void>;
   loadingStates?: Record<string, 'accept' | 'reject' | null>;
   jobLocation?: JobLocation; // Add job location data
+  enableFullscreen?: boolean; // Add fullscreen support
 }
 
 // Check if Google Maps should be used
@@ -62,6 +63,7 @@ const MapWrapper: React.FC<MapWrapperProps> = (props) => {
         className={props.className || "w-full h-full"}
         jobLocation={props.jobLocation}
         selectedCandidateDetails={props.selectedCandidateDetails}
+        enableFullscreen={props.enableFullscreen ?? true} // Default to true if not specified
       />
     );
   } else {

@@ -10,8 +10,6 @@ import {
   CheckCircle, 
   XCircle, 
   Loader2, 
-  ChevronUp, 
-  ChevronDown,
   User,
   Briefcase,
   Heart,
@@ -31,7 +29,8 @@ import {
   Globe,
   MapPinIcon,
   FileVideo,
-  Maximize2
+  Maximize2,
+  Minimize2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -86,6 +85,7 @@ type ReliableMapWrapperProps = {
   onTakeAction?: (applicantId: string, action: 'accept' | 'reject') => Promise<void>;
   loadingStates?: Record<string, 'accept' | 'reject' | null>;
   jobLocation?: JobLocation; // Add job location data
+  enableFullscreen?: boolean; // Add fullscreen support
 };
 
 const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
@@ -100,7 +100,8 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
   active = true,
   onTakeAction,
   loadingStates = {},
-  jobLocation
+  jobLocation,
+  enableFullscreen = true
 }) => {
   // Note: selectedCandidateDetails is prepared for future enhancement but not yet implemented
   console.log('ReliableMapWrapper selectedCandidateDetails:', selectedCandidateDetails ? 'Available' : 'Not available');
@@ -367,6 +368,7 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
   const [defaultMapZoom, setDefaultMapZoom] = useState(zoom);
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Update default map center when props change (for job location)
   useEffect(() => {
@@ -681,6 +683,83 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
     }
   };
 
+  const handleToggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const handleCloseFullscreen = () => {
+    setIsFullscreen(false);
+  };
+
+  // Handle modal overlap management
+  const handleJobLocationClick = (jobLocation: JobLocation) => {
+    setSelectedJobLocation(jobLocation);
+    setSelectedMarker(null); // Close any applicant info window
+    if (mapRef) {
+      mapRef.panTo({ lat: jobLocation.lat, lng: jobLocation.lng });
+      mapRef.setZoom(12);
+    }
+    // Show a subtle toast to explain the action
+    toast.info("Showing job location details");
+  };
+
+  const handleApplicantMarkerClick = (applicant: ApplicantLocation) => {
+    setSelectedMarker(applicant);
+    setSelectedJobLocation(null); // Close job location info window
+    if (mapRef) {
+      const isGroupCenter = applicant.groupIndex === 0 && (applicant.groupSize || 1) > 1;
+      const panLat = isGroupCenter ? applicant.originalLat! : applicant.lat;
+      const panLng = isGroupCenter ? applicant.originalLng! : applicant.lng;
+      mapRef.panTo({ lat: panLat, lng: panLng });
+      mapRef.setZoom(15);
+    }
+  };
+
+  const handleApplicantClickFromInfoWindow = (applicant: ApplicantLocation) => {
+    setSelectedMarker(null); // Close info window
+    setSelectedJobLocation(null); // Close job location info window
+    onApplicantClick?.(applicant); // Open detailed applicant view
+    setIsSearchExpanded(false); // Collapse search on mobile
+    toast.success(`Opening detailed view for ${applicant.name}`);
+  };
+
+  // Prevent body scroll when fullscreen map is open
+  useEffect(() => {
+    if (isFullscreen) {
+      document.body.classList.add('fullscreen-map-open');
+    } else {
+      document.body.classList.remove('fullscreen-map-open');
+    }
+
+    // Cleanup function to remove class when component unmounts
+    return () => {
+      document.body.classList.remove('fullscreen-map-open');
+    };
+  }, [isFullscreen]);
+
+  // Handle escape key for fullscreen
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        } else if (isSearchExpanded) {
+          setIsSearchExpanded(false);
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isFullscreen, isSearchExpanded]);
+
+  // Auto-collapse search when modal opens on mobile
+  useEffect(() => {
+    if (selectedApplicant && window.innerWidth < 640) { // sm: breakpoint
+      setIsSearchExpanded(false);
+    }
+  }, [selectedApplicant]);
+
   // Handle load error
   if (loadError) {
     return (
@@ -727,8 +806,9 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
     );
   }
 
-  return (
-    <div className={`relative ${className}`}>
+  // Render the map component
+  const renderMapComponent = () => (
+    <div className={`relative ${isFullscreen ? 'w-full h-screen' : className}`}>
       {/* Map Container */}
       <GoogleMap
         mapContainerStyle={containerStyle}
@@ -766,41 +846,24 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
                 isGroupCenter
 
               )}
-              onClick={() => {
-                setSelectedMarker(applicant);
-                // Don't trigger onApplicantClick here - only show info window
-                if (mapRef) {
-                  // Pan to original location for group centers, or offset location for individuals
-                  const panLat = isGroupCenter ? applicant.originalLat! : applicant.lat;
-                  const panLng = isGroupCenter ? applicant.originalLng! : applicant.lng;
-                  mapRef.panTo({ lat: panLat, lng: panLng });
-                  mapRef.setZoom(15);
-                }
-              }}
+              onClick={() => handleApplicantMarkerClick(applicant)}
             />
           );
         })}
 
         {/* Job Location Marker */}
         {jobLocation && (
-          <Marker
-            key="job-location"
-            position={{ 
-              lat: jobLocation.lat + 0.0001, // Slight offset to avoid perfect overlap
-              lng: jobLocation.lng + 0.0001 
-            }}
-            title={`Job Location: ${jobLocation.title} - ${jobLocation.location}`}
-            icon={createJobLocationIcon()}
-            zIndex={500}
-            onClick={() => {
-              setSelectedJobLocation(jobLocation);
-              setSelectedMarker(null); // Close any open applicant info window
-              if (mapRef) {
-                mapRef.panTo({ lat: jobLocation.lat, lng: jobLocation.lng });
-                mapRef.setZoom(12);
-              }
-            }}
-          />
+            <Marker
+              key="job-location"
+              position={{ 
+                lat: jobLocation.lat + 0.0001, // Slight offset to avoid perfect overlap
+                lng: jobLocation.lng + 0.0001 
+              }}
+              title={`Job Location: ${jobLocation.title} - ${jobLocation.location}`}
+              icon={createJobLocationIcon()}
+              zIndex={500}
+              onClick={() => handleJobLocationClick(jobLocation)}
+            />
         )}
         {/* Info Window for Job Location - Mobile Responsive */}
         {selectedJobLocation && (
@@ -871,9 +934,7 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
                           className={`mb-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${
                             index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
                           }`}
-                          onClick={() => {
-                            onApplicantClick?.(applicant);
-                          }}
+                          onClick={() => handleApplicantClickFromInfoWindow(applicant)}
                         >
                           <div className="flex justify-between items-center mb-1">
                             <span className="font-medium text-xs text-gray-800 truncate pr-2">
@@ -907,9 +968,7 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
                   // Individual applicant info window - Mobile Responsive
                   <div 
                     className="cursor-pointer" 
-                    onClick={() => {
-                      onApplicantClick?.(selectedMarker);
-                    }}
+                    onClick={() => handleApplicantClickFromInfoWindow(selectedMarker)}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-sm m-0 text-gray-800 pr-2 leading-tight">
@@ -951,21 +1010,36 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
       {/* Search Controls - Mobile Responsive */}
       <div className="absolute z-[800] top-2 left-2 right-2 sm:top-4 sm:left-4 sm:right-auto sm:w-80">
         <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-          {/* Mobile: Minimized header - always visible */}
+          {/* Mobile: Compact search bar */}
           <div className="sm:hidden">
-            <CardHeader className="pb-2 px-3 pt-3 cursor-pointer" onClick={() => setIsSearchExpanded(!isSearchExpanded)}>
-              <CardTitle className="text-xs flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <MapPin className="h-3 w-3" />
-                  <span>Locations ({filteredApplicants.length})</span>
+            {!isSearchExpanded ? (
+              // Collapsed state - minimal search bar
+              <div className="map-search-minimal cursor-pointer" onClick={() => setIsSearchExpanded(true)}>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                    <Search className="h-3 w-3" />
+                    <span>Search {filteredApplicants.length} locations</span>
+                  </div>
+                  <Search className="h-3 w-3 text-gray-400" />
                 </div>
-                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                  {isSearchExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
-                </Button>
-              </CardTitle>
-            </CardHeader>
-            {isSearchExpanded && (
-              <CardContent className="space-y-2 px-3 pb-3">
+              </div>
+            ) : (
+              // Expanded state - full search interface
+              <CardContent className="map-search-expanded space-y-2 px-3 py-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <CardTitle className="text-xs flex items-center gap-1.5">
+                    <MapPin className="h-3 w-3" />
+                    <span>Search Locations</span>
+                  </CardTitle>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-5 w-5 p-0 ml-auto" 
+                    onClick={() => setIsSearchExpanded(false)}
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                </div>
                 <div className="relative">
                   <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3" />
                   <Input
@@ -973,11 +1047,12 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
                     value={searchQuery}
                     onChange={(e) => handleSearchChange(e.target.value)}
                     onKeyPress={handleSearchKeyPress}
-                    className="pl-8 h-8 text-sm"
+                    className="map-search-input pl-7 h-7 text-xs"
+                    autoFocus
                   />
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Showing {filteredApplicants.length} of {applicants.length}
+                  {filteredApplicants.length} of {applicants.length} shown
                 </div>
               </CardContent>
             )}
@@ -1038,11 +1113,26 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
         >
           <Crosshair className="h-3 w-3 sm:h-4 sm:w-4" />
         </Button>
+        {enableFullscreen && (
+        <Button 
+          variant="outline" 
+          size="icon" 
+          className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-8 w-8 sm:h-9 sm:w-9 touch-manipulation hover:bg-blue-50 transition-colors" 
+          onClick={handleToggleFullscreen}
+          title={isFullscreen ? "Exit fullscreen (Esc)" : "Enter fullscreen mode for better mobile viewing"}
+        >
+          <Maximize2 className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+        )}
       </div>
       
       {/* Selected Applicant Panel - Mobile Responsive */}
       {selectedApplicant && (
-        <div className="absolute z-[800] bottom-2 left-2 right-2 sm:bottom-4 sm:left-4 sm:right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto">
+        <div className={`absolute z-[800] ${
+          !isSearchExpanded || searchQuery 
+            ? "bottom-2 left-2 right-2" 
+            : "bottom-20 left-2 right-2"
+        } sm:bottom-4 sm:left-4 sm:right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto`}>
           <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-[70vh] md:max-h-[80vh] overflow-hidden">
             <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
               <CardTitle className="text-xs sm:text-sm flex items-center justify-between">
@@ -1175,6 +1265,422 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
       )}
     </div>
   );
+
+  // If in fullscreen mode, render as a modal overlay
+  if (isFullscreen) {
+    return (
+      <div className="fullscreen-map-overlay fixed inset-0 z-[9999] bg-black bg-opacity-90 backdrop-blur-sm">
+        {/* Fullscreen Header */}
+        <div className="fullscreen-map-header absolute top-0 left-0 right-0 z-[10000] bg-white/95 backdrop-blur-sm border-b shadow-sm">
+          <div className="flex items-center justify-between px-4 py-2 sm:px-6 sm:py-3">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-4 w-4 sm:h-5 sm:w-5" />
+              <h2 className="text-sm sm:text-lg font-semibold">Map View - Fullscreen</h2>
+              <Badge variant="outline" className="text-xs">
+                {applicants.length} locations
+              </Badge>
+            </div>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleCloseFullscreen}
+              className="h-8 w-8 sm:h-9 sm:w-9"
+              title="Exit fullscreen (Esc)"
+            >
+              <Minimize2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Fullscreen Map Container */}
+        <div className="absolute inset-0 pt-12 sm:pt-16">
+          <div className="w-full h-full bg-gray-50">
+            <GoogleMap
+              mapContainerStyle={{
+                width: "100%",
+                height: "100%",
+              }}
+              center={mapCenter}
+              zoom={zoom}
+              onLoad={(map) => {
+                console.log('✅ Google Map loaded successfully');
+                setMapRef(map);
+                setCurrentZoom(map.getZoom() || zoom);
+                
+                // Listen for zoom changes to update clustering
+                map.addListener('zoom_changed', () => {
+                  const newZoom = map.getZoom() || zoom;
+                  setCurrentZoom(newZoom);
+                });
+              }}
+              options={mapOptions}
+            >
+              {/* Render Markers with offset positions */}
+              {applicantsWithOffsets.map((applicant) => {
+                const isGroupCenter = applicant.groupIndex === 0 && applicant.groupSize! > 1;
+                const title = applicant.groupSize! > 1 && isGroupCenter 
+                  ? `${applicant.groupSize} applicants at this location` 
+                  : `Applicant #${applicant.globalIndex}: ${applicant.name}`;
+                
+                return (
+                  <Marker
+                    key={applicant.id}
+                    position={{ lat: applicant.lat, lng: applicant.lng }}
+                    title={title}
+                    icon={createMarkerIcon(
+                      applicant.status, 
+                      applicant.groupSize!, 
+                      isGroupCenter
+                    )}
+                    onClick={() => handleApplicantMarkerClick(applicant)}
+                  />
+                );
+              })}
+
+              {/* Job Location Marker */}
+              {jobLocation && (
+                <Marker
+                  key="job-location"
+                  position={{ 
+                    lat: jobLocation.lat + 0.0001,
+                    lng: jobLocation.lng + 0.0001 
+                  }}
+                  title={`Job Location: ${jobLocation.title} - ${jobLocation.location}`}
+                  icon={createJobLocationIcon()}
+                  zIndex={500}
+                  onClick={() => handleJobLocationClick(jobLocation)}
+                />
+              )}
+
+              {/* Info Windows - Same as regular view */}
+              {selectedJobLocation && (
+                <InfoWindow
+                  position={{ lat: selectedJobLocation.lat, lng: selectedJobLocation.lng }}
+                  onCloseClick={() => setSelectedJobLocation(null)}
+                  options={{
+                    maxWidth: 300,
+                    pixelOffset: new google.maps.Size(0, -10)
+                  }}
+                >
+                  <div className="p-3 min-w-[200px] max-w-[280px] sm:max-w-[300px] font-sans">
+                    <div className="flex justify-between items-start mb-2">
+                      <h3 className="font-semibold text-sm sm:text-base m-0 text-gray-800 pr-2 leading-tight">
+                        {selectedJobLocation.title}
+                      </h3>
+                      <span className="text-xs px-2 py-1 rounded-full font-medium bg-amber-100 text-amber-800 whitespace-nowrap">
+                        Job Location
+                      </span>
+                    </div>
+                    <div className="text-xs sm:text-sm text-gray-600 mb-2 flex items-center">
+                      <span className="mr-1.5">📍</span>
+                      <span className="break-words">{selectedJobLocation.location}</span>
+                    </div>
+                    <div className="text-xs text-gray-600 italic">
+                      💼 This is where the job is located. Candidates nearby may be ideal for this position.
+                    </div>
+                  </div>
+                </InfoWindow>
+              )}
+
+              {/* Selected Marker Info Window */}
+              {selectedMarker && (() => {
+                const isGroupCenter = selectedMarker.groupSize! > 1;
+                const sameLocationApplicants = isGroupCenter && selectedMarker.groupMembers 
+                  ? selectedMarker.groupMembers
+                  : [selectedMarker];
+                
+                return (
+                  <InfoWindow
+                    position={{ lat: selectedMarker.lat, lng: selectedMarker.lng }}
+                    onCloseClick={() => setSelectedMarker(null)}
+                    options={{
+                      maxWidth: 320,
+                      pixelOffset: new google.maps.Size(0, -10)
+                    }}
+                  >
+                    <div className="p-3 min-w-[200px] max-w-[300px] sm:max-w-[320px] font-sans">
+                      {isGroupCenter ? (
+                        <>
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-semibold text-sm m-0 text-gray-800 pr-2">
+                              {selectedMarker.groupSize} Applicants
+                            </h3>
+                            <span className="text-xs px-2 py-1 rounded-full font-medium bg-blue-100 text-blue-800">
+                              Group
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 mb-3 break-words">{selectedMarker.location}</p>
+                          <div className="max-h-[180px] overflow-y-auto">
+                            {sameLocationApplicants.map((applicant, index) => (
+                              <div 
+                                key={applicant.id} 
+                                className={`mb-2 p-2 rounded cursor-pointer hover:bg-gray-50 transition-colors ${
+                                  index % 2 === 0 ? 'bg-gray-50' : 'bg-white'
+                                }`}
+                                onClick={() => handleApplicantClickFromInfoWindow(applicant)}
+                              >
+                                <div className="flex justify-between items-center mb-1">
+                                  <span className="font-medium text-xs text-gray-800 truncate pr-2">
+                                    {applicant.name}
+                                  </span>
+                                  <span className={`text-xs px-2 py-0.5 rounded-lg text-white whitespace-nowrap ${
+                                    {
+                                      'shortlisted': 'bg-green-500', 'closed': 'bg-green-500',
+                                      'rejected': 'bg-red-500', 'archived': 'bg-red-500',
+                                      'interview': 'bg-orange-500',
+                                      'hired': 'bg-blue-500'
+                                    }[applicant.status.toLowerCase()] || 'bg-gray-500'
+                                  }`}>
+                                    {applicant.status}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  Age: {applicant.age} • {applicant.email.length > 20 ? 
+                                    applicant.email.substring(0, 20) + '...' : 
+                                    applicant.email
+                                  }
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="text-xs text-gray-600 mt-2 italic">
+                            💡 Tap any applicant to view details
+                          </div>
+                        </>
+                      ) : (
+                        <div 
+                          className="cursor-pointer" 
+                          onClick={() => handleApplicantClickFromInfoWindow(selectedMarker)}
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <h3 className="font-semibold text-sm m-0 text-gray-800 pr-2 leading-tight">
+                              {selectedMarker.name}
+                            </h3>
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${
+                              {
+                                'shortlisted': 'bg-green-100 text-green-800', 'closed': 'bg-green-100 text-green-800',
+                                'rejected': 'bg-red-100 text-red-800', 'archived': 'bg-red-100 text-red-800',
+                                'interview': 'bg-orange-100 text-orange-800',
+                                'hired': 'bg-blue-100 text-blue-800'
+                              }[selectedMarker.status.toLowerCase()] || 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {selectedMarker.status}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 mb-2 break-words">{selectedMarker.location}</p>
+                          <div className="text-xs text-gray-700">Age: {selectedMarker.age} years</div>
+                          <div className="text-xs text-gray-600 mt-2 space-y-1">
+                            <div className="break-all">📧 {selectedMarker.email}</div>
+                            <div>📞 {selectedMarker.phone}</div>
+                          </div>
+                          <div className="text-xs text-gray-600 mt-2 italic">
+                            💡 Tap here to view full details
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </InfoWindow>
+                );
+              })()}
+            </GoogleMap>
+
+            {/* Selected Applicant Panel for Fullscreen - Only show if not in info window */}
+            {selectedApplicant && selectedMarker === null && (
+              <div className="absolute z-[900] bottom-4 left-4 right-4 sm:top-20 sm:left-80 sm:w-80 sm:right-auto sm:bottom-auto">
+                <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-[70vh] sm:max-h-[80vh] overflow-hidden">
+                  <CardHeader className="pb-2 px-3 sm:px-6 pt-3 sm:pt-6">
+                    <CardTitle className="text-xs sm:text-sm flex items-center justify-between">
+                      <span>Selected Applicant Details</span>
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        <Badge variant="outline" className="text-xs px-1 sm:px-2">{selectedApplicant.status}</Badge>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => onApplicantClick?.(null)} 
+                          className="h-6 w-6 sm:h-8 sm:w-8 p-0 touch-manipulation"
+                        >
+                          <X className="h-3 w-3 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 sm:space-y-3 px-3 sm:px-6 pb-3 sm:pb-6 overflow-y-auto max-h-[calc(70vh-100px)] sm:max-h-[calc(80vh-100px)]">
+                    {/* Basic Info Header */}
+                    <div className="border-b pb-3">
+                      <h4 className="font-medium text-xs sm:text-sm truncate">{selectedApplicant.name}</h4>
+                      <p className="text-xs text-muted-foreground truncate">{selectedApplicant.location}</p>
+                      <div className="text-xs space-y-1 mt-2">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3" />
+                          Age: {selectedApplicant.age} years
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          <span className="truncate">{selectedApplicant.email}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Phone className="h-3 w-3" />
+                          <span className="truncate">{selectedApplicant.phone}</span>
+                        </div>
+                        {selectedApplicant.expectedSalary && (
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            Expected: {selectedApplicant.expectedSalary}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Detailed Information from selectedCandidateDetails */}
+                    {selectedCandidateDetails?.metadata?.metadata && (
+                      <div className="space-y-4">
+                        {/* Who I Am Section */}
+                        {selectedCandidateDetails.metadata.metadata.whoIAm && 
+                         renderDetailSection('Who I Am', selectedCandidateDetails.metadata.metadata.whoIAm, <User className="h-4 w-4" />)}
+
+                        {/* What I Have Section */}
+                        {selectedCandidateDetails.metadata.metadata.whatIHave && 
+                         renderDetailSection('What I Have', selectedCandidateDetails.metadata.metadata.whatIHave, <Briefcase className="h-4 w-4" />)}
+
+                        {/* What I Want Section */}
+                        {selectedCandidateDetails.metadata.metadata.whatIWant && 
+                         renderDetailSection('What I Want', selectedCandidateDetails.metadata.metadata.whatIWant, <Heart className="h-4 w-4" />)}
+                      </div>
+                    )}
+
+                    {/* Fallback to basic skills display if no detailed data */}
+                    {!selectedCandidateDetails?.metadata?.metadata && selectedApplicant.skills && (
+                      <div>
+                        <div className="text-xs font-medium mb-1">Skills:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {selectedApplicant.skills.slice(0, 5).map((skill, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {typeof skill === 'string' ? skill : skill.name}
+                            </Badge>
+                          ))}
+                          {selectedApplicant.skills.length > 5 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{selectedApplicant.skills.length - 5} more
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                    
+                    {onTakeAction && (selectedApplicant.status === 'open' || selectedApplicant.status === 'applied') && (
+                      <div className="flex gap-2 mt-3 sm:mt-4 pt-3 border-t">
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => handleReject(selectedApplicant)} 
+                          disabled={!!loadingStates[selectedApplicant.id]} 
+                          className="flex-1 h-8 sm:h-9 text-xs sm:text-sm touch-manipulation"
+                        >
+                          {loadingStates[selectedApplicant.id] === 'reject' ? (
+                            <><Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 animate-spin" />Rejecting...</>
+                          ) : (
+                            <><XCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />Reject</>
+                          )}
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleAccept(selectedApplicant)} 
+                          disabled={!!loadingStates[selectedApplicant.id]} 
+                          className="flex-1 h-8 sm:h-9 text-xs sm:text-sm touch-manipulation"
+                        >
+                          {loadingStates[selectedApplicant.id] === 'accept' ? (
+                            <><Loader2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 animate-spin" />Accepting...</>
+                          ) : (
+                            <><CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />Accept</>
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {/* Show status for other statuses */}
+                    {(selectedApplicant.status === 'shortlisted' || selectedApplicant.status === 'rejected') && (
+                      <div className="flex items-center gap-2 mt-4 p-2 bg-muted rounded">
+                        {selectedApplicant.status === 'shortlisted' ? (
+                          <>
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="text-sm font-medium text-green-600">Shortlisted</span>
+                          </>
+                        ) : (
+                          <>
+                            <XCircle className="h-4 w-4 text-red-600" />
+                            <span className="text-sm font-medium text-red-600">Rejected</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Fullscreen Map Controls */}
+            <div className="fullscreen-map-controls absolute z-[800] top-4 right-4 sm:top-6 sm:right-6 flex flex-col gap-2">
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-9 w-9 sm:h-10 sm:w-10" 
+                onClick={handleZoomIn}
+              >
+                <ZoomIn className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-9 w-9 sm:h-10 sm:w-10" 
+                onClick={handleZoomOut}
+              >
+                <ZoomOut className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+              <Button 
+                variant="outline" 
+                size="icon" 
+                className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-9 w-9 sm:h-10 sm:w-10" 
+                onClick={handleFindLocation}
+              >
+                <Crosshair className="h-4 w-4 sm:h-5 sm:w-5" />
+              </Button>
+            </div>
+
+            {/* Search Controls for Fullscreen - Mobile Responsive */}
+            <div className="absolute z-[800] top-4 left-4 right-4 sm:right-auto sm:w-80 md:w-96">
+              <Card className="fullscreen-map-search shadow-lg border-0 bg-white/95 backdrop-blur-sm">
+                <CardHeader className="pb-2 px-3 pt-3">
+                  <CardTitle className="text-xs sm:text-sm flex items-center gap-2">
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4" />
+                    <span className="hidden xs:inline">Search Locations ({filteredApplicants.length})</span>
+                    <span className="xs:hidden">Search ({filteredApplicants.length})</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 px-3 pb-3">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-muted-foreground h-3 w-3 sm:h-4 sm:w-4" />
+                    <Input
+                      placeholder="Search applicants..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearchChange(e.target.value)}
+                      onKeyPress={handleSearchKeyPress}
+                      className="pl-8 sm:pl-10 h-8 sm:h-9 text-sm"
+                    />
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    <span className="hidden sm:inline">Showing</span> {filteredApplicants.length} of {applicants.length}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular view
+  return renderMapComponent();
 };
 
 export default ReliableMapWrapper;
