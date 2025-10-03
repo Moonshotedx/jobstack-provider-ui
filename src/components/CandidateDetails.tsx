@@ -418,6 +418,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
     if (fieldName === 'taskVideo') {
       formatted = 'Task Media';
     }
+    
     // Special case for qrCodeScan field
     if (fieldName === 'qrCodeScan') {
       formatted = 'Verification Links';
@@ -502,6 +503,7 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
         value.every(item => typeof item === 'string' && isVerificationUrl(item))) {
       return <Award className="h-4 w-4 text-green-600" />;
     }
+    
     return iconMap[fieldName] || <Info className="h-4 w-4 text-muted-foreground" />;
   };
 
@@ -544,19 +546,11 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
                 );
               }
 
+              // Don't render non-verification URLs as clickable links
               return (
-                <a 
-                  key={index}
-                  href={url.startsWith('http') ? url : `https://${url}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:text-blue-800 underline break-all flex items-center gap-1 mb-1"
-                  onClick={(e) => e.stopPropagation()}
-                  title="Click to open link in new tab"
-                >
+                <span key={index} className="block mb-1">
                   {url}
-                  <Maximize2 className="h-3 w-3 text-blue-500" />
-                </a>
+                </span>
               );
             })}
           </div>
@@ -606,10 +600,6 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
         });
       }
       
-      // Check if the value is a URL and make it clickable
-      const startsWithHttp = trimmedValue.startsWith('http://') || trimmedValue.startsWith('https://');
-      const isGeneralUrl = isUrl(trimmedValue);
-      
       // Force verification URLs to be clickable
       if (trimmedValue.includes('verify.jobs') || trimmedValue.includes('dhiway.net')) {
         console.log('🔗 Creating verification link for:', trimmedValue);
@@ -628,39 +618,25 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
         );
       }
       
-      if (startsWithHttp || isGeneralUrl || isVerificationLink) {
-        // Special handling for verification/QR code scan URLs
-        if (isVerificationLink) {
-          return (
-            <a 
-              href={trimmedValue.startsWith('http') ? trimmedValue : `https://${trimmedValue}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="text-green-600 hover:text-green-800 underline break-all font-medium inline-flex items-center gap-1"
-              onClick={(e) => e.stopPropagation()}
-              title="Click to open verification credential in new tab"
-            >
-              {trimmedValue}
-              <Maximize2 className="h-3 w-3 text-green-500" />
-            </a>
-          );
-        }
-        
-        // Regular URL handling
+      // Only make verification links clickable, not regular text
+      if (isVerificationLink) {
         return (
           <a 
             href={trimmedValue.startsWith('http') ? trimmedValue : `https://${trimmedValue}`} 
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-blue-600 hover:text-blue-800 underline break-all inline-flex items-center gap-1"
+            className="text-green-600 hover:text-green-800 underline break-all font-medium inline-flex items-center gap-1"
             onClick={(e) => e.stopPropagation()}
-            title="Click to open link in new tab"
+            title="Click to open verification credential in new tab"
           >
             {trimmedValue}
-            <Maximize2 className="h-3 w-3 text-blue-500" />
+            <Maximize2 className="h-3 w-3 text-green-500" />
           </a>
         );
       }
+      
+      // For all other values, just display as plain text (no hyperlinks)
+      // This prevents regular location names, cities, etc. from becoming clickable
       
       // Add currency symbol for money fields
       if (fieldName.toLowerCase().includes('cost') || fieldName.toLowerCase().includes('salary') || 
@@ -713,6 +689,8 @@ const CandidateDetails: React.FC<CandidateDetailsProps> = ({
       if (key === 'isNameVerified' || key === 'isAgeVerified' || key === 'isPhoneVerified' || key === 'isLocationVerified') return false;
       // Skip any field that contains 'verified' in the name
       if (key.toLowerCase().includes('verified')) return false;
+      // Skip locationData field (it's an object that causes [object][object] display)
+      if (key === 'locationData') return false;
       return true;
     });
 

@@ -434,30 +434,41 @@
     height: 70vh !important;
   }
 
-  /* Map controls positioning */
+  /* Map controls positioning - Updated z-index */
   .map-controls {
     position: absolute;
     top: 16px;
     right: 16px;
-    z-index: 1000;
+    z-index: 800;
   }
 
-  /* Map search card */
+  /* Map search card - Updated z-index and mobile improvements */
   .map-search-card {
     position: absolute;
     top: 16px;
     left: 16px;
     right: 16px;
-    z-index: 1000;
+    z-index: 800;
   }
 
-  /* Map applicant card */
+  /* Compact mobile search header */
+  @media (max-width: 767px) {
+    .map-search-card .card-header {
+      padding: 12px 16px;
+    }
+    
+    .map-search-card .card-title {
+      font-size: 14px;
+    }
+  }
+
+  /* Map applicant card - Updated z-index */
   .map-applicant-card {
     position: absolute;
     bottom: 16px;
     left: 16px;
     right: 16px;
-    z-index: 1000;
+    z-index: 800;
     max-height: 60vh;
     overflow-y: auto;
   }

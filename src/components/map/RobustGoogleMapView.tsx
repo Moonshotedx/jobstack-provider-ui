@@ -246,25 +246,13 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
   }, [mapCenter.lat, mapCenter.lng, zoom, isLoaded]);
 
   // Create marker icon
-  const createMarkerIcon = useCallback((status: string): google.maps.Icon => {
-    const getStatusColor = (status: string) => {
-      switch (status.toLowerCase()) {
-        case 'shortlisted':
-        case 'closed':
-          return '#16a34a';
-        case 'rejected':
-        case 'archived':
-          return '#dc2626';
-        case 'interview':
-          return '#ea580c';
-        case 'hired':
-          return '#2563eb';
-        default:
-          return '#3b82f6';
-      }
+  const createMarkerIcon = useCallback((_status: string): google.maps.Icon => {
+    const getStatusColor = () => {
+      // Use consistent blue color for all job applicant markers
+      return '#3b82f6';
     };
-
-    const color = getStatusColor(status);
+    
+    const color = getStatusColor();
     const svg = `<svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
       <circle cx="14" cy="14" r="10" fill="${color}" stroke="white" stroke-width="3"/>
       <text x="14" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">1</text>
@@ -340,7 +328,7 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
           }
         });
 
-        infoWindow.open(mapInstanceRef.current, marker);
+        // Don't open info window - just show the map card
         onApplicantClick?.(applicant);
         
         if (mapInstanceRef.current) {
@@ -504,7 +492,7 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
       />
       
       {/* Search Controls */}
-      <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto">
+      <div className="absolute z-[800] top-4 left-4 right-4 md:w-80 md:right-auto">
         <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm flex items-center gap-2">
@@ -530,7 +518,7 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
       </div>
 
       {/* Map Controls */}
-      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2">
+      <div className="absolute z-[800] top-4 right-4 flex flex-col gap-2">
         <Button variant="outline" size="icon" className="bg-white/95 backdrop-blur-sm shadow-lg border-0 h-9 w-9" onClick={handleZoomIn}>
           <ZoomIn className="h-4 w-4" />
         </Button>
@@ -544,7 +532,7 @@ const RobustGoogleMapView: React.FC<RobustGoogleMapViewProps> = ({
       
       {/* Selected Applicant Panel */}
       {selectedApplicant && (
-        <div className="absolute z-[1000] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto">
+        <div className="absolute z-[800] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto">
           <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center justify-between">

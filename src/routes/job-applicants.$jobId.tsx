@@ -228,8 +228,10 @@ function JobApplicantsPage() {
   // Map-related state
   const [applicantLocations, setApplicantLocations] = useState<ApplicantLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.5937, lng: 78.9629 });
+  const [mapZoom, setMapZoom] = useState(5); // Default zoom level for India
   const [selectedMapApplicant, setSelectedMapApplicant] = useState<ApplicantLocation | null>(null);
   const [isLoadingMap, setIsLoadingMap] = useState(true); // Start with true to prevent early mounting
+  const [jobLocationData, setJobLocationData] = useState<{ title: string; location: string; lat: number; lng: number } | null>(null);
   // --- DYNAMIC TABLE COLUMN LOGIC START ---
   // Helper to format any cell value for safe rendering
   const formatValue = (value: any) => {
@@ -288,6 +290,15 @@ function JobApplicantsPage() {
           if (coordinates) {
             console.log(`✅ Found coordinates for job location:`, coordinates);
             setMapCenter(coordinates);
+            setMapZoom(10); // Set city-level zoom for job location
+            
+            // Set job location data for the map
+            setJobLocationData({
+              title: jobDetails.title || `Job ${jobId}`,
+              location: jobLocation,
+              lat: coordinates.lat,
+              lng: coordinates.lng
+            });
           } else {
             console.warn(`❌ Could not geocode job location: "${jobLocation}"`);
           }
@@ -296,7 +307,7 @@ function JobApplicantsPage() {
     };
 
     setJobLocationCenter();
-  }, [jobDetails]);
+  }, [jobDetails, jobId]);
 
   // Convert applicants to map locations
   useEffect(() => {
@@ -336,9 +347,11 @@ function JobApplicantsPage() {
         
         // Only update map center based on applicant locations if no job location was set
         // This preserves the job location as the primary center point
-        if (locations.length > 0 && mapCenter.lat === 20.5937 && mapCenter.lng === 78.9629) {
+        const hasJobLocation = jobDetails && getJobLocation(jobDetails) !== 'Location not specified';
+        if (locations.length > 0 && !hasJobLocation && mapCenter.lat === 20.5937 && mapCenter.lng === 78.9629) {
           const center = calculateMapCenter(locations);
           setMapCenter(center);
+          setMapZoom(8); // Zoom to show all applicants when no job location
         }
       } catch (error) {
         console.error('Error converting applicants to map locations:', error);
@@ -349,6 +362,18 @@ function JobApplicantsPage() {
 
     convertToMapLocations();
   }, [applicants, mapCenter]);
+  
+  // Sync selectedMapApplicant with updated data after actions
+  useEffect(() => {
+    if (selectedMapApplicant && applicantLocations.length > 0) {
+      // Find the updated applicant data in applicantLocations
+      const updatedApplicant = applicantLocations.find(applicant => applicant.id === selectedMapApplicant.id);
+      if (updatedApplicant && updatedApplicant.status !== selectedMapApplicant.status) {
+        // Update the selected map applicant with the new status
+        setSelectedMapApplicant(updatedApplicant);
+      }
+    }
+  }, [applicantLocations, selectedMapApplicant]);
   
   // Filter and sort applicants
   React.useEffect(() => {
@@ -423,6 +448,7 @@ function JobApplicantsPage() {
     }
   };
 
+
   // Handle application actions (accept/reject)
   const handleTakeAction = async (applicant: JobApplicant, action: 'accept' | 'reject') => {
     if (!activeOrganizationId || !applicant.applicationId) {
@@ -449,6 +475,7 @@ function JobApplicantsPage() {
     try {
       await takeActionMutation.mutateAsync({
         organizationId: activeOrganizationId,
+        jobId: jobId,
         actionData
       });
       
@@ -685,14 +712,15 @@ function JobApplicantsPage() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto px-4 py-6">
-        {/* Back Button and Breadcrumb */}
-        <div className="mb-6">
-          <div className="flex items-center gap-4 mb-4">
+      <div className="container mx-auto px-2 xs:px-4 py-4 sm:py-6">
+        {/* Back Button and Breadcrumb - Mobile Responsive */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-2 sm:gap-4 mb-3 sm:mb-4">
             <Link to="/dashboard">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
+              <Button variant="outline" size="sm" className="text-xs sm:text-sm">
+                <ArrowLeft className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                <span className="hidden xs:inline">Back to Dashboard</span>
+                <span className="xs:hidden">Back</span>
               </Button>
             </Link>
           </div>
@@ -716,19 +744,28 @@ function JobApplicantsPage() {
           </Breadcrumb>
         </div>
 
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Users className="h-8 w-8" />
-                Candidate List
+        {/* Header - Mobile Responsive */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold flex items-center gap-2">
+                <Users className="h-6 w-6 sm:h-7 sm:w-7 lg:h-8 lg:w-8 flex-shrink-0" />
+                <span className="hidden sm:inline">Candidate List</span>
+                <span className="sm:hidden">Candidates</span>
               </h1>
-              <p className="text-muted-foreground mt-1">
-                {jobDetails?.title ? `Applications for: ${jobDetails.title}` : `Job ${jobId}`} • {filteredApplicants.length} candidates found
+              <p className="text-muted-foreground mt-1 text-xs sm:text-sm truncate">
+                {jobDetails?.title ? (
+                  <>
+                    <span className="hidden sm:inline">Applications for: {jobDetails.title}</span>
+                    <span className="sm:hidden">{jobDetails.title}</span>
+                    <span className="hidden xs:inline"> • {filteredApplicants.length} found</span>
+                  </>
+                ) : (
+                  `Job ${jobId} • {filteredApplicants.length} candidates`
+                )}
               </p>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-shrink-0">
               <ExportButton 
                 data={filteredApplicants}
                 jobTitle={jobDetails?.title || `job-${jobId}`}
@@ -859,28 +896,31 @@ function JobApplicantsPage() {
           </TabsContent>
 
           <TabsContent value="map" className="mt-6">
-            {/* Map View */}
+            {/* Map View - Mobile Responsive */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Map className="h-5 w-5" />
-                  Applicant Locations
+              <CardHeader className="pb-3 px-4 sm:px-6">
+                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                  <Map className="h-4 w-4 sm:h-5 sm:w-5" />
+                  <span className="hidden xs:inline">Applicant Locations</span>
+                  <span className="xs:hidden">Locations</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-0">
-                <div className="h-[600px] w-full map-container">
+                <div className="h-[350px] xs:h-[450px] sm:h-[600px] w-full map-container">
                   {isLoadingMap ? (
                     <div className="flex items-center justify-center h-full">
-                      <Loader2 className="h-8 w-8 animate-spin" />
-                      <span className="ml-2">Loading map...</span>
+                      <Loader2 className="h-6 w-6 sm:h-8 sm:w-8 animate-spin" />
+                      <span className="ml-2 text-sm sm:text-base">Loading map...</span>
                     </div>
                   ) : (
                     <MapWrapper
                       applicants={applicantLocations}
                       onApplicantClick={handleMapApplicantClick}
                       selectedApplicant={selectedMapApplicant}
+                      selectedCandidateDetails={selectedCandidate}
                       mapCenter={mapCenter}
-                      zoom={5}
+                      zoom={mapZoom}
+                      jobLocation={jobLocationData || undefined}
                       onTakeAction={async (applicantId: string, action: 'accept' | 'reject') => {
                         // Find the corresponding JobApplicant
                         const correspondingApplicant = applicants.find(app => app.id === applicantId);

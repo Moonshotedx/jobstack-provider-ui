@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, ZoomIn, ZoomOut, MapPin, Crosshair, X, CheckCircle, XCircle, Loader2, ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -145,6 +145,7 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
 
   // State for filtering and search
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
 
   const handleAccept = async () => {
     if (selectedApplicant) {
@@ -335,30 +336,18 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
   }, [mapCenter.lat, mapCenter.lng, zoom, isLoaded]);
 
   // Create custom marker icon based on status
-  const createMarkerIcon = (status: string): google.maps.Icon => {
-    const getStatusColor = (status: string) => {
-      switch (status.toLowerCase()) {
-        case 'shortlisted':
-        case 'closed':
-          return '#16a34a'; // green
-        case 'rejected':
-        case 'archived':
-          return '#dc2626'; // red
-        case 'interview':
-          return '#ea580c'; // orange
-        case 'hired':
-          return '#2563eb'; // blue
-        default:
-          return '#3b82f6'; // blue for all other statuses
-      }
+  const createMarkerIcon = (_status: string, applicantNumber: number = 1): google.maps.Icon => {
+    const getStatusColor = () => {
+      // Use consistent blue color for all job applicant markers
+      return '#3b82f6'; // blue for all statuses
     };
 
-    const color = getStatusColor(status);
+    const color = getStatusColor();
     
     const svg = `
       <svg width="28" height="28" viewBox="0 0 28 28" xmlns="http://www.w3.org/2000/svg">
         <circle cx="14" cy="14" r="10" fill="${color}" stroke="white" stroke-width="3"/>
-        <text x="14" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">1</text>
+        <text x="14" y="18" font-family="Arial, sans-serif" font-size="10" font-weight="bold" text-anchor="middle" fill="white">${applicantNumber}</text>
       </svg>
     `;
 
@@ -378,14 +367,17 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
     markersRef.current = [];
 
     // Add new markers
-    filteredApplicants.forEach(applicant => {
+
+    filteredApplicants.forEach((applicant) => {
+
       if (!mapInstanceRef.current) return;
 
       const marker = new window.google.maps.Marker({
         position: { lat: applicant.lat, lng: applicant.lng },
         map: mapInstanceRef.current,
-        icon: createMarkerIcon(applicant.status),
+        icon: createMarkerIcon(applicant.status, 1), // Always show '1' for individual markers
         title: applicant.name,
+
       });
 
       // Create info window content
@@ -436,7 +428,7 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
           }
         });
 
-        infoWindow.open(mapInstanceRef.current, marker);
+        // Don't open info window - just show the map card
         onApplicantClick?.(applicant);
         
         // Center map on clicked marker
@@ -577,36 +569,67 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
       />
       
       {/* Map Search and Filter Controls - Mobile Responsive */}
-      <div className="absolute z-[1000] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
+      <div className="absolute z-[800] top-4 left-4 right-4 md:w-80 md:right-auto map-search-card">
         <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Applicant Locations (Google Maps)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search applicants..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-10 md:h-9"
-              />
-            </div>
-
-            {/* Stats */}
-            <div className="text-xs text-muted-foreground">
-              Showing {filteredApplicants.length} of {applicants.length} applicants
-            </div>
-          </CardContent>
+          {/* Mobile: Minimized header */}
+          <div className="md:hidden">
+            <CardHeader className="pb-2 px-3 pt-3 cursor-pointer" onClick={() => setIsSearchExpanded(!isSearchExpanded)}>
+              <CardTitle className="text-sm flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  <span>Locations ({filteredApplicants.length})</span>
+                </div>
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  {isSearchExpanded ? <ChevronUp className="h-3 w-3" /> : <ChevronDown className="h-3 w-3" />}
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            {isSearchExpanded && (
+              <CardContent className="space-y-3 px-3 pb-3">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    placeholder="Search applicants..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-9"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  Showing {filteredApplicants.length} of {applicants.length} applicants
+                </div>
+              </CardContent>
+            )}
+          </div>
+          
+          {/* Desktop: Full header */}
+          <div className="hidden md:block">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Applicant Locations (Google Maps)
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search applicants..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 h-10 md:h-9"
+                />
+              </div>
+              <div className="text-xs text-muted-foreground">
+                Showing {filteredApplicants.length} of {applicants.length} applicants
+              </div>
+            </CardContent>
+          </div>
         </Card>
       </div>
 
       {/* Map Controls - Mobile Responsive */}
-      <div className="absolute z-[1000] top-4 right-4 flex flex-col gap-2 map-controls">
+      <div className="absolute z-[800] top-4 right-4 flex flex-col gap-2 map-controls">
         <Button
           variant="outline"
           size="icon"
@@ -635,7 +658,7 @@ const GoogleApplicantMapView: React.FC<GoogleApplicantMapViewProps> = ({
       
       {/* Selected Applicant Info - Mobile Responsive */}
       {selectedApplicant && (
-        <div className="absolute z-[1000] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto map-applicant-card">
+        <div className="absolute z-[800] bottom-4 left-4 right-4 md:top-4 md:left-96 md:w-80 md:right-auto md:bottom-auto map-applicant-card">
           <Card className="shadow-lg border-0 bg-white/95 backdrop-blur-sm max-h-[60vh] md:max-h-none overflow-hidden">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center justify-between">

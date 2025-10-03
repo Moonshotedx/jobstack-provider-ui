@@ -202,14 +202,28 @@ export const useTakeApplicationAction = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ organizationId, actionData }: { organizationId: string; actionData: ApplicationActionRequest }) =>
+    mutationFn: ({ organizationId, actionData }: { organizationId: string; jobId?: string; actionData: ApplicationActionRequest }) =>
       jobsApi.takeApplicationAction(organizationId, actionData),
-    onSuccess: async (_, { organizationId, actionData }) => {
-      // Invalidate and refetch applications queries to update the UI
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: jobsQueryKeys.applications(organizationId, actionData.applicationId) }),
+    onSuccess: async (_, { organizationId, jobId, actionData }) => {
+      // Invalidate queries - if jobId is provided, use targeted invalidation
+      // Otherwise, invalidate all applications for the organization
+      const invalidationPromises = [
         queryClient.invalidateQueries({ queryKey: jobsQueryKeys.byOrg(organizationId) }),
-      ]);
+      ];
+
+      if (jobId) {
+        // Targeted invalidation when jobId is available
+        invalidationPromises.push(
+          queryClient.invalidateQueries({ queryKey: jobsQueryKeys.applications(organizationId, jobId) })
+        );
+      } else {
+        // Broad invalidation when jobId is not available - invalidate all applications
+        invalidationPromises.push(
+          queryClient.invalidateQueries({ queryKey: ['jobs', organizationId, 'applications'] })
+        );
+      }
+
+      await Promise.all(invalidationPromises);
 
       // Show success toast based on action
       const actionType = actionData.action === 'accept' ? 'accepted' : 'rejected';

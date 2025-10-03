@@ -200,7 +200,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     const trimmedAddress = formData.address.trim();
     const trimmedContactPerson = formData.contactPersonName.trim();
   const trimmedEmail = formData.contactEmail.trim();
-
     const trimmedPhone = formData.contactPhone.trim();
 
     // Check for empty or whitespace-only fields

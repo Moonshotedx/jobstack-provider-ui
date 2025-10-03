@@ -94,25 +94,13 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
   }, [mapCenter.lat, mapCenter.lng, zoom, isLoaded]);
 
   // Create custom marker icon based on status
-  const createMarkerIcon = (status: string): google.maps.Icon => {
-    const getStatusColor = (status: string) => {
-      switch (status.toLowerCase()) {
-        case 'shortlisted':
-        case 'closed':
-          return '#16a34a'; // green
-        case 'rejected':
-        case 'archived':
-          return '#dc2626'; // red
-        case 'interview':
-          return '#ea580c'; // orange
-        case 'hired':
-          return '#2563eb'; // blue
-        default:
-          return '#3b82f6'; // blue for all other statuses
-      }
+  const createMarkerIcon = (_status: string): google.maps.Icon => {
+    const getStatusColor = () => {
+      // Use consistent blue color for all job applicant markers
+      return '#3b82f6'; // blue for all statuses
     };
 
-    const color = getStatusColor(status);
+    const color = getStatusColor();
     
     // Create a simple circular marker icon
     const svg = `
@@ -196,7 +184,7 @@ const GoogleMapComponent: React.FC<GoogleMapComponentProps> = ({
           }
         });
 
-        infoWindow.open(mapInstanceRef.current, marker);
+        // Don't open info window - just show the map card
         onApplicantClick?.(applicant);
       });
 
