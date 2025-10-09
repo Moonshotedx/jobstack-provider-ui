@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { MapPin, Loader2, CheckCircle, AlertCircle, Map } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import * as GoogleMapsUtils from '@/lib/google-maps-utils';
+import MapLocationSelector from './MapLocationSelector';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Structured location data interface
 export interface LocationData {
@@ -72,6 +75,7 @@ interface LocationFieldProps {
   required?: boolean;
   className?: string;
   returnStructuredData?: boolean; // New prop to control return type
+  enableMapSelection?: boolean; // New prop to enable map selection
 }
 
 type LocationStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -83,14 +87,17 @@ export const LocationField: React.FC<LocationFieldProps> = ({
   placeholder,
   required = false,
   className = '',
-  returnStructuredData = false
+  returnStructuredData = false,
+  enableMapSelection = false
 }) => {
+  const isMobile = useIsMobile();
   const [status, setStatus] = useState<LocationStatus>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [suggestions, setSuggestions] = useState<LocationSuggestionUnion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [showMapSelector, setShowMapSelector] = useState(false);
   const suggestionsRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -205,8 +212,137 @@ export const LocationField: React.FC<LocationFieldProps> = ({
 
   // Debounced search function
   const debouncedSearch = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const handleInputChange = (newValue: string) => {
+  const handleInputChange = async (newValue: string) => {
     setInputValue(newValue);
+    
+    // Clear suggestions and reset state when input is cleared
+    if (!newValue.trim()) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setStatus('idle');
+      setErrorMessage('');
+      onChange(returnStructuredData ? {} as LocationData : '');
+      return;
+    }
+    
+    // Check if the input is a Google Maps URL
+    if (GoogleMapsUtils.isGoogleMapsUrl(newValue)) {
+      console.log('🗺️ Detected Google Maps URL, parsing...');
+      
+      // Extract coordinates from the URL
+      const coordinates = GoogleMapsUtils.parseGoogleMapsUrl(newValue);
+      
+      if (coordinates) {
+        console.log('📍 Extracted coordinates from URL:', coordinates);
+        
+        // Show loading state
+        setStatus('loading');
+        
+        try {
+          // Use reverse geocoding to get address details
+          if (shouldUseGoogleMaps()) {
+            const addressResult = await GoogleMapsUtils.reverseGeocode(coordinates.lat, coordinates.lng);
+            
+            if (addressResult) {
+              const addressComponents = GoogleMapsUtils.parseGoogleMapsAddressComponents(addressResult.addressComponents);
+              
+              if (returnStructuredData) {
+                const locationData: LocationData = {
+                  address: addressComponents.address || addressResult.formattedAddress,
+                  city: addressComponents.city || '',
+                  state: addressComponents.state || '',
+                  country: addressComponents.country || 'India',
+                  tag: addressComponents.city || 'job-location',
+                  gps: {
+                    lat: coordinates.lat,
+                    lng: coordinates.lng
+                  }
+                };
+                
+                onChange(locationData);
+                setInputValue(addressResult.formattedAddress);
+                setStatus('success');
+                toast.success('Location extracted from Google Maps link!');
+              } else {
+                onChange(addressResult.formattedAddress);
+                setInputValue(addressResult.formattedAddress);
+                setStatus('success');
+                toast.success('Location extracted from Google Maps link!');
+              }
+              
+              // Reset status after 3 seconds
+              setTimeout(() => setStatus('idle'), 3000);
+            } else {
+              throw new Error('Could not get address from coordinates');
+            }
+          } else {
+            // Fallback to Nominatim
+            const response = await fetch(
+              `https://nominatim.openstreetmap.org/reverse?format=json&lat=${coordinates.lat}&lon=${coordinates.lng}&zoom=18&addressdetails=1`,
+              {
+                headers: {
+                  'User-Agent': 'JobPortal/1.0'
+                }
+              }
+            );
+
+            if (!response.ok) {
+              throw new Error('Failed to get address information');
+            }
+
+            const data = await response.json();
+            
+            if (data && data.display_name) {
+              if (returnStructuredData) {
+                const addressComponents = parseAddressComponents(data);
+                const locationData: LocationData = {
+                  address: addressComponents.address || data.display_name,
+                  city: addressComponents.city || '',
+                  state: addressComponents.state || '',
+                  country: addressComponents.country || 'India',
+                  tag: addressComponents.city || 'job-location',
+                  gps: {
+                    lat: coordinates.lat,
+                    lng: coordinates.lng
+                  }
+                };
+                
+                onChange(locationData);
+                setInputValue(data.display_name);
+                setStatus('success');
+                toast.success('Location extracted from Google Maps link!');
+              } else {
+                onChange(data.display_name);
+                setInputValue(data.display_name);
+                setStatus('success');
+                toast.success('Location extracted from Google Maps link!');
+              }
+              
+              // Reset status after 3 seconds
+              setTimeout(() => setStatus('idle'), 3000);
+            } else {
+              throw new Error('No address found for this location');
+            }
+          }
+        } catch (error) {
+          console.error('Error processing Google Maps URL:', error);
+          setStatus('error');
+          setErrorMessage('Failed to extract location from Google Maps link');
+          toast.error('Failed to extract location from Google Maps link. Please try entering the address manually.');
+          
+          // Reset status after 5 seconds
+          setTimeout(() => {
+            setStatus('idle');
+            setErrorMessage('');
+          }, 5000);
+        }
+        
+        // Don't search for suggestions if it's a Google Maps URL
+        return;
+      } else {
+        toast.error('Could not extract coordinates from Google Maps link. Please check the URL format.');
+      }
+    }
     
     // Clear previous timeout
     if (debouncedSearch.current) {
@@ -512,6 +648,13 @@ export const LocationField: React.FC<LocationFieldProps> = ({
     };
   };
 
+  const handleMapSelection = (locationData: LocationData) => {
+    onChange(locationData);
+    setStatus('success');
+    setErrorMessage('');
+    setInputValue(getDisplayValue());
+  };
+
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) {
       toast.error('Geolocation is not supported by this browser');
@@ -770,13 +913,33 @@ export const LocationField: React.FC<LocationFieldProps> = ({
                 handleManualEntry();
               }
             }}
-            placeholder={placeholder || "Type to search for locations or tap map pin for current location"}
-            className={`pr-12 md:pr-10 h-12 md:h-10 text-base md:text-sm ${getInputBorderClass()} ${required && (!inputValue || (typeof inputValue === 'string' && inputValue.trim() === '')) ? 'border-red-300' : ''}`}
+            placeholder={placeholder || (enableMapSelection ? "Type to search, paste Google Maps link, tap map pin for current location, or click map icon" : "Type to search, paste Google Maps link, or tap map pin for current location")}
+            className={`pr-12 md:pr-10 h-12 md:h-10 text-base md:text-sm ${getInputBorderClass()} ${required && (!inputValue || (typeof inputValue === 'string' && inputValue.trim() === '')) ? 'border-red-300' : ''} break-words overflow-wrap-anywhere`}
           />
           
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-1 bg-white px-1">
             {isSearching && (
               <Loader2 className="h-5 w-5 md:h-4 md:w-4 animate-spin text-gray-400" />
+            )}
+            {enableMapSelection && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    className={`${isMobile ? 'p-2 -m-2' : 'p-1 -m-1'} touch-manipulation`}
+                    onClick={() => setShowMapSelector(true)}
+                    aria-label="Select location on map"
+                    title="Select location on map"
+                  >
+                    <Map 
+                      className={`${isMobile ? 'h-6 w-6' : 'h-5 w-5 md:h-4 md:w-4'} text-green-600 hover:text-green-700 transition-colors`} 
+                    />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Select location on map</p>
+                </TooltipContent>
+              </Tooltip>
             )}
             {getStatusIcon()}
           </div>
@@ -821,6 +984,19 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </div>
         )}
 
+        {/* Mobile Map Selection Button */}
+        {enableMapSelection && isMobile && (
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => setShowMapSelector(true)}
+            className="w-full mt-2 h-12 text-base flex items-center gap-2"
+          >
+            <Map className="h-5 w-5 text-green-600" />
+            Select Location on Map
+          </Button>
+        )}
+
         {/* Status feedback */}
         {status === 'success' && (
           <div className="flex items-center gap-2">
@@ -846,9 +1022,12 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </div>
         )}
 
-        {status === 'idle' && !value && (
+        {status === 'idle' && (!value || (typeof value === 'string' && !value.trim()) || (typeof value === 'object' && !value.address)) && (
           <p className="text-xs text-muted-foreground">
-            Start typing to search for locations or click the map pin icon to automatically detect your current location
+            {enableMapSelection 
+              ? "Start typing to search, paste a Google Maps link, click the map pin icon for current location, or click the map icon for precise location selection.Use the GPS coordinates to manually enter or paste here for precise location."
+              : "Start typing to search, paste a Google Maps link, or click the map pin icon to automatically detect your current location"
+            }
           </p>
         )}
 
@@ -864,6 +1043,17 @@ export const LocationField: React.FC<LocationFieldProps> = ({
           </div>
         )}
       </div>
+
+      {/* Map Location Selector */}
+      {enableMapSelection && (
+        <MapLocationSelector
+          isOpen={showMapSelector}
+          onClose={() => setShowMapSelector(false)}
+          onLocationSelect={handleMapSelection}
+          initialLocation={typeof value === 'object' && 'gps' in value ? value : null}
+          title={`Select ${label}`}
+        />
+      )}
     </div>
   );
 }; 

@@ -111,15 +111,15 @@
           "type": "number",
           "title": "Monthly minimum in-hand (INR)",
           "description": "Enter minimum monthly in-hand salary amount",
-          "minimum": 0,
-          "maximum": 1000000
+          "minimum": 5000,
+          "maximum": 50000
         },
         "maxMonthlyInHand": {
           "type": "number",
           "title": "Monthly maximum in-hand (INR)",
           "description": "Enter maximum monthly in-hand salary amount",
           "minimum": 0,
-          "maximum": 1000000
+          "maximum": 50000
         },
         "monthlyMaxPerformanceBasedVariable": {
           "type": "number",
@@ -156,7 +156,8 @@
             }
           ]
         }
-      }
+      },
+      "required": ["title", "positions"]
     },
     "jobNeeds": {
       "type": "object",

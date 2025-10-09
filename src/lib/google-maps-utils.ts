@@ -579,6 +579,129 @@ export const groupApplicantsByLocation = (locations: ApplicantLocation[]): Map<s
   return groups;
 };
 
+// Parse Google Maps URL to extract coordinates
+// Supports various formats:
+// - google.com/maps/search/15.225113,+74.710605
+// - google.com/maps/place/.../@15.225113,74.710605
+// - google.com/maps?q=15.225113,74.710605
+// - maps.app.goo.gl/... (shortened URLs - requires API call)
+// - google.com/maps/dir//15.225113,74.710605
+export const parseGoogleMapsUrl = (url: string): { lat: number; lng: number } | null => {
+  try {
+    console.log('🔍 Parsing Google Maps URL:', url);
+    
+    // Clean up the URL - handle both full URLs and just the path
+    let cleanUrl = url.trim();
+    
+    // If it doesn't start with http, add it
+    if (!cleanUrl.startsWith('http')) {
+      if (cleanUrl.startsWith('google.com') || cleanUrl.startsWith('www.google.com')) {
+        cleanUrl = 'https://' + cleanUrl;
+      } else if (cleanUrl.startsWith('maps.app.goo.gl')) {
+        cleanUrl = 'https://' + cleanUrl;
+      }
+    }
+    
+    // Pattern 1: Direct coordinate search - google.com/maps/search/LAT,LNG
+    // Example: google.com/maps/search/15.225113,+74.710605
+    const searchPattern = /maps\/search\/(-?\d+\.?\d*),\s*[\+]?(-?\d+\.?\d*)/i;
+    let match = cleanUrl.match(searchPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from search pattern:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 2: Place with coordinates - google.com/maps/place/.../@LAT,LNG,ZOOMz
+    // Example: google.com/maps/place/Location+Name/@15.225113,74.710605,17z
+    const placePattern = /@(-?\d+\.?\d*),\s*(-?\d+\.?\d*),\s*\d+\.?\d*z/i;
+    match = cleanUrl.match(placePattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from place pattern:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 3: Query parameter - google.com/maps?q=LAT,LNG
+    // Example: google.com/maps?q=15.225113,74.710605
+    const queryPattern = /[?&]q=(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/i;
+    match = cleanUrl.match(queryPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from query pattern:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 4: Direction destination - google.com/maps/dir//LAT,LNG
+    // Example: google.com/maps/dir//15.225113,74.710605
+    const dirPattern = /maps\/dir\/\/(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/i;
+    match = cleanUrl.match(dirPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from direction pattern:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 5: LL parameter - google.com/maps?...&ll=LAT,LNG
+    const llPattern = /[?&]ll=(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/i;
+    match = cleanUrl.match(llPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from ll parameter:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 6: Center parameter - google.com/maps?...&center=LAT,LNG
+    const centerPattern = /[?&]center=(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/i;
+    match = cleanUrl.match(centerPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from center parameter:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    // Pattern 7: Coordinates in URL path after @ - handle various formats
+    // Example: /@15.225113,74.710605
+    const atPattern = /@(-?\d+\.?\d*),\s*(-?\d+\.?\d*)/i;
+    match = cleanUrl.match(atPattern);
+    if (match) {
+      const lat = parseFloat(match[1]);
+      const lng = parseFloat(match[2]);
+      console.log('✅ Extracted coordinates from @ pattern:', { lat, lng });
+      return { lat, lng };
+    }
+    
+    console.warn('❌ Could not extract coordinates from Google Maps URL');
+    return null;
+  } catch (error) {
+    console.error('Error parsing Google Maps URL:', error);
+    return null;
+  }
+};
+
+// Check if a string looks like a Google Maps URL
+export const isGoogleMapsUrl = (input: string): boolean => {
+  if (!input || typeof input !== 'string') {
+    return false;
+  }
+  
+  const lowerInput = input.toLowerCase().trim();
+  
+  // Check for various Google Maps URL patterns
+  return (
+    lowerInput.includes('google.com/maps') ||
+    lowerInput.includes('maps.google.com') ||
+    lowerInput.includes('goo.gl/maps') ||
+    lowerInput.includes('maps.app.goo.gl')
+  );
+};
+
 // Check if Google Maps should be used
 export const shouldUseGoogleMaps = (): boolean => {
   return import.meta.env.VITE_USE_GOOGLE_MAPS === 'true';

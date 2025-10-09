@@ -177,7 +177,8 @@ const MyJobs = () => {
 
 
   const getPositions = (job: JobPosting) => {
-    return job.metadata?.jobDetails?.positions || 1;
+    const value = job.metadata?.jobDetails?.positions;
+    return value === null || value === undefined || value === '' ? '-' : value;
   };
 
   // Helper function to get job provider name

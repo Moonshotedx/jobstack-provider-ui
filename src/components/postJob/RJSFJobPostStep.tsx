@@ -57,6 +57,14 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [roleDisplayInfo, setRoleDisplayInfo] = useState<JobRoleConfig | null>(null);
+  // Pre-publish confirmation state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmChecks, setConfirmChecks] = useState({
+    positionsAccurate: false,
+    salaryMonthly: false,
+    locationWithPincode: false,
+    rightResponsiblePerson: false,
+  });
   
   // Add search state at component level
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
@@ -172,14 +180,26 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               sectionSchema.required.forEach((requiredField: string) => {
                 const fieldValue = formData[sectionKey][requiredField];
                 
-                // Skip location validation for all jobs (location is now optional)
-                if (requiredField === 'jobProviderLocation' || requiredField.toLowerCase().includes('location')) {
-                  return; // Skip location validation for all jobs
+                // Skip generalized location validation, but NOT jobProviderLocation when posting
+                if (requiredField.toLowerCase().includes('location')) {
+                  // For drafts, skip validation of any location fields
+                  if (isDraft) {
+                    return;
+                  }
+                  // When posting, specifically enforce jobProviderLocation but skip others
+                  if (requiredField !== 'jobProviderLocation') {
+                    return;
+                  }
                 }
                 
                 // Skip jobProviderName validation for drafts only
                 if (isDraft && requiredField === 'jobProviderName') {
                   return; // Skip jobProviderName validation for drafts
+                }
+                
+                // Skip positions validation for drafts only
+                if (isDraft && requiredField === 'positions') {
+                  return; // Skip positions validation for drafts
                 }
                 
                 // Check if field is empty, null, undefined, whitespace-only, or empty array
@@ -208,8 +228,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                     }
                   }
                   
-                  // Additional validation for job provider name (except for drafts), job title, and job provider location to prevent whitespace-only values
-                  // Skip location validation for drafts
+                  // Additional validation for job provider name (except for drafts), job title, and job provider location (only when posting) to prevent whitespace-only values
                   if (requiredField === 'title' || 
                       (!isDraft && requiredField === 'jobProviderName') ||
                       (!isDraft && requiredField === 'jobProviderLocation')) {
@@ -235,6 +254,13 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                 
                 const numValue = Number(fieldValue);
                 
+                // Special validation for positions field - limit to 200
+                if (fieldKey === 'positions' && numValue > 200) {
+                  const fieldTitle = field.title || fieldKey;
+                  const sectionTitle = sectionSchema.title || sectionKey;
+                  errors.push(`${sectionTitle}: ${fieldTitle} should be less than or equal to 200`);
+                }
+                
                 // Check minimum constraint
                 if (field.minimum !== undefined && numValue < field.minimum) {
                   const fieldTitle = field.title || fieldKey;
@@ -250,6 +276,24 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
                 }
               }
             });
+            
+            // Special validation for salary fields - at least one should be filled when posting (not for drafts)
+            if (!isDraft) {
+              const hasMinSalary = formData[sectionKey]?.minMonthlyInHand !== null && 
+                                  formData[sectionKey]?.minMonthlyInHand !== undefined && 
+                                  formData[sectionKey]?.minMonthlyInHand !== '';
+              const hasMaxSalary = formData[sectionKey]?.maxMonthlyInHand !== null && 
+                                  formData[sectionKey]?.maxMonthlyInHand !== undefined && 
+                                  formData[sectionKey]?.maxMonthlyInHand !== '';
+              
+              // Check if this section has salary fields
+              const hasSalaryFields = sectionSchema.properties?.minMonthlyInHand || sectionSchema.properties?.maxMonthlyInHand;
+              
+              if (hasSalaryFields && !hasMinSalary && !hasMaxSalary) {
+                const sectionTitle = sectionSchema.title || sectionKey;
+                errors.push(`${sectionTitle}: At least one salary field (minimum or maximum monthly in-hand salary) must be filled`);
+              }
+            }
           }
         }
       });
@@ -270,14 +314,15 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     if (!validation.isValid) {
       // Show toast error with summary
       const errorCount = validation.errors.length;
-      toast.error(`Please fix ${errorCount} required field${errorCount > 1 ? 's' : ''}`, {
+      toast.error(`Please fill ${errorCount} required field${errorCount > 1 ? 's' : ''}`, {
         description: validation.errors.slice(0, 3).join(', ') + (errorCount > 3 ? `... and ${errorCount - 3} more` : ''),
         duration: 5000,
       });
       return;
     }
 
-    onSubmit(formData, 'open');
+    // Open confirmation dialog instead of immediate submit
+    setShowConfirmDialog(true);
   };
 
   const handleSaveDraft = () => {
@@ -289,7 +334,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     if (!validation.isValid) {
       // Show toast error with summary
       const errorCount = validation.errors.length;
-      toast.error(`Please fix ${errorCount} required field${errorCount > 1 ? 's' : ''}`, {
+      toast.error(`Please fill ${errorCount} required field${errorCount > 1 ? 's' : ''}`, {
         description: validation.errors.slice(0, 3).join(', ') + (errorCount > 3 ? `... and ${errorCount - 3} more` : ''),
         duration: 5000,
       });
@@ -428,6 +473,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           placeholder={fieldSchema.description}
           required={isRequired}
           returnStructuredData={true} // Use structured data for job posting forms
+          enableMapSelection={true} // Enable map selection for job posting forms
         />
       );
     }
@@ -854,7 +900,25 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             // Only validate constraints if we have a complete number that seems intentional
             // Don't validate single digits as they might be part of a larger number
             if (inputValue.length > 1 || numValue >= 10) {
-              if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+              // Special validation for positions field - limit to 200
+              if (fieldKey === 'positions' && numValue > 200) {
+                toast.error(`${fieldSchema.title || fieldKey} should be less than or equal to 200`);
+                return;
+              }
+              
+              // For salary fields, only validate upper limits during typing to prevent going over
+              // Lower limits will be validated on blur to avoid blocking typing
+              if (fieldKey === 'maxMonthlyInHand' && numValue > 50000) {
+                toast.error(`${fieldSchema.title || fieldKey} should be no more than ₹50,000`);
+                return;
+              }
+              
+              // Skip enforcing minimum while typing for minMonthlyInHand; validate on blur
+              if (
+                fieldSchema.minimum !== undefined &&
+                numValue < fieldSchema.minimum &&
+                !(fieldKey === 'minMonthlyInHand')
+              ) {
                 toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
                 return;
               }
@@ -879,8 +943,26 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           return; // Don't update the form data with invalid number
         }
         
+        // Special validation for positions field - limit to 200
+        if (fieldKey === 'positions' && numValue > 200) {
+          toast.error(`${fieldSchema.title || fieldKey} should be less than or equal to 200`);
+          return; // Don't update the form data with value above 200
+        }
+        
+        // For salary fields, only validate upper limits during typing to prevent going over
+        // Lower limits will be validated on blur to avoid blocking typing
+        if (fieldKey === 'maxMonthlyInHand' && numValue > 50000) {
+          toast.error(`${fieldSchema.title || fieldKey} should be no more than ₹50,000`);
+          return;
+        }
+        
         // Check constraints while typing for non-integer fields
-        if (fieldSchema.minimum !== undefined && numValue < fieldSchema.minimum) {
+        // Skip enforcing minimum while typing for minMonthlyInHand; validate on blur
+        if (
+          fieldSchema.minimum !== undefined &&
+          numValue < fieldSchema.minimum &&
+          !(fieldKey === 'minMonthlyInHand')
+        ) {
           toast.error(`${fieldSchema.title || fieldKey} must be at least ${fieldSchema.minimum}`);
           return; // Don't update the form data with value below minimum
         }
@@ -910,6 +992,30 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           toast.error(`${fieldSchema.title || fieldKey} must be a valid ${isIntegerField ? 'whole number' : 'number'}`);
           e.target.value = '';
           updateFormData(sectionKey, fieldKey, null);
+          return;
+        }
+        
+        // Special validation for positions field - limit to 200
+        if (fieldKey === 'positions' && numValue > 200) {
+          toast.error(`${fieldSchema.title || fieldKey} should be less than or equal to 200`);
+          e.target.value = '200';
+          updateFormData(sectionKey, fieldKey, 200);
+          return;
+        }
+        
+        // Special validation for minimum salary - must be >= 5000
+        if (fieldKey === 'minMonthlyInHand' && numValue < 5000) {
+          toast.error(`${fieldSchema.title || fieldKey} should be at least ₹5,000`);
+          e.target.value = '5000';
+          updateFormData(sectionKey, fieldKey, 5000);
+          return;
+        }
+        
+        // Special validation for maximum salary - must be <= 50000
+        if (fieldKey === 'maxMonthlyInHand' && numValue > 50000) {
+          toast.error(`${fieldSchema.title || fieldKey} should be less than or equal to ₹50,000`);
+          e.target.value = '50000';
+          updateFormData(sectionKey, fieldKey, 50000);
           return;
         }
         
@@ -1201,6 +1307,88 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               {editJobData ? 'Cancel' : 'Back to Role Selection'}
             </Button>
           </div>
+
+          {/* Pre-publish confirmation dialog */}
+          <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Before taking this job live</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">Please confirm the following:</p>
+                <div className="space-y-3">
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.positionsAccurate}
+                      onChange={(e) => setConfirmChecks((prev) => ({ ...prev, positionsAccurate: e.target.checked }))}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span className="text-sm">Number of openings has been filled accurately.</span>
+                  </label>
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.salaryMonthly}
+                      onChange={(e) => setConfirmChecks((prev) => ({ ...prev, salaryMonthly: e.target.checked }))}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span className="text-sm">Salary entered is the monthly in-hand amount, not annual.</span>
+                  </label>
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.locationWithPincode}
+                      onChange={(e) => setConfirmChecks((prev) => ({ ...prev, locationWithPincode: e.target.checked }))}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span className="text-sm">Location is correct and includes the pincode.</span>
+                  </label>
+                  <label className="flex items-start gap-3">
+                    <input
+                      type="checkbox"
+                      checked={confirmChecks.rightResponsiblePerson}
+                      onChange={(e) => setConfirmChecks((prev) => ({ ...prev, rightResponsiblePerson: e.target.checked }))}
+                      className="mt-1 h-4 w-4"
+                    />
+                    <span className="text-sm">I am responsible for shortlisting and the right person to post this job.</span>
+                  </label>
+                </div>
+                <div className="flex gap-2 pt-2">
+                  <Button
+                    className="flex-1"
+                    disabled={
+                      !confirmChecks.positionsAccurate ||
+                      !confirmChecks.salaryMonthly ||
+                      !confirmChecks.locationWithPincode ||
+                      !confirmChecks.rightResponsiblePerson ||
+                      isSubmitting
+                    }
+                    onClick={() => {
+                      // Basic guard: ensure salary is monthly by warning if values seem annual-scale
+                      try {
+                        const salarySection = Object.values(formData || {}).find((s: any) => s && (typeof s === 'object') && ('minMonthlyInHand' in s || 'maxMonthlyInHand' in s)) as any;
+                        const minVal = salarySection?.minMonthlyInHand;
+                        const maxVal = salarySection?.maxMonthlyInHand;
+                        const looksAnnual = (v: any) => typeof v === 'number' && v > 100000; // heuristic
+                        if (looksAnnual(minVal) || looksAnnual(maxVal)) {
+                          toast.error('Salary looks like annual amount. Enter monthly in-hand salary.');
+                          return;
+                        }
+                      } catch {}
+                      setShowConfirmDialog(false);
+                      onSubmit(formData, 'open');
+                    }}
+                  >
+                    {isSubmitting ? 'Posting Job...' : 'Confirm and Post'}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>
+                    Review Again
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </DialogContent>
     </Dialog>

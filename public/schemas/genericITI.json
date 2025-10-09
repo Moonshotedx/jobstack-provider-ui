@@ -123,7 +123,7 @@
             "type": "number",
             "title": "Monthly minimum in-hand salary (INR)",
             "description": "Enter minimum monthly in-hand salary amount",
-            "minimum": 0,
+            "minimum": 5000,
             "maximum": 1000000
           },
           "maxMonthlyInHand": {
@@ -131,7 +131,7 @@
             "title": "Monthly maximum in-hand salary (INR)",
             "description": "Enter maximum monthly in-hand salary amount",
             "minimum": 0,
-            "maximum": 1000000
+            "maximum": 50000
           },
           "monthlyAttendanceBonus": {
             "type": "number",

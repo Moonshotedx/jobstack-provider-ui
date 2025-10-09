@@ -255,6 +255,11 @@ export const getRoleInitialData = (
           if (nestedKey === 'title' && roleName) {
             initialData[key][nestedKey] = roleName;
           }
+          // Ensure number of openings/positions starts empty in UI across all schemas
+          else if (nestedKey === 'positions') {
+            // Explicitly avoid applying schema defaults like 1
+            initialData[key][nestedKey] = undefined;
+          }
           // Prepopulate jobProviderName from organization data
           else if (nestedKey === 'jobProviderName' && prepopulationData?.jobProviderName) {
             initialData[key][nestedKey] = prepopulationData.jobProviderName;
