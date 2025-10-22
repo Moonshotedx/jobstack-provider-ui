@@ -7,73 +7,73 @@
     },
     "Warehouse Loader and Picker": {
       "schemaFile": "warehouse-loader-picker.json",
-      "industry": "Logistics", 
+      "industry": "Manufacturing", 
       "description": "Logistics and warehouse operations"
     },
 
     "In Store Promoter": {
       "schemaFile": "in-store-promoter.json",
-      "industry": "Retail",
+      "industry": "Customer Facing",
       "description": "Retail and promotional activities"
     },
     "Recruitment Associate": {
       "schemaFile": "recruitment-associate.json",
-      "industry": "Human Resources",
+      "industry": "Customer Facing",
       "description": "HR and talent acquisition positions"
     },
     "Electrician": {
       "schemaFile": "electrical.json",
-      "industry": "Electrical",
+      "industry": "ITI/Polytechnic",
       "description": "Electrical installation and maintenance positions"
     },
     "Fitter": {
       "schemaFile": "fitter.json",
-      "industry": "Fitting",
+      "industry": "ITI/Polytechnic",
       "description": "Fitting and maintenance positions"
     },
     "Mechanic": {
       "schemaFile": "mechanic.json",
-      "industry": "Mechanic",
+      "industry": "ITI/Polytechnic",
       "description": "Mechanic and maintenance positions"
     },
     "Machine Operator": {
       "schemaFile": "machine-operator.json",
-      "industry": "Machine Operator",
+      "industry": "ITI/Polytechnic",
       "description": "Machine operator and maintenance positions"
     },
     "Data Entry Operator": {
       "schemaFile": "data-entry.json",
-      "industry": "Data Entry",
+      "industry": "ITeS",
       "description": "Data entry and administrative positions"
     },
     "Tele Salesperson": {
       "schemaFile": "tele-salesperson.json",
-      "industry": "Sales",
+      "industry": "Customer Facing",
       "description": "Tele sales and customer service positions"
     },
     "Field Salesperson": {
       "schemaFile": "field-sales-person.json",
-      "industry": "Sales",
+      "industry": "Customer Facing",
       "description": "Field sales and customer service positions"
     },
     "ITI (Other)": {
       "schemaFile": "genericITI.json",
-      "industry": "ITI",
+      "industry": "ITI/Polytechnic",
       "description": "ITI  student positions across various trades"
     },
     "CNC Operator": {
       "schemaFile": "cnc-operator.json",
-      "industry": "ITI",
+      "industry": "ITI/Polytechnic",
       "description": "CNC machine operation and programming positions"
     },
     "Welder": {
       "schemaFile": "welder.json",
-      "industry": "ITI",
+      "industry": "ITI/Polytechnic",
       "description": "Welding and fabrication positions"
     },
     "Lathe Operator": {
       "schemaFile": "lathe-operator.json",
-      "industry": "ITI",
+      "industry": "ITI/Polytechnic",
       "description": "Lathe machine operation and maintenance positions"
     }
   }
