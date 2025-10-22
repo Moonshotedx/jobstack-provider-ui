@@ -17,7 +17,7 @@ interface EmployerProfile {
   id: string;
   name: string;
   address: string;
-  gstNumber: string;
+  gstNumber?: string; // Made optional since it's removed from UI
   logo?: string;
   contactPersonName: string;
   contactEmail?: string;
@@ -47,7 +47,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   const [formData, setFormData] = useState({
     name: '',
     address: '',
-    gstNumber: '',
     contactPersonName: '',
     contactEmail: '',
     contactPhone: '',
@@ -63,9 +62,8 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       setFormData({
         name: employer.name || '',
         address: employer.address || '',
-        gstNumber: employer.gstNumber || '',
         contactPersonName: employer.contactPersonName || '',
-  contactEmail: employer.contactEmail || '',
+        contactEmail: employer.contactEmail || '',
         contactPhone: employer.contactPhone || '',
         website: employer.website || '',
         description: employer.description || '',
@@ -76,7 +74,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
       setFormData({
         name: '',
         address: '',
-        gstNumber: '',
         contactPersonName: '',
         contactEmail: '',
         contactPhone: '',
@@ -171,13 +168,9 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     });
   };
 
-  // Helper function to generate slug from GST number or create unique ID
-  const generateSlug = (gstNumber?: string): string => {
-    // If GST number/identifier is provided, clean and use it as slug
-    if (gstNumber && gstNumber.trim().length > 0) {
-      return gstNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    }
-    // If empty, generate crypto-based unique ID
+  // Helper function to generate unique slug
+  const generateSlug = (): string => {
+    // Generate crypto-based unique ID
     return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
   };
 
@@ -243,42 +236,25 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     if (employer) {
       // Update existing organization
       try {
-        const currentGstNumber = formData.gstNumber?.trim() || '';
-        const existingGstNumber = employer.gstNumber || '';
-        
-        // Generate new slug based on current GST number
-        const newSlug = generateSlug(currentGstNumber);
+        // Generate new slug
+        const newSlug = generateSlug();
         
         console.log('🔄 [EmployerProfileDialog] Organization update details:', {
-          currentGstNumber,
-          existingGstNumber,
           newSlug,
           employerId: employer.id
         });
         
-        // Check if GST number (and therefore slug) has changed
-        const gstNumberChanged = currentGstNumber !== existingGstNumber;
-        
-        console.log('📊 [EmployerProfileDialog] GST number change analysis:', {
-          gstNumberChanged,
-          willCheckSlug: gstNumberChanged && currentGstNumber
-        });
-        
-        // If GST number changed, check slug availability
-        if (gstNumberChanged && currentGstNumber) {
-          console.log('🔍 [EmployerProfileDialog] GST number changed, checking slug availability...');
-          const isSlugAvailable = await checkSlugAvailability(newSlug);
-          if (!isSlugAvailable) {
-            console.log('❌ [EmployerProfileDialog] Slug is not available:', newSlug);
-            toast.error(t('errors.slugTakenUserFriendly'), {
-              description: t('errors.slugTakenDescription')
-            });
-            return;
-          }
-          console.log('✅ [EmployerProfileDialog] Slug is available, proceeding with update');
-        } else {
-          console.log('ℹ️ [EmployerProfileDialog] No GST number change detected, skipping slug check');
+        // Check slug availability
+        console.log('🔍 [EmployerProfileDialog] Checking slug availability...');
+        const isSlugAvailable = await checkSlugAvailability(newSlug);
+        if (!isSlugAvailable) {
+          console.log('❌ [EmployerProfileDialog] Slug is not available:', newSlug);
+          toast.error(t('errors.slugTakenUserFriendly'), {
+            description: t('errors.slugTakenDescription')
+          });
+          return;
         }
+        console.log('✅ [EmployerProfileDialog] Slug is available, proceeding with update');
 
         // Add +91 country code if not present
         let processedPhone = trimmedPhone;
@@ -288,7 +264,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
         
         const metadata = {
           address: trimmedAddress,
-          gstNumber: currentGstNumber,
           contactPersonName: trimmedContactPerson,
           contactEmail: trimmedEmail,
           contactPhone: processedPhone,
@@ -310,7 +285,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
         updateProfile({
           name: trimmedName,
           address: trimmedAddress,
-          gstNumber: currentGstNumber,
+          gstNumber: '', // Empty since removed from UI
           logo: formData.logo,
           contactPersonName: trimmedContactPerson,
           contactEmail: trimmedEmail,
@@ -364,7 +339,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
               <CardTitle className="text-lg">Organization Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label htmlFor="empName">Organization Name *</Label>
                   <Input
@@ -372,16 +347,6 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
                     placeholder="Enter organization name"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="gst">GST Number</Label>
-                  <Input
-                    id="gst"
-                    value={formData.gstNumber}
-                    onChange={(e) => handleInputChange('gstNumber', e.target.value)}
-                    placeholder="Enter GST number"
                     disabled={isSubmitting}
                   />
                 </div>

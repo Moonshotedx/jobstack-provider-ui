@@ -35,7 +35,6 @@ const FormSchema = z.object({
     .refine((val) => val.trim().length > 0, {
       message: 'Address cannot be empty or contain only spaces'
     }),
-  gstNumber: z.string().optional(),
   contactPersonName: z.string()
     .min(1, 'Contact person name is required')
     .refine((val) => val.trim().length > 0, {
@@ -82,7 +81,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       name: '',
       logo: '',
       address: '',
-      gstNumber: '',
       contactPersonName: '',
       contactEmail: '',
       contactPhone: '',
@@ -91,12 +89,8 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     }
   });
 
-  const generateSlug = (gstNumber?: string): string => {
-    // If GST number/identifier is provided, clean and use it as slug
-    if (gstNumber && gstNumber.trim().length > 0) {
-      return gstNumber.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
-    }
-    // If empty, generate crypto-based unique ID
+  const generateSlug = (): string => {
+    // Generate crypto-based unique ID
     return crypto.randomUUID().replace(/-/g, '').substring(0, 16);
   };
 
@@ -104,21 +98,19 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
     setIsLoading(true);
     
     try {
-      const slug = generateSlug(data.gstNumber);
+      const slug = generateSlug();
 
-      // Check if the slug is available (only if it's based on GST number to avoid conflicts)
-      if (data.gstNumber && data.gstNumber.trim().length > 0) {
-        console.log('🔍 Checking slug availability for:', slug);
-        const isSlugAvailable = await checkOrganizationSlugAvailability(slug);
-        
-        if (!isSlugAvailable) {
-          toast.error(t('errors.slugTakenUserFriendly'), {
-            description: t('errors.slugTakenDescription')
-          });
-          return;
-        }
-        console.log('✅ Slug is available:', slug);
+      // Check if the slug is available
+      console.log('🔍 Checking slug availability for:', slug);
+      const isSlugAvailable = await checkOrganizationSlugAvailability(slug);
+      
+      if (!isSlugAvailable) {
+        toast.error(t('errors.slugTakenUserFriendly'), {
+          description: t('errors.slugTakenDescription')
+        });
+        return;
       }
+      console.log('✅ Slug is available:', slug);
 
       // Prepare metadata with extended fields - trim whitespace from string fields
       // Add +91 country code if not present
@@ -129,9 +121,8 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       
       const metadata = {
         address: data.address.trim(),
-        gstNumber: data.gstNumber?.trim() || '',
         contactPersonName: data.contactPersonName.trim(),
-  contactEmail: data.contactEmail?.trim() ?? '',
+        contactEmail: data.contactEmail?.trim() ?? '',
         contactPhone: processedPhone,
         website: data.website?.trim() || '',
         description: data.description?.trim() || ''
@@ -167,7 +158,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         const organizationProfile = {
           name: data.name.trim(),
           address: data.address.trim(),
-          gstNumber: data.gstNumber?.trim() || '',
+          gstNumber: '', // Empty since removed from UI
           logo: data.logo || '',
           contactPersonName: data.contactPersonName.trim(),
           contactEmail: data.contactEmail?.trim() ?? '',
@@ -328,24 +319,6 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
               />
             </div>
 
-            <div className="md:col-span-2">
-              <FormField
-                control={form.control}
-                name="gstNumber"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('create.gstNumber')}</FormLabel>
-                    <FormControl>
-                      <Input placeholder={t('create.gstNumberPlaceholder')} {...field} />
-                    </FormControl>
-                    <FormMessage />
-                    <p className="text-xs text-muted-foreground">
-                      {t('create.gstNumberDesc')}
-                    </p>
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <div>
               <FormField

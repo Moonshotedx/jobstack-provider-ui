@@ -11,7 +11,7 @@ interface EmployerProfile {
   id: string;
   name: string;
   address: string;
-  gstNumber: string;
+  gstNumber?: string; // Made optional since it's removed from UI
   logo?: string;
   contactPersonName: string;
   contactEmail?: string;
