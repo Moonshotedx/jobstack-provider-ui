@@ -62,6 +62,7 @@
     "title": "Title",
     "required": "Required",
     "optional": "Optional",
+    "none": "None",
     "active": "Active",
     "inactive": "Inactive",
     "pending": "Pending",

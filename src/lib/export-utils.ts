@@ -1,15 +1,14 @@
 /**
- * Dynamic Export System for Candidate Data
+ * Selective Export System for Candidate Data
  * 
- * This system automatically discovers all fields from the candidate data structure
- * and creates comprehensive exports without hardcoding field names.
+ * This system exports only the specified fields from the candidate data structure.
  * 
- * Key Features:
- * - Automatically discovers all nested fields from candidate data
- * - Handles arrays, objects, and primitive values
- * - Creates human-readable CSV headers
- * - Supports JSON, CSV, and XLSX formats
- * - No hardcoded field names - completely dynamic
+ * Exported Fields:
+ * - Application Status
+ * - Who I Am: age, name, phone, gender, location
+ * - What I Have: all fields (experience, skills, etc.)
+ * - What I Want: all fields (preferences, expectations, etc.)
+ * - Job Details: role, status from tags
  */
 
 import type { JobApplicant } from '@/types/jobPost';
@@ -21,73 +20,67 @@ export type ExportFormat = 'json' | 'csv' | 'xlsx';
 export interface ExportOptions {
   format: ExportFormat;
   filename?: string;
+  jobDetails?: {
+    role?: string;
+    status?: string;
+  };
 }
 
 /**
- * Recursively extracts all field paths from an object
+ * Extracts only the specific fields we want to export from an application
  * 
- * Examples:
- * - Simple field: "name" -> "Name"
- * - Nested field: "whatIHave.age" -> "What I Have - Age"
- * - Array field: "skills[0].name" -> "Skills - Name"
- * 
- * @param obj - The object to extract fields from
- * @param prefix - Current field path prefix
- * @returns Array of field paths
+ * @param app - The job application object
+ * @param jobDetails - Job details including role and status
+ * @returns Flattened object with only the fields we want
  */
-const extractAllFields = (obj: any, prefix = ''): string[] => {
-  const fields: string[] = [];
+const extractExportFields = (app: JobApplicant, jobDetails?: { role?: string; status?: string }): Record<string, any> => {
+  const exported: Record<string, any> = {};
   
-  if (obj && typeof obj === 'object' && !Array.isArray(obj)) {
-    Object.entries(obj).forEach(([key, value]) => {
-      // Skip certain fields that might cause issues
-      if (key === '__proto__' || key === 'constructor') return;
-      
-      const fieldPath = prefix ? `${prefix}.${key}` : key;
-      
-      if (value && typeof value === 'object' && !Array.isArray(value)) {
-        // Recursively extract nested fields
-        fields.push(...extractAllFields(value, fieldPath));
-      } else if (Array.isArray(value) && value.length > 0) {
-        // Handle array fields - extract the structure of first array item
-        if (typeof value[0] === 'object' && value[0] !== null) {
-          fields.push(...extractAllFields(value[0], `${fieldPath}[0]`));
-        } else {
-          fields.push(fieldPath);
-        }
-      } else {
-        // Simple field
-        fields.push(fieldPath);
-      }
+  // Application Status
+  exported['status'] = app.status || 'N/A';
+  
+  // Who I Am fields
+  const whoIAm = (app as any).whoIAm;
+  if (whoIAm) {
+    exported['age'] = whoIAm.age || 'N/A';
+    exported['name'] = whoIAm.name || app.name || 'N/A';
+    exported['phone'] = whoIAm.phone || app.phone || 'N/A';
+    exported['gender'] = whoIAm.gender || 'N/A';
+    exported['location'] = whoIAm.location || app.location || 'N/A';
+  } else {
+    // Fallback to top-level fields if whoIAm doesn't exist
+    exported['age'] = app.age || 'N/A';
+    exported['name'] = app.name || 'N/A';
+    exported['phone'] = app.phone || 'N/A';
+    exported['gender'] = (app as any).gender || 'N/A';
+    exported['location'] = app.location || 'N/A';
+  }
+  
+  // What I Have fields - all fields dynamically (use original key names)
+  const whatIHave = app.whatIHave;
+  if (whatIHave && typeof whatIHave === 'object') {
+    Object.entries(whatIHave).forEach(([key, value]) => {
+      exported[key] = formatFieldValue(value);
     });
   }
   
-  return fields;
+  // What I Want fields - all fields dynamically (use original key names)
+  const whatIWant = app.whatIWant;
+  if (whatIWant && typeof whatIWant === 'object') {
+    Object.entries(whatIWant).forEach(([key, value]) => {
+      exported[key] = formatFieldValue(value);
+    });
+  }
+  
+  // Job Details
+  if (jobDetails) {
+    exported['role'] = jobDetails.role || 'N/A';
+    exported['jobStatus'] = jobDetails.status || 'N/A';
+  }
+  
+  return exported;
 };
 
-/**
- * Gets a nested value from an object using dot notation
- * 
- * Examples:
- * - "name" -> obj.name
- * - "whatIHave.age" -> obj.whatIHave.age
- * - "skills[0].name" -> obj.skills[0].name
- * 
- * @param obj - The object to extract from
- * @param path - The dot notation path
- * @returns The value at the path
- */
-const getNestedValue = (obj: any, path: string): any => {
-  return path.split('.').reduce((current, key) => {
-    if (key.includes('[')) {
-      // Handle array access like 'skills[0]'
-      const [arrayKey, indexStr] = key.split('[');
-      const index = parseInt(indexStr.replace(']', ''));
-      return current?.[arrayKey]?.[index];
-    }
-    return current?.[key];
-  }, obj);
-};
 
 /**
  * Formats field values for CSV export
@@ -133,61 +126,41 @@ const formatFieldValue = (value: any): string => {
 };
 
 /**
- * Converts candidate data to CSV format with dynamic headers
- * 
- * This function:
- * 1. Discovers all unique fields across all candidates
- * 2. Creates human-readable headers from field paths
- * 3. Maps each candidate's data to the discovered fields
- * 4. Returns properly formatted CSV content
+ * Converts candidate data to CSV format with only selected fields
  * 
  * @param data - Array of candidate data
- * @returns CSV string with dynamic headers and data
+ * @param jobDetails - Job details including role and status
+ * @returns CSV string with selected fields
  */
-const convertToDynamicCSV = (data: JobApplicant[]): string => {
+const convertToSelectiveCSV = (data: JobApplicant[], jobDetails?: { role?: string; status?: string }): string => {
   if (data.length === 0) return '';
 
-  // Collect all unique fields from all candidates
-  const allFieldsSet = new Set<string>();
-  
-  data.forEach(applicant => {
-    // Extract fields from the main applicant object
-    const applicantFields = extractAllFields(applicant);
-    applicantFields.forEach(field => allFieldsSet.add(field));
+  // Extract fields from all candidates to get all unique column headers
+  const allFieldsMap = new Map<string, boolean>();
+  const extractedData = data.map(applicant => {
+    const fields = extractExportFields(applicant, jobDetails);
+    Object.keys(fields).forEach(key => allFieldsMap.set(key, true));
+    return fields;
   });
 
-  // Convert to array and sort for consistent ordering
-  const allFields = Array.from(allFieldsSet).sort();
-
-  // Log discovered fields for debugging
-  console.log('🔍 Export - Discovered fields:', allFields);
-  console.log('📊 Export - Total fields:', allFields.length);
+  // Get all unique headers in a consistent order
+  const headers = Array.from(allFieldsMap.keys());
+  
+  console.log('🔍 Export - Selected fields:', headers);
+  console.log('📊 Export - Total fields:', headers.length);
 
   // Create CSV header
-  const header = allFields.map(field => {
-    // Convert field paths to readable headers
-    return field
-      .replace(/\./g, ' - ') // Replace dots with dashes
-      .replace(/\[0\]/g, '') // Remove array notation
-      .split(' - ')
-      .map(part => part.charAt(0).toUpperCase() + part.slice(1)) // Capitalize first letter
-      .join(' - ');
-  }).join(',');
-
-  // Log the final header for debugging
-  console.log('📋 Export - CSV Header:', header);
+  const headerRow = headers.map(h => `"${h}"`).join(',');
 
   // Create CSV rows
-  const rows = data.map(applicant => {
-    const rowData = allFields.map(field => {
-      const value = getNestedValue(applicant, field);
-      return `"${formatFieldValue(value)}"`;
-    });
-    
-    return rowData.join(',');
+  const rows = extractedData.map(record => {
+    return headers.map(header => {
+      const value = record[header] !== undefined ? record[header] : 'N/A';
+      return `"${String(value).replace(/"/g, '""')}"`; // Escape quotes
+    }).join(',');
   });
 
-  return [header, ...rows].join('\n');
+  return [headerRow, ...rows].join('\n');
 };
 
 // Helper function to download file
@@ -207,8 +180,8 @@ const downloadFile = (content: string, filename: string, mimeType: string) => {
  * Main export function for candidate data
  * 
  * Supports multiple formats:
- * - JSON: Raw data structure
- * - CSV: Dynamic headers with all discovered fields
+ * - JSON: Selected fields only
+ * - CSV: Selected fields with human-readable headers
  * - XLSX: Currently creates CSV that Excel can open
  * 
  * @param data - Array of candidate data to export
@@ -218,7 +191,7 @@ export const exportCandidates = async (
   data: JobApplicant[],
   options: ExportOptions
 ): Promise<void> => {
-  const { format, filename = 'candidates-export' } = options;
+  const { format, filename = 'candidates-export', jobDetails } = options;
 
   // Remove any existing file extension from filename to prevent duplication
   const baseFilename = filename.replace(/\.(json|csv|xlsx)$/i, '');
@@ -226,19 +199,21 @@ export const exportCandidates = async (
   try {
     switch (format) {
       case 'json':
-        const jsonContent = JSON.stringify(data, null, 2);
+        // Export selected fields as JSON
+        const selectedData = data.map(app => extractExportFields(app, jobDetails));
+        const jsonContent = JSON.stringify(selectedData, null, 2);
         downloadFile(jsonContent, `${baseFilename}.json`, 'application/json');
         break;
 
       case 'csv':
-        const csvContent = convertToDynamicCSV(data);
+        const csvContent = convertToSelectiveCSV(data, jobDetails);
         downloadFile(csvContent, `${baseFilename}.csv`, 'text/csv');
         break;
 
       case 'xlsx':
         // For XLSX, we'll need to use a library like xlsx
         // For now, we'll create a simple CSV that Excel can open
-        const xlsxContent = convertToDynamicCSV(data);
+        const xlsxContent = convertToSelectiveCSV(data, jobDetails);
         downloadFile(xlsxContent, `${baseFilename}.xlsx`, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
         break;
 
@@ -269,16 +244,17 @@ export const getExportFilename = (baseName: string, format: ExportFormat): strin
  * Useful for debugging and understanding the export structure
  * 
  * @param data - Array of candidate data
- * @returns Array of field paths that will be exported
+ * @param jobDetails - Job details including role and status
+ * @returns Array of field names that will be exported
  */
-export const previewExportFields = (data: JobApplicant[]): string[] => {
+export const previewExportFields = (data: JobApplicant[], jobDetails?: { role?: string; status?: string }): string[] => {
   if (data.length === 0) return [];
   
   const allFieldsSet = new Set<string>();
   
   data.forEach(applicant => {
-    const applicantFields = extractAllFields(applicant);
-    applicantFields.forEach(field => allFieldsSet.add(field));
+    const fields = extractExportFields(applicant, jobDetails);
+    Object.keys(fields).forEach(field => allFieldsSet.add(field));
   });
   
   return Array.from(allFieldsSet).sort();
@@ -287,26 +263,24 @@ export const previewExportFields = (data: JobApplicant[]): string[] => {
 /**
  * Gets sample data structure for debugging
  * 
- * Returns the first applicant's structure and discovered fields
+ * Returns the first applicant's exported structure
  * 
  * @param data - Array of candidate data
+ * @param jobDetails - Job details including role and status
  * @returns Object containing sample data and field information
  */
-export const getSampleDataStructure = (data: JobApplicant[]): any => {
+export const getSampleDataStructure = (data: JobApplicant[], jobDetails?: { role?: string; status?: string }): any => {
   if (data.length === 0) return null;
   
-  // Return the first applicant's structure as a sample
+  // Return the first applicant's exported structure as a sample
   const sample = data[0];
-  const fields = extractAllFields(sample);
+  const exportedFields = extractExportFields(sample, jobDetails);
   
   return {
     sampleApplicant: sample,
-    discoveredFields: fields,
-    fieldCount: fields.length,
-    sampleValues: fields.reduce((acc, field) => {
-      acc[field] = getNestedValue(sample, field);
-      return acc;
-    }, {} as Record<string, any>)
+    exportedFields: Object.keys(exportedFields),
+    fieldCount: Object.keys(exportedFields).length,
+    sampleValues: exportedFields
   };
 };
 

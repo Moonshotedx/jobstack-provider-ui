@@ -20,6 +20,8 @@
     "contactEmailPlaceholder": "contact@company.com",
     "contactPhone": "Contact Phone *",
     "contactPhonePlaceholder": "Enter phone number",
+    "association": "MSME Association",
+    "associationPlaceholder": "Select MSME Association (Optional)",
     "agreementText": "By creating an organization, you agree to the terms and conditions applicable to organizations for posting jobs and managing candidates.",
     "creating": "Creating...",
     "createButton": "Create Organization",

@@ -210,9 +210,16 @@ function JobApplicantsPage() {
           feedback: undefined, // No feedback in new API
           lastContacted: undefined, // No last contacted in new API
           tags: app.metadata.tags?.map(tag => tag.descriptor.name) || [],
-          // Add the new fields for table display
+          // Add the new fields for export
+          whoIAm: nestedMetadata?.whoIAm,
           whatIHave: nestedMetadata?.whatIHave,
           whatIWant: nestedMetadata?.whatIWant,
+          // Store job details for export
+          jobDetails: nestedMetadata?.jobDetails ? {
+            role: nestedMetadata.jobDetails.tags?.role || nestedMetadata.jobDetails.role,
+            status: nestedMetadata.jobDetails.tags?.status || nestedMetadata.jobDetails.status,
+            tags: nestedMetadata.jobDetails.tags
+          } : undefined,
           // Store the original application ID for API calls
           applicationId: app.id
         };

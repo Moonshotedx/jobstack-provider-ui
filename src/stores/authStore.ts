@@ -43,7 +43,9 @@ export interface Certificate {
 }
 
 export interface OrganizationProfile {
+  id?: string
   name: string
+  slug?: string
   address: string
   gstNumber?: string // Made optional since it's removed from UI
   logo?: string
@@ -52,6 +54,10 @@ export interface OrganizationProfile {
   contactPhone: string
   website?: string
   description: string
+  createdAt?: string
+  isActive?: boolean
+  isDefault?: boolean
+  type?: string // Organization type (e.g., "association")
 }
 
 interface UserState {

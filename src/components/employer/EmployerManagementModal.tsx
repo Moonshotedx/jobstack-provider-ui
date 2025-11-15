@@ -20,6 +20,7 @@ interface EmployerProfile {
   contactPhone: string;
   website?: string;
   description: string;
+  associationslug?: string;
   createdAt: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -51,6 +52,12 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
         metadata = {};
       }
       
+      // Extract associationslug from organization type field (format: "associationslug:xxx")
+      let associationslug = '';
+      if (org.type && org.type.startsWith('associationslug:')) {
+        associationslug = org.type.replace('associationslug:', '');
+      }
+      
       return {
         id: org.id,
         name: org.name || '',
@@ -62,6 +69,7 @@ const EmployerManagementModal: React.FC<EmployerManagementModalProps> = ({ isOpe
         contactPhone: metadata?.contactPhone || '',
         website: metadata?.website || '',
         description: metadata?.description || '',
+        associationslug: associationslug,
         createdAt: org.createdAt,
         isActive: true,
         isDefault: false // We'll determine this based on user's current organization

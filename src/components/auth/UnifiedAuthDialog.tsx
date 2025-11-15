@@ -190,11 +190,19 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
       // Handle successful verification
       if (response.token && response.user) {
         // Handle OTP verification response
-        await handleOtpVerification(response);
+        const result = await handleOtpVerification(response);
         
-        toast.success('Login successful!');
-        onClose();
-        navigate({ to: '/dashboard', replace: true });
+        if (result.needsOrgSelection) {
+          // Show organization selection - we'll handle this in a separate state
+          // For now, redirect to dashboard and let the dashboard handle org selection
+          toast.success('Login successful!');
+          onClose();
+          navigate({ to: '/dashboard', replace: true });
+        } else {
+          toast.success('Login successful!');
+          onClose();
+          navigate({ to: result.redirectPath || '/dashboard', replace: true });
+        }
       } else {
         toast.error('Invalid OTP. Please try again.');
       }

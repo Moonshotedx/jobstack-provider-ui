@@ -6,11 +6,12 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { useUpdateOrganization } from '@/hooks/useJobsApi';
+import { useUpdateOrganization, useGetAssociations } from '@/hooks/useJobsApi';
 import { Loader2, Upload, Building, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
 import { useUserStore } from '@/stores/authStore';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
@@ -24,6 +25,7 @@ interface EmployerProfile {
   contactPhone: string;
   website?: string;
   description: string;
+  associationslug?: string;
   createdAt: string;
   isActive: boolean;
   isDefault?: boolean;
@@ -44,6 +46,7 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
   const emailLabel = t('organizations:create.contactEmail').replace(/\s*\*$/, '');
   const emailPlaceholder = t('organizations:create.contactEmailPlaceholder');
   const optionalLabel = t('common:labels.optional');
+  const { data: associations, isLoading: isLoadingAssociations } = useGetAssociations(isOpen);
   const [formData, setFormData] = useState({
     name: '',
     address: '',
@@ -52,7 +55,8 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
     contactPhone: '',
     website: '',
     description: '',
-    logo: ''
+    logo: '',
+    associationslug: ''
   });
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
 
@@ -67,7 +71,8 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
         contactPhone: employer.contactPhone || '',
         website: employer.website || '',
         description: employer.description || '',
-        logo: employer.logo || ''
+        logo: employer.logo || '',
+        associationslug: employer.associationslug || ''
       });
     } else {
       // Reset form for new employer
@@ -79,7 +84,8 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
         contactPhone: '',
         website: '',
         description: '',
-        logo: ''
+        logo: '',
+        associationslug: ''
       });
     }
   }, [employer]);
@@ -271,13 +277,19 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
           description: formData.description?.trim() || ''
         };
 
+        // Set organization type based on association selection
+        const orgType = formData.associationslug 
+          ? `associationslug:${formData.associationslug}` 
+          : 'employer';
+
         await updateOrganizationMutation.mutateAsync({
           organizationId: employer.id,
           organizationData: {
             name: trimmedName,
             metadata: metadata, // Pass as object, not JSON string
             logo: formData.logo,
-            slug: newSlug // Always use properly generated slug
+            slug: newSlug, // Always use properly generated slug
+            type: orgType
           }
         });
 
@@ -483,6 +495,26 @@ const EmployerProfileDialog: React.FC<EmployerProfileDialogProps> = ({
                     disabled={isSubmitting}
                   />
                 </div>
+              </div>
+
+              <div>
+                <Label htmlFor="associationslug">{t('organizations:create.association')}</Label>
+                <Select
+                  value={formData.associationslug || undefined}
+                  onValueChange={(value) => handleInputChange('associationslug', value || '')}
+                  disabled={isSubmitting || isLoadingAssociations}
+                >
+                  <SelectTrigger id="associationslug">
+                    <SelectValue placeholder={t('organizations:create.associationPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {associations?.map((association) => (
+                      <SelectItem key={association.slug} value={association.slug}>
+                        {association.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>

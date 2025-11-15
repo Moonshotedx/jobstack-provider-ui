@@ -6,6 +6,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { FileDown, FileText, FileSpreadsheet, FileJson, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useTranslation } from 'react-i18next';
@@ -34,8 +44,28 @@ const ExportButton: React.FC<ExportButtonProps> = ({
 }) => {
   const { t } = useTranslation('candidates');
   const [isExporting, setIsExporting] = useState(false);
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
+  const [selectedFormat, setSelectedFormat] = useState<ExportFormat | null>(null);
+  const [consentChecked, setConsentChecked] = useState(false);
 
-  const handleExport = async (format: ExportFormat) => {
+  const handleFormatClick = (format: ExportFormat) => {
+    setSelectedFormat(format);
+    setConsentChecked(false);
+    setShowConsentDialog(true);
+  };
+
+  const handleConsentConfirm = async () => {
+    if (!consentChecked || !selectedFormat) {
+      return;
+    }
+    
+    setShowConsentDialog(false);
+    await performExport(selectedFormat);
+    setSelectedFormat(null);
+    setConsentChecked(false);
+  };
+
+  const performExport = async (format: ExportFormat) => {
     if (!validateExportData(data)) {
       toast.error(t('export.noDataToExport'), {
         description: t('export.noDataDescription'),
@@ -43,15 +73,22 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       return;
     }
 
+    // Extract jobDetails from the first applicant (they all have the same job)
+    const jobDetails = data.length > 0 && data[0].jobDetails ? {
+      role: data[0].jobDetails.role,
+      status: data[0].jobDetails.status
+    } : undefined;
+
     // Debug: Show what fields will be exported
-    const fields = previewExportFields(data);
-    const sampleStructure = getSampleDataStructure(data);
+    const fields = previewExportFields(data, jobDetails);
+    const sampleStructure = getSampleDataStructure(data, jobDetails);
     
     console.log('🔍 Export Debug Info:', {
       totalCandidates: data.length,
       discoveredFields: fields,
       fieldCount: fields.length,
-      sampleStructure
+      sampleStructure,
+      jobDetails
     });
 
     setIsExporting(true);
@@ -61,7 +98,8 @@ const ExportButton: React.FC<ExportButtonProps> = ({
       
       await exportCandidates(data, {
         format,
-        filename
+        filename,
+        jobDetails
       });
 
       toast.success(t('export.exportSuccess'), {
@@ -106,6 +144,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
   const formats: ExportFormat[] = ['csv', 'xlsx', 'json'];
 
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button 
@@ -130,7 +169,7 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         {formats.map((format) => (
           <DropdownMenuItem
             key={format}
-            onClick={() => handleExport(format)}
+            onClick={() => handleFormatClick(format)}
             disabled={isExporting}
             className="flex items-center gap-2"
           >
@@ -140,6 +179,69 @@ const ExportButton: React.FC<ExportButtonProps> = ({
         ))}
       </DropdownMenuContent>
     </DropdownMenu>
+
+    <Dialog 
+      open={showConsentDialog} 
+      onOpenChange={(open) => {
+        setShowConsentDialog(open);
+        if (!open) {
+          setConsentChecked(false);
+          setSelectedFormat(null);
+        }
+      }}
+    >
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Export Consent</DialogTitle>
+          <DialogDescription>
+            Please confirm your agreement before downloading candidate data.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="flex items-start space-x-3 py-4">
+          <Checkbox
+            id="consent-checkbox"
+            checked={consentChecked}
+            onCheckedChange={(checked) => setConsentChecked(checked === true)}
+            className="mt-1"
+          />
+          <Label
+            htmlFor="consent-checkbox"
+            className="text-sm font-normal leading-relaxed cursor-pointer"
+          >
+            I agree to use and store downloaded user information securely and only for hiring, as per the Terms of Use and Privacy Policy.
+          </Label>
+        </div>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => {
+              setShowConsentDialog(false);
+              setConsentChecked(false);
+              setSelectedFormat(null);
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleConsentConfirm}
+            disabled={!consentChecked || isExporting}
+          >
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>
+                <FileDown className="h-4 w-4 mr-2" />
+                Download
+              </>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </>
   );
 };
 

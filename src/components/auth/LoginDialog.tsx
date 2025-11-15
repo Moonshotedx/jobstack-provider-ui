@@ -12,6 +12,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import ForgotPasswordDialog from './ForgotPasswordDialog';
+import { LoginOrgSelection } from './LoginOrgSelection';
+import { getOrganizationList } from '@/lib/api-client';
 
 const SignInSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -32,6 +34,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   const { login, isLoading } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showOrgSelection, setShowOrgSelection] = useState(false);
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [loginData, setLoginData] = useState<SignInInputs | null>(null);
   
   const signInForm = useForm<SignInInputs>({
     resolver: zodResolver(SignInSchema)
@@ -39,10 +44,34 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
 
   const onSignInSubmit = async (data: SignInInputs) => {
     try {
-      await login(data);
+      setLoginData(data);
+      const result = await login(data);
+      
+      if (result.needsOrgSelection) {
+        // Fetch organizations for selection
+        const orgs = await getOrganizationList();
+        setOrganizations(orgs);
+        setShowOrgSelection(true);
+      } else {
+        onClose();
+        // Clear any potential URL params before navigation
+        navigate({ to: result.redirectPath || '/dashboard', replace: true });
+        toast.success(t('login.signInSuccess'));
+      }
+    } catch (error: any) {
+      toast.error(error.message || t('errors.loginFailed'));
+    }
+  };
+
+  const handleOrgSelection = async (orgId: string) => {
+    if (!loginData) return;
+    
+    try {
+      const result = await login(loginData, orgId);
+      setShowOrgSelection(false);
       onClose();
       // Clear any potential URL params before navigation
-      navigate({ to: '/dashboard', replace: true });
+      navigate({ to: result.redirectPath || '/dashboard', replace: true });
       toast.success(t('login.signInSuccess'));
     } catch (error: any) {
       toast.error(error.message || t('errors.loginFailed'));
@@ -52,6 +81,8 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
   const handleClose = () => {
     signInForm.reset();
     setShowForgotPassword(false);
+    setShowOrgSelection(false);
+    setLoginData(null);
     onClose();
   };
 
@@ -166,8 +197,16 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
           onBackToLogin={handleBackToLogin}
         />
       )}
+      
+      {showOrgSelection && (
+        <LoginOrgSelection
+          isOpen={showOrgSelection}
+          organizations={organizations}
+          onSelect={handleOrgSelection}
+        />
+      )}
     </Dialog>
   );
 };
 
-export default LoginDialog; 
+export default LoginDialog;

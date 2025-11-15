@@ -190,6 +190,16 @@ export interface JobApplication {
       desiredLocation: string;
       interestedIndustry: string;
       skillCertifications: any[];
+      jobDetails?: {
+        id: string;
+        role: string;
+        tags?: {
+          role: string;
+          status: string;
+          [key: string]: any;
+        };
+        [key: string]: any;
+      };
     };
   };
   contact: {
@@ -505,14 +515,33 @@ const uploadFileThroughServer = async (file: File): Promise<void> => {
   }
 };
 
+// Association types
+export interface Association {
+  id: string;
+  name: string;
+  slug: string;
+  [key: string]: any; // Allow additional properties
+}
+
+export interface GetAssociationsResponse {
+  associations: Association[];
+  pagination: {
+    page: number;
+    limit: number;
+    totalCount: number;
+  };
+}
+
 // Organization types
 export interface Organization {
   id: string;
   name: string;
   slug: string;
   logo?: string;
+  associationslug?: string;
   createdAt: string;
   metadata: string; // JSON string containing organization details
+  type?: string; // Organization type (e.g., "association")
 }
 
 export interface OrganizationListResponse {
@@ -526,6 +555,110 @@ export const getOrganizationList = async (): Promise<Organization[]> => {
     return response.data;
   } catch (error) {
     console.error('Failed to fetch organization list:', error);
+    throw error;
+  }
+};
+
+// Get associations with pagination support
+export const getAssociations = async (page: number = 1, limit: number = 20): Promise<Association[]> => {
+  try {
+    const allAssociations: Association[] = [];
+    let currentPage = page;
+    let totalCount = 0;
+    let hasMore = true;
+
+    // Get auth token for the request
+    const authToken = typeof window !== 'undefined' 
+      ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token'))
+      : null;
+
+    if (!authToken) {
+      throw new Error('Authentication required');
+    }
+
+    const baseUrl = import.meta.env.VITE_API_ENDPOINT;
+
+    while (hasMore) {
+      // Use axios directly with full URL for v2 API endpoint
+      const response = await axios.get<ApiResponse<GetAssociationsResponse>>(
+        `${baseUrl}/api/v2/association?page=${currentPage}&limit=${limit}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`,
+          },
+          withCredentials: true,
+        }
+      );
+
+      const { associations, pagination } = response.data.data;
+      allAssociations.push(...associations);
+
+      // Set totalCount from first response
+      if (currentPage === page) {
+        totalCount = pagination.totalCount;
+      }
+
+      // Check if we need to fetch more pages
+      const totalPages = Math.ceil(totalCount / limit);
+      if (currentPage >= totalPages || associations.length < limit) {
+        hasMore = false;
+      } else {
+        currentPage++;
+      }
+    }
+
+    return allAssociations;
+  } catch (error) {
+    console.error('Failed to fetch associations:', error);
+    throw error;
+  }
+};
+
+// Association Overview types
+export interface AssociationOverview {
+  name: string;
+  totalJobs: number;
+  totalOpenings: number;
+  totalMSMEs: number;
+  totalApplications: number;
+}
+
+export interface AssociationOverviewResponse {
+  statusCode: number;
+  message: string;
+  data: AssociationOverview;
+}
+
+// Get association overview by slug
+export const getAssociationOverview = async (slug: string): Promise<AssociationOverview> => {
+  try {
+    // Get auth token for the request
+    const authToken = typeof window !== 'undefined' 
+      ? (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token'))
+      : null;
+
+    if (!authToken) {
+      throw new Error('Authentication required');
+    }
+
+    const baseUrl = import.meta.env.VITE_API_ENDPOINT;
+
+    // Use axios directly with full URL for v2 API endpoint
+    const response = await axios.get<AssociationOverviewResponse>(
+      `${baseUrl}/api/v2/association/${slug}/overview`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        withCredentials: true,
+      }
+    );
+
+    return response.data.data;
+  } catch (error) {
+    console.error('Failed to fetch association overview:', error);
     throw error;
   }
 };

@@ -22,6 +22,8 @@ import { useUserStore } from '@/stores/authStore';
 import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
 import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useGetAssociations } from '@/hooks/useJobsApi';
 
 const FormSchema = z.object({
   name: z.string()
@@ -57,7 +59,8 @@ const FormSchema = z.object({
       message: 'Phone number can only contain digits, spaces, +, -, and parentheses'
     }),
   website: z.string().url().optional().or(z.literal('')),
-  description: z.string().optional()
+  description: z.string().optional(),
+  associationslug: z.string().optional()
 })
 
 type FormData = z.infer<typeof FormSchema>;
@@ -74,6 +77,7 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const { updateProfile } = useUserStore();
   const contactEmailLabel = t('create.contactEmail').replace(/\s*\*$/, '');
+  const { data: associations, isLoading: isLoadingAssociations } = useGetAssociations(isOpen !== false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -85,7 +89,8 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       contactEmail: '',
       contactPhone: '',
       website: '',
-      description: ''
+      description: '',
+      associationslug: ''
     }
   });
 
@@ -128,11 +133,17 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
         description: data.description?.trim() || ''
       };
 
+      // Set organization type based on association selection
+      const orgType = data.associationslug 
+        ? `associationslug:${data.associationslug}` 
+        : 'employer';
+
       const orgData = {
         name: data.name.trim(),
         slug: slug,
         logo: data.logo || undefined,
-        metadata: metadata // Pass metadata to better-auth
+        metadata: metadata, // Pass metadata to better-auth
+        type: orgType
       };
 
       const organization = await createOrganisation(orgData);
@@ -330,6 +341,37 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                     <FormControl>
                       <Input placeholder={t('create.websitePlaceholder')} {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="md:col-span-2">
+              <FormField
+                control={form.control}
+                name="associationslug"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('create.association')}</FormLabel>
+                    <Select 
+                      value={field.value || undefined} 
+                      onValueChange={(value) => field.onChange(value || undefined)}
+                      disabled={isLoadingAssociations}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={t('create.associationPlaceholder')} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {associations?.map((association) => (
+                          <SelectItem key={association.slug} value={association.slug}>
+                            {association.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}

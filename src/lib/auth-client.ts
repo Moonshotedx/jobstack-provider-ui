@@ -32,6 +32,7 @@ export const createOrganisation = async (orgInfo: {
   slug: string;
   logo?: string;
   metadata?: any;
+  type?: string;
 }) => {
   try {
     // Import the API client dynamically to avoid circular dependencies
@@ -43,6 +44,7 @@ export const createOrganisation = async (orgInfo: {
       slug: orgInfo.slug,
       logo: orgInfo.logo,
       metadata: orgInfo.metadata,
+      type: orgInfo.type,
     });
 
     return createResponse.data;

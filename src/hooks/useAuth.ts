@@ -24,7 +24,7 @@ interface UseAuthReturn {
   pendingVerificationEmail?: string;
   
   // Actions
-  login: (data: LoginData) => Promise<void>;
+  login: (data: LoginData, selectedOrgId?: string) => Promise<{ redirectPath: string | null; needsOrgSelection: boolean }>;
   register: (data: RegisterData) => Promise<{ needsVerification: boolean }>;
   logout: () => Promise<void>;
   checkSession: () => Promise<void>;
@@ -32,7 +32,7 @@ interface UseAuthReturn {
   resendVerificationEmail: () => Promise<void>;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
-  handleOtpVerification: (verificationData: any) => Promise<void>;
+  handleOtpVerification: (verificationData: any) => Promise<{ redirectPath: string | null; needsOrgSelection: boolean }>;
 }
 
 export const useAuth = (): UseAuthReturn => {
@@ -44,7 +44,7 @@ export const useAuth = (): UseAuthReturn => {
   const queryClient = useQueryClient();
 
   // Helper function to load organization profile from custom session
-  const loadOrganizationProfile = async (_sessionData: any) => {
+  const loadOrganizationProfile = async (_sessionData: any, selectedOrgId?: string) => {
     try {
       // First, get the user's organizations using the API client with auth token
       const { getOrganizationList } = await import('@/lib/api-client');
@@ -52,15 +52,21 @@ export const useAuth = (): UseAuthReturn => {
       
       // If user has no organizations, return undefined
       if (organizations.length === 0) {
-        return undefined;
+        return { profile: undefined, organizations: [], redirectPath: '/dashboard' };
       }
 
-      // For now, use the first organization as active
-      // In the future, we can implement proper active organization selection
-      const activeOrg = organizations[0];
+      // If user has multiple organizations and no selectedOrgId, return organizations for selection
+      if (organizations.length > 1 && !selectedOrgId) {
+        return { profile: undefined, organizations, redirectPath: null };
+      }
+
+      // Find the active organization (selected or first)
+      const activeOrg = selectedOrgId 
+        ? organizations.find(org => org.id === selectedOrgId) || organizations[0]
+        : organizations[0];
       
       if (!activeOrg) {
-        return undefined;
+        return { profile: undefined, organizations: [], redirectPath: '/dashboard' };
       }
 
       // Parse the metadata JSON string
@@ -95,13 +101,17 @@ export const useAuth = (): UseAuthReturn => {
         description: metadata.description || '',
         createdAt: activeOrg.createdAt,
         isActive: true,
-        isDefault: true
+        isDefault: true,
+        type: activeOrg.type // Include organization type
       };
 
-      return profile;
+      // Determine redirect path based on organization type
+      const redirectPath = activeOrg.type === 'association' ? '/admin-dashboard' : '/dashboard';
+
+      return { profile, organizations, redirectPath };
     } catch (error) {
       console.error('Failed to load organization profile:', error);
-      return undefined;
+      return { profile: undefined, organizations: [], redirectPath: '/dashboard' };
     }
   };
 
@@ -119,7 +129,7 @@ export const useAuth = (): UseAuthReturn => {
       const sessionUser = await sessionManager.getSession();
       
       if (sessionUser) {
-        const profile = await loadOrganizationProfile({ user: sessionUser });
+        const { profile } = await loadOrganizationProfile({ user: sessionUser });
         
         const mappedUser = {
           id: sessionUser.id,
@@ -159,7 +169,7 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const login = async (data: LoginData) => {
+  const login = async (data: LoginData, selectedOrgId?: string): Promise<{ redirectPath: string | null; needsOrgSelection: boolean }> => {
     setIsLoading(true);
     try {
       const loginRequest = await authClient.signIn.email({ 
@@ -187,7 +197,7 @@ export const useAuth = (): UseAuthReturn => {
           phoneNumber: ''
         });
         
-        const profile = await loadOrganizationProfile(loginRequest.data);
+        const { profile, organizations, redirectPath } = await loadOrganizationProfile(loginRequest.data, selectedOrgId);
         
         const mappedUser = {
           id: betterAuthUser.id,
@@ -201,9 +211,18 @@ export const useAuth = (): UseAuthReturn => {
         // Invalidate session and jobs queries to force refetch with new login data
         await queryClient.invalidateQueries({ queryKey: ['session'] });
         await queryClient.invalidateQueries({ queryKey: ['jobs'] });
+        
+        // If multiple organizations and no selection, return needsOrgSelection flag
+        if (organizations.length > 1 && !selectedOrgId) {
+          return { redirectPath: null, needsOrgSelection: true };
+        }
+        
+        return { redirectPath: redirectPath || '/dashboard', needsOrgSelection: false };
       } else if (loginRequest.error) {
         throw new Error(loginRequest.error.message);
       }
+      
+      return { redirectPath: '/dashboard', needsOrgSelection: false };
     } finally {
       setIsLoading(false);
     }
@@ -375,7 +394,7 @@ export const useAuth = (): UseAuthReturn => {
     }
   };
 
-  const handleOtpVerification = async (verificationData: any) => {
+  const handleOtpVerification = async (verificationData: any, selectedOrgId?: string): Promise<{ redirectPath: string | null; needsOrgSelection: boolean }> => {
     try {
       // Store the token in localStorage or sessionStorage for future requests
       if (verificationData.token) {
@@ -388,7 +407,7 @@ export const useAuth = (): UseAuthReturn => {
       
       if (customUser) {
         // Session manager already has the user cached now
-        const profile = await loadOrganizationProfile({ user: customUser });
+        const { profile, organizations, redirectPath } = await loadOrganizationProfile({ user: customUser }, selectedOrgId);
         
         const userData = {
           id: customUser.id,
@@ -399,6 +418,19 @@ export const useAuth = (): UseAuthReturn => {
         };
 
         setUser(userData);
+        
+        // Clear any pending verification email
+        setPendingVerificationEmail(undefined);
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries();
+        
+        // If multiple organizations and no selection, return needsOrgSelection flag
+        if (organizations.length > 1 && !selectedOrgId) {
+          return { redirectPath: null, needsOrgSelection: true };
+        }
+        
+        return { redirectPath: redirectPath || '/dashboard', needsOrgSelection: false };
       } else {
         // Fallback to OTP verification data if session manager fails
         const userData = {
@@ -426,13 +458,26 @@ export const useAuth = (): UseAuthReturn => {
           banExpires: verificationData.user.banExpires || null,
           phoneNumber: verificationData.user.phoneNumber || ''
         });
+        
+        // Try to load organization profile
+        const { profile, organizations, redirectPath } = await loadOrganizationProfile({ user: verificationData.user }, selectedOrgId);
+        if (profile) {
+          setUser({ ...userData, profile });
+        }
+        
+        // Clear any pending verification email
+        setPendingVerificationEmail(undefined);
+        
+        // Invalidate queries to refresh data
+        queryClient.invalidateQueries();
+        
+        // If multiple organizations and no selection, return needsOrgSelection flag
+        if (organizations.length > 1 && !selectedOrgId) {
+          return { redirectPath: null, needsOrgSelection: true };
+        }
+        
+        return { redirectPath: redirectPath || '/dashboard', needsOrgSelection: false };
       }
-      
-      // Clear any pending verification email
-      setPendingVerificationEmail(undefined);
-      
-      // Invalidate queries to refresh data
-      queryClient.invalidateQueries();
       
     } catch (error: any) {
       toast.error(error.message || 'Failed to complete verification');

@@ -222,22 +222,30 @@ export interface JobApplicant {
   lastContacted?: string;
   tags?: string[];
   // New fields for the updated API response
-  whatIHave?: {
+  whoIAm?: {
     age: number;
-    qualityScore: number;
-    stitchingSpeed: number;
-    machinesOperated: string[];
-    jukiMachineExperience: string;
-    qualityScoreExplanation: string;
+    name: string;
+    phone: string;
+    gender?: string;
+    location: string;
+    locationData?: any;
+    isAgeVerified?: boolean;
+    isNameVerified?: boolean;
+    currentLocation?: string;
+    desiredLocation?: string;
+    [key: string]: any; // Allow additional properties
+  };
+  whatIHave?: {
+    [key: string]: any; // All fields dynamically
   };
   whatIWant?: {
-    monthlyPFESIC: string;
-    readyToMigrate: string;
-    stayPreferences: string;
-    workHoursPerDay: number;
-    maxCostPerSharingBed: number;
-    monthlyOTExpectation: number;
-    monthlyInHandPreferred: number;
+    [key: string]: any; // All fields dynamically
+  };
+  // Store job details for export
+  jobDetails?: {
+    role?: string;
+    status?: string;
+    tags?: any;
   };
   // Store the original application ID for API calls
   applicationId?: string;

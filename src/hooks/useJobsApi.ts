@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, getAssociations, getAssociationOverview } from '@/lib/api-client';
+import { useUserStore } from '@/stores/authStore';
 
 
 // Query keys for cache management
@@ -245,12 +246,48 @@ export const useTakeApplicationAction = () => {
   });
 };
 
+// Hook to get associations
+export const useGetAssociations = (enabled: boolean = true) => {
+  // Check for auth token to enable the query only when authenticated
+  const hasAuthToken = typeof window !== 'undefined' && 
+    (localStorage.getItem('auth-token') || sessionStorage.getItem('auth-token'));
+  
+  // Check if user is association type - associations API should not be called for association users
+  const user = useUserStore((state) => state.user);
+  const isAssociationUser = user?.profile && 'type' in user.profile && user.profile.type === 'association';
+  
+  return useQuery({
+    queryKey: ['associations'],
+    queryFn: () => getAssociations(1, 20),
+    enabled: enabled && !!hasAuthToken && !isAssociationUser, // Only fetch when authenticated, enabled, and not an association user
+    staleTime: 10 * 60 * 1000, // Cache for 10 minutes
+    refetchOnWindowFocus: false,
+    retry: 2,
+  });
+};
+
 // Organization hooks
 export const useGetOrganizationList = () => {
   return useQuery({
     queryKey: ['organizations'],
     queryFn: () => getOrganizationList(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+};
+
+// Association Overview hook
+export const useAssociationOverview = (slug: string | undefined) => {
+  return useQuery({
+    queryKey: ['association-overview', slug],
+    queryFn: () => {
+      if (!slug) {
+        throw new Error('Association slug is required');
+      }
+      return getAssociationOverview(slug);
+    },
+    enabled: !!slug,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: 2,
   });
 };
 
@@ -265,6 +302,7 @@ export const useUpdateOrganization = () => {
         logo?: string;
         metadata: Record<string, any>;
         slug?: string;
+        type?: string;
       };
     }) => {
       console.log('🔄 Updating organization with jobs API:', { organizationId, organizationData });
@@ -289,7 +327,8 @@ export const useUpdateOrganization = () => {
           name: organizationData.name,
           logo: organizationData.logo,
           metadata: organizationData.metadata,
-          slug: finalSlug
+          slug: finalSlug,
+          type: organizationData.type
         },
         organizationId: organizationId
       });

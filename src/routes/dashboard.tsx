@@ -1,4 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { useState, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import Header from '@/components/Header'
@@ -503,6 +503,7 @@ function DashboardContent() {
 function DashboardComponent() {
   const user = useUserStore((state) => state.user);
   const isLoading = useUserStore((state) => state.isLoading);
+  const navigate = useNavigate();
   
   // Check for auth token or user in store (simplified)
   useEffect(() => {
@@ -516,7 +517,13 @@ function DashboardComponent() {
       
       if (!user && !authToken) {
         // No user and no token, redirect to login
-        window.location.href = '/';
+        navigate({ to: '/', replace: true });
+        return;
+      }
+      
+      // If user has association type organization, redirect to admin dashboard
+      if (user?.profile && 'type' in user.profile && user.profile.type === 'association') {
+        navigate({ to: '/admin-dashboard', replace: true });
         return;
       }
       
@@ -527,7 +534,7 @@ function DashboardComponent() {
     };
     
     checkAuth();
-  }, [user, isLoading]);
+  }, [user, isLoading, navigate]);
 
   // Show loading while initializing session
   if (isLoading) {
