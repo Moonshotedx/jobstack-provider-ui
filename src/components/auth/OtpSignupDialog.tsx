@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +32,9 @@ const OtpSignupSchema = z.object({
     .refine((val) => /^[a-zA-Z\s]+$/.test(val.trim()), {
       message: 'Last name can only contain letters and spaces'
     }),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: "Please accept the terms and conditions"
+  }),
 });
 
 const OtpSchema = z.object({
@@ -62,7 +66,10 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
   const [userDetails, setUserDetails] = useState<OtpSignupInputs | null>(null);
   
   const signupForm = useForm<OtpSignupInputs>({
-    resolver: zodResolver(OtpSignupSchema)
+    resolver: zodResolver(OtpSignupSchema),
+    defaultValues: {
+      termsAccepted: false
+    }
   });
 
   const otpForm = useForm<OtpInputs>({
@@ -236,6 +243,30 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
               </span>
             )}
           </div>
+        </div>
+
+        {/* Terms and Conditions */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-2">
+            <div className="[&>button]:!h-[14px] [&>button]:!w-[14px] [&>button]:!min-h-[14px] [&>button]:!min-w-[14px] [&>button_svg]:!h-[11px] [&>button_svg]:!w-[11px]">
+              <Checkbox
+                id="otp-signup-terms"
+                checked={signupForm.watch('termsAccepted')}
+                onCheckedChange={(checked) => signupForm.setValue('termsAccepted', checked === true)}
+              />
+            </div>
+            <Label htmlFor="otp-signup-terms" className="text-sm cursor-pointer">
+              I accept the{' '}
+              <a href="#" className="text-primary underline hover:text-primary/80" onClick={(e) => e.preventDefault()}>
+                Terms and Conditions
+              </a>
+            </Label>
+          </div>
+          {signupForm.formState.errors.termsAccepted && (
+            <span className="text-sm text-destructive">
+              {signupForm.formState.errors.termsAccepted.message}
+            </span>
+          )}
         </div>
 
         <Button 
