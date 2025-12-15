@@ -1,16 +1,5 @@
 {
   "jobRoles": {
-    "Industrial Tailor": {
-      "schemaFile": "industrial-tailor.json",
-      "industry": "Manufacturing",
-      "description": "Manufacturing and garment industry positions"
-    },
-    "Warehouse Loader and Picker": {
-      "schemaFile": "warehouse-loader-picker.json",
-      "industry": "Manufacturing", 
-      "description": "Logistics and warehouse operations"
-    },
-
     "In Store Promoter": {
       "schemaFile": "in-store-promoter.json",
       "industry": "Customer Facing",

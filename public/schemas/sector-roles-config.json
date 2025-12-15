@@ -1,13 +1,5 @@
 {
   "sectors": {
-    "Garment Manufacturing": {
-      "description": "Textile and garment industry positions",
-      "icon": "scissors",
-      "roles": [
-        "Industrial Tailor",
-        "Warehouse Loader and Picker"
-      ]
-    },
     "Customer Facing": {
       "description": "Sales and customer service positions",
       "icon": "users",
