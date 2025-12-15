@@ -15,14 +15,25 @@
         "Field Salesperson",
         "Tele Salesperson",
         "In Store Promoter",
-        "Recruitment Associate"
+        "Recruitment Associate",
+        "Customer Service Executive",
+        "Call Center Representative",
+        "Customer Support Associate",
+        "Service Desk Coordinator",
+        "Technical Support Technician"
       ]
     },
     "ITeS": {
       "description": "Information Technology enabled Services",
       "icon": "monitor",
       "roles": [
-        "Data Entry Operator"
+        "Data Entry Operator",
+        "Accounts Associate",
+        "Accounts Executive Trainee",
+        "Junior Accountant",
+        "Finance & Billing Coordinator",
+        "MIS / Reporting Executive (Trainee)",
+        "Accounts Payable / Receivable Support Trainee"
       ]
     },
     "ITI/Polytechnic": {
@@ -37,6 +48,21 @@
         "Welder",
         "Lathe Operator",
         "ITI (Other)"
+      ]
+    },
+    "Manufacturing and Industry": {
+      "description": "Manufacturing and industrial production positions",
+      "icon": "factory",
+      "roles": [
+        "Production Associate",
+        "Production Trainee",
+        "Manufacturing Trainee",
+        "Graduate Engineer Trainee – Manufacturing",
+        "Assembly Trainee",
+        "Machine Operator Trainee",
+        "QA-QC Technician Trainee",
+        "Packaging Operations Executive",
+        "Plant Operations Executive"
       ]
     }
   }

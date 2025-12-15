@@ -46,6 +46,36 @@
       "industry": "ITeS",
       "description": "Data entry and administrative positions"
     },
+    "Accounts Associate": {
+      "schemaFile": "accounts-associate.json",
+      "industry": "ITeS",
+      "description": "Accounting and finance positions"
+    },
+    "Accounts Executive Trainee": {
+      "schemaFile": "accounts-executive-trainee.json",
+      "industry": "ITeS",
+      "description": "Accounting and finance trainee positions"
+    },
+    "Junior Accountant": {
+      "schemaFile": "junior-accountant.json",
+      "industry": "ITeS",
+      "description": "Junior accounting positions"
+    },
+    "Finance & Billing Coordinator": {
+      "schemaFile": "finance-billing-coordinator.json",
+      "industry": "ITeS",
+      "description": "Finance and billing coordination positions"
+    },
+    "MIS / Reporting Executive (Trainee)": {
+      "schemaFile": "mis-reporting-executive-trainee.json",
+      "industry": "ITeS",
+      "description": "MIS and reporting trainee positions"
+    },
+    "Accounts Payable / Receivable Support Trainee": {
+      "schemaFile": "accounts-payable-receivable-support-trainee.json",
+      "industry": "ITeS",
+      "description": "Accounts payable and receivable trainee positions"
+    },
     "Tele Salesperson": {
       "schemaFile": "tele-salesperson.json",
       "industry": "Customer Facing",
@@ -55,6 +85,31 @@
       "schemaFile": "field-sales-person.json",
       "industry": "Customer Facing",
       "description": "Field sales and customer service positions"
+    },
+    "Customer Service Executive": {
+      "schemaFile": "customer-service-executive.json",
+      "industry": "Customer Facing",
+      "description": "Customer service and support positions"
+    },
+    "Call Center Representative": {
+      "schemaFile": "call-center-representative.json",
+      "industry": "Customer Facing",
+      "description": "Call center and customer support positions"
+    },
+    "Customer Support Associate": {
+      "schemaFile": "customer-support-associate.json",
+      "industry": "Customer Facing",
+      "description": "Customer support and assistance positions"
+    },
+    "Service Desk Coordinator": {
+      "schemaFile": "service-desk-coordinator.json",
+      "industry": "Customer Facing",
+      "description": "Service desk coordination and support positions"
+    },
+    "Technical Support Technician": {
+      "schemaFile": "technical-support-technician.json",
+      "industry": "Customer Facing",
+      "description": "Technical support and troubleshooting positions"
     },
     "ITI (Other)": {
       "schemaFile": "genericITI.json",
@@ -75,6 +130,52 @@
       "schemaFile": "lathe-operator.json",
       "industry": "ITI/Polytechnic",
       "description": "Lathe machine operation and maintenance positions"
+
+    },
+    "Production Associate": {
+      "schemaFile": "production-associate.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Production and manufacturing associate positions"
+    },
+    "Production Trainee": {
+      "schemaFile": "production-trainee.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Production trainee positions in manufacturing"
+    },
+    "Manufacturing Trainee": {
+      "schemaFile": "manufacturing-trainee.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Manufacturing trainee positions"
+    },
+    "Graduate Engineer Trainee – Manufacturing": {
+      "schemaFile": "graduate-engineer-trainee-manufacturing.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Graduate engineer trainee positions in manufacturing"
+    },
+    "Assembly Trainee": {
+      "schemaFile": "assembly-trainee.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Assembly trainee positions"
+    },
+    "Machine Operator Trainee": {
+      "schemaFile": "machine-operator-trainee.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Machine operator trainee positions"
+    },
+    "QA-QC Technician Trainee": {
+      "schemaFile": "qa-qc-technician-trainee.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Quality assurance and quality control technician trainee positions"
+    },
+    "Packaging Operations Executive": {
+      "schemaFile": "packaging-operations-executive.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Packaging operations executive positions"
+    },
+    "Plant Operations Executive": {
+      "schemaFile": "plant-operations-executive.json",
+      "industry": "Manufacturing and Industry",
+      "description": "Plant operations executive positions"
     }
   }
 }

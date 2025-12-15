@@ -559,7 +559,8 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       fieldKey.toLowerCase().includes('description') || 
       fieldKey.toLowerCase().includes('explanation') ||
       fieldKey.toLowerCase().includes('terms') ||
-      fieldKey.toLowerCase().includes('proof')
+      fieldKey.toLowerCase().includes('proof') ||
+      fieldKey.toLowerCase().includes('paragraph')
     )) {
       const handleTextareaBlur = (e: React.FocusEvent<HTMLTextAreaElement>) => {
         const inputValue = e.target.value;
@@ -583,7 +584,7 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             onBlur={handleTextareaBlur}
             placeholder={fieldSchema.description}
             rows={4}
-            className={`resize-none ${isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}`}
+            className={`resize-y ${isRequired && (!value || (typeof value === 'string' && value.trim() === '')) ? 'border-red-300' : ''}`}
           />
         </div>
       );

@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2019-09/schema",
+  "type": "object",
+  "title": "Graduate Engineer Trainee – Manufacturing Job Posting",
+  "description": "Complete job posting form for Graduate Engineer Trainee – Manufacturing positions",
+  "properties": {
+    "basicInfo": {
+      "type": "object",
+      "title": "Basic Information",
+      "x-section": "basic-info",
+      "properties": {
+        "jobProviderName": {
+          "type": "string",
+          "title": "Job Provider Name",
+          "description": "Enter job provider/company name",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        },
+        "jobProviderLocation": {
+          "type": "string",
+          "title": "Job Provider Location",
+          "description": "Enter job provider location",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        }
+      },
+      "required": ["jobProviderName", "jobProviderLocation"]
+    },
+    "jobDetails": {
+      "type": "object",
+      "title": "Job Details",
+      "x-section": "job-details",
+      "properties": {
+        "title": {
+          "type": "string",
+          "title": "Job Title",
+          "description": "Job title (editable)",
+          "minLength": 1,
+          "pattern": "^\\s*\\S+\\s*$"
+        },
+        "jobDetailsParagraph": {
+          "type": "string",
+          "title": "Job Details Paragraph",
+          "description": "Provide a detailed description of the job responsibilities and requirements",
+          "minLength": 10,
+          "maxLength": 2000
+        },
+        "positions": {
+          "type": "integer",
+          "title": "Number of Openings",
+          "description": "How many positions are available?",
+          "minimum": 1,
+          "default": 1
+        },
+        "hiringManagerName": {
+          "type": "string",
+          "title": "Hiring Manager Name",
+          "description": "Enter the name of the hiring manager"
+        },
+        "hiringManagerDesignation": {
+          "type": "string",
+          "title": "Hiring Manager Designation",
+          "description": "Enter the designation of the hiring manager"
+        },
+        "minMonthlyInHand": {
+          "type": "number",
+          "title": "Min Monthly In-Hand",
+          "description": "Enter minimum monthly in-hand salary amount",
+          "minimum": 0
+        },
+        "maxMonthlyInHand": {
+          "type": "number",
+          "title": "Max Monthly In-Hand",
+          "description": "Enter maximum monthly in-hand salary amount",
+          "minimum": 0
+        }
+      },
+      "required": ["title", "positions"]
+    },
+    "jobNeeds": {
+      "type": "object",
+      "title": "Job Needs",
+      "x-section": "job-needs",
+      "properties": {
+        "languageSubsection": {
+          "type": "object",
+          "title": "Language",
+          "x-subsection": "language-subsection",
+          "x-ui-subsection": "border",
+          "properties": {
+            "languageKnown": {
+              "type": "array",
+              "title": "Languages Required",
+              "description": "Select all languages that the candidate should know",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "Assamese",
+                  "Bengali",
+                  "Bodo",
+                  "Dogri",
+                  "English",
+                  "Gujarati",
+                  "Hindi",
+                  "Kannada",
+                  "Kashmiri",
+                  "Konkani",
+                  "Maithili",
+                  "Malayalam",
+                  "Manipuri",
+                  "Marathi",
+                  "Mizo",
+                  "Nepali",
+                  "Odia",
+                  "Punjabi",
+                  "Sanskrit",
+                  "Santali",
+                  "Sindhi",
+                  "Tamil",
+                  "Telugu",
+                  "Urdu"
+                ],
+                "enumNames": [
+                  "Assamese (অসমীয়া)",
+                  "Bengali (বাংলা)",
+                  "Bodo (बड़ो)",
+                  "Dogri (डोगरी)",
+                  "English",
+                  "Gujarati (ગુજરાતી)",
+                  "Hindi (हिन्दी)",
+                  "Kannada (ಕನ್ನಡ)",
+                  "Kashmiri (कॉशुर)",
+                  "Konkani (कोंकणी)",
+                  "Maithili (मैथिली)",
+                  "Malayalam (മലയാളം)",
+                  "Manipuri (মৈতৈলোন্)",
+                  "Marathi (मराठी)",
+                  "Mizo (Mizo ṭawng)",
+                  "Nepali (नेपाली)",
+                  "Odia (ଓଡ଼ିଆ)",
+                  "Punjabi (ਪੰਜਾਬੀ)",
+                  "Sanskrit (संस्कृतम्)",
+                  "Santali (ᱥᱟᱱᱛᱟᱲᱤ)",
+                  "Sindhi (سنڌي)",
+                  "Tamil (தமிழ்)",
+                  "Telugu (తెలుగు)",
+                  "Urdu (اردو)"
+                ]
+              },
+              "uniqueItems": true,
+              "minItems": 1
+            }
+          }
+        },
+        "highestQualificationAccepted": {
+          "type": "array",
+          "title": "Highest Qualification Accepted",
+          "description": "Select the highest qualifications accepted for this position",
+          "items": {
+            "type": "string",
+            "enum": ["ITI", "Diploma", "B.Tech", "Any Graduate"],
+            "enumNames": ["ITI", "Diploma", "B.Tech", "Any Graduate"]
+          },
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "ppeReadySafetyCompliance": {
+          "type": "string",
+          "title": "PPE Ready / Safety Compliance",
+          "description": "Describe PPE readiness and safety compliance requirements"
+        },
+        "physicalHealthRequirements": {
+          "type": "string",
+          "title": "Physical / Health Requirements",
+          "description": "Describe physical and health requirements for this role"
+        }
+      }
+    }
+  }
+}

@@ -47,15 +47,87 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
     return amount;
   };
 
-  const renderField = (label: string, value: any, icon?: React.ReactNode) => {
+  // Helper function to format paragraph text with bullet points and line breaks
+  const formatParagraphText = (text: string) => {
+    if (!text) return null;
+    
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const elements: React.ReactNode[] = [];
+    let currentList: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Check if line is a bullet point (starts with -, *, or number followed by .)
+      const isBulletPoint = /^[-*•]\s/.test(trimmedLine) || /^\d+\.\s/.test(trimmedLine);
+      
+      if (isBulletPoint) {
+        // Add to current list
+        currentList.push(trimmedLine.replace(/^[-*•]\s/, '').replace(/^\d+\.\s/, ''));
+      } else {
+        // If we have accumulated list items, render them
+        if (currentList.length > 0) {
+          elements.push(
+            <ul key={`list-${index}`} className="list-disc list-inside space-y-1 mb-2 ml-4">
+              {currentList.map((item, idx) => (
+                <li key={idx} className="text-sm break-words">{item}</li>
+              ))}
+            </ul>
+          );
+          currentList = [];
+        }
+        // Add regular paragraph line
+        if (trimmedLine) {
+          elements.push(
+            <p key={`para-${index}`} className="text-sm break-words mb-2 whitespace-pre-wrap">
+              {trimmedLine}
+            </p>
+          );
+        }
+      }
+    });
+    
+    // Render any remaining list items
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-final`} className="list-disc list-inside space-y-1 mb-2 ml-4">
+          {currentList.map((item, idx) => (
+            <li key={idx} className="text-sm break-words">{item}</li>
+          ))}
+        </ul>
+      );
+    }
+    
+    return elements.length > 0 ? <div className="space-y-2">{elements}</div> : null;
+  };
+
+  const renderField = (label: string, value: any, icon?: React.ReactNode, isParagraph: boolean = false) => {
     if (value === null || value === undefined || value === '') return null;
+    
+    // Special handling for paragraph fields
+    if (isParagraph || label.toLowerCase().includes('paragraph')) {
+      const formattedContent = formatParagraphText(String(value));
+      if (!formattedContent) return null;
+      
+      return (
+        <div className="flex items-start gap-3 py-2">
+          {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
+          <div className="flex-1">
+            <p className="text-sm font-medium text-muted-foreground mb-2">{label}</p>
+            <div className="text-sm break-words whitespace-pre-wrap">
+              {formattedContent}
+            </div>
+          </div>
+        </div>
+      );
+    }
     
     return (
       <div className="flex items-start gap-3 py-2">
         {icon && <div className="text-muted-foreground mt-0.5">{icon}</div>}
         <div className="flex-1">
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
-          <p className="text-sm">{String(value)}</p>
+          <p className="text-sm break-words">{String(value)}</p>
         </div>
       </div>
     );
@@ -314,9 +386,12 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                 <CardContent className="space-y-4">
                   {renderField('Job Title', job.metadata?.jobDetails?.title, <FileText className="h-4 w-4" />)}
                   {renderField('Number of Positions', job.metadata?.jobDetails?.positions, <Users className="h-4 w-4" />)}
+                  {renderField('Job Details Paragraph', job.metadata?.jobDetails?.jobDetailsParagraph, <FileText className="h-4 w-4" />, true)}
                   {renderField('Working Hours Per Day', job.metadata?.jobDetails?.workingHoursPerDay, <Clock className="h-4 w-4" />)}
                   {renderField('Salary CTC', formatCurrency(job.metadata?.jobDetails?.salaryCTC), <DollarSign className="h-4 w-4" />)}
                   {renderField('Monthly In-hand Salary', formatCurrency(job.metadata?.jobDetails?.monthlyInHand), <DollarSign className="h-4 w-4" />)}
+                  {renderField('Min Monthly In-Hand', formatCurrency(job.metadata?.jobDetails?.minMonthlyInHand), <DollarSign className="h-4 w-4" />)}
+                  {renderField('Max Monthly In-Hand', formatCurrency(job.metadata?.jobDetails?.maxMonthlyInHand), <DollarSign className="h-4 w-4" />)}
                   {renderField('Monthly PF & ESIC Benefits', formatCurrency(job.metadata?.jobDetails?.monthlyPfEsicBenefits), <DollarSign className="h-4 w-4" />)}
                   {renderField('PF & ESIC Explanation', job.metadata?.jobDetails?.monthlyPfEsicExplanation, <FileText className="h-4 w-4" />)}
                   {renderField('Monthly Average OT', job.metadata?.jobDetails?.monthlyAverageOT, <Clock className="h-4 w-4" />)}

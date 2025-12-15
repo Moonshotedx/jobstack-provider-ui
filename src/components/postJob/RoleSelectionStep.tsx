@@ -193,9 +193,9 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                               key={role}
                               variant={selectedJobRole === role ? "default" : "outline"}
                               onClick={() => onRoleSelection(role)}
-                              className="h-auto p-4 text-left justify-start"
+                              className="h-auto p-4 text-left justify-start min-h-[3rem]"
                             >
-                              <span className="text-sm font-medium">{role}</span>
+                              <span className="text-sm font-medium whitespace-normal break-words">{role}</span>
                             </Button>
                           ))}
                         </div>
@@ -221,9 +221,9 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
                               key={role}
                               variant={selectedJobRole === role ? "default" : "outline"}
                               onClick={() => onRoleSelection(role)}
-                              className="h-auto p-4 text-left justify-start"
+                              className="h-auto p-4 text-left justify-start min-h-[3rem]"
                             >
-                              <span className="text-sm font-medium">{role}</span>
+                              <span className="text-sm font-medium whitespace-normal break-words">{role}</span>
                             </Button>
                           ))}
                         </div>

@@ -263,6 +263,60 @@ const MyJobs = () => {
     setJobToDelete(null);
   };
 
+  // Helper function to format paragraph text with bullet points and line breaks
+  const formatParagraphText = (text: string) => {
+    if (!text) return null;
+    
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+    const elements: React.ReactNode[] = [];
+    let currentList: string[] = [];
+    
+    lines.forEach((line, index) => {
+      const trimmedLine = line.trim();
+      
+      // Check if line is a bullet point (starts with -, *, or number followed by .)
+      const isBulletPoint = /^[-*•]\s/.test(trimmedLine) || /^\d+\.\s/.test(trimmedLine);
+      
+      if (isBulletPoint) {
+        // Add to current list
+        currentList.push(trimmedLine.replace(/^[-*•]\s/, '').replace(/^\d+\.\s/, ''));
+      } else {
+        // If we have accumulated list items, render them
+        if (currentList.length > 0) {
+          elements.push(
+            <ul key={`list-${index}`} className="list-disc list-inside space-y-1 mb-2 ml-4">
+              {currentList.map((item, idx) => (
+                <li key={idx} className="text-sm break-words">{item}</li>
+              ))}
+            </ul>
+          );
+          currentList = [];
+        }
+        // Add regular paragraph line
+        if (trimmedLine) {
+          elements.push(
+            <p key={`para-${index}`} className="text-sm break-words mb-2 whitespace-pre-wrap">
+              {trimmedLine}
+            </p>
+          );
+        }
+      }
+    });
+    
+    // Render any remaining list items
+    if (currentList.length > 0) {
+      elements.push(
+        <ul key={`list-final`} className="list-disc list-inside space-y-1 mb-2 ml-4">
+          {currentList.map((item, idx) => (
+            <li key={idx} className="text-sm break-words">{item}</li>
+          ))}
+        </ul>
+      );
+    }
+    
+    return elements.length > 0 ? <div className="space-y-2">{elements}</div> : null;
+  };
+
   // Function to render job details dynamically
   const renderJobDetails = (jobDetails: any) => {
     if (!jobDetails || typeof jobDetails !== 'object') return null;
@@ -291,7 +345,23 @@ const MyJobs = () => {
             );
           } else {
             // Handle primitive values
-            let displayValue = String(value);
+            let displayValue: React.ReactNode = String(value);
+            
+            // Special handling for paragraph fields
+            if (key.toLowerCase().includes('paragraph')) {
+              const formattedContent = formatParagraphText(String(value));
+              if (formattedContent) {
+                details.push(
+                  <div key={fullKey} className="text-sm text-muted-foreground col-span-full">
+                    <span className="font-medium block mb-2">{key.charAt(0).toUpperCase() + key.slice(1).replace(/([A-Z])/g, ' $1')}:</span>
+                    <div className="break-words whitespace-pre-wrap">
+                      {formattedContent}
+                    </div>
+                  </div>
+                );
+                return;
+              }
+            }
             
             // Format specific fields
             if (typeof value === 'number' && (key.includes('salary') || key.includes('pay') || key.includes('amount'))) {
@@ -306,7 +376,7 @@ const MyJobs = () => {
             
             details.push(
               <div key={fullKey} className="text-sm text-muted-foreground">
-                <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}:</span> {displayValue}
+                <span className="font-medium">{key.charAt(0).toUpperCase() + key.slice(1)}:</span> <span className="break-words">{displayValue}</span>
               </div>
             );
           }
@@ -377,10 +447,10 @@ const MyJobs = () => {
                 {isMobile ? (
                   <div className="space-y-4">
                     {/* Header */}
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-lg font-semibold truncate">{job.title}</h3>
-                        <div className="flex items-center gap-2 mt-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <h3 className="text-lg font-semibold break-words">{job.title}</h3>
+                        <div className="flex items-center gap-2 mt-2 flex-wrap">
                           <Badge className={`text-xs ${getStatusColor(jobStatus)}`}>
                             {t(`status.${jobStatus}`)}
                           </Badge>
@@ -394,37 +464,39 @@ const MyJobs = () => {
                           </Badge>
                         </div>
                       </div>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm" className="p-2">
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewJob(job)}>
-                            <Eye className="h-4 w-4 mr-2" />
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleEditJob(job)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            {t('management.editJob')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
-                              <Users className="h-4 w-4 mr-2" />
-                              {t('management.viewApplications')}
-                            </Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
-                            <Copy className="h-4 w-4 mr-2" />
-                            {t('management.duplicateJob')}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            {t('management.deleteJob')}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <div className="flex-shrink-0">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="p-2 h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewJob(job)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditJob(job)}>
+                              <Edit className="h-4 w-4 mr-2" />
+                              {t('management.editJob')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link to="/job-applicants/$jobId" params={{ jobId: job.id }}>
+                                <Users className="h-4 w-4 mr-2" />
+                                {t('management.viewApplications')}
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDuplicateJob(job)}>
+                              <Copy className="h-4 w-4 mr-2" />
+                              {t('management.duplicateJob')}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleDeleteJob(job)} className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              {t('management.deleteJob')}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </div>
 
                     {/* Job Info */}
