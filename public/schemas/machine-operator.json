@@ -61,16 +61,6 @@
           "uniqueItems": true,
           "minItems": 1
         },
-        "hiringManagerName": {
-          "type": "string",
-          "title": "Hiring Manager Name",
-          "description": "Enter the name of the hiring manager"
-        },
-        "hiringManagerDesignation": {
-          "type": "string",
-          "title": "Hiring Manager Designation",
-          "description": "Enter the designation of the hiring manager"
-        },
         "positions": {
           "type": "integer",
           "title": "Number of Openings",
@@ -198,7 +188,7 @@
           "properties": {
             "minEducationLevel": {
               "type": "array",
-              "title": "Min. Highest Qualification Preferred",
+              "title": "Minimum educational qualification required",
               "description": "Minimum highest qualification preferred (multiple selections allowed)",
               "items": {
                 "type": "string",

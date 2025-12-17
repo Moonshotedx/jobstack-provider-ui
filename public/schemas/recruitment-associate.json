@@ -50,16 +50,6 @@
           "minimum": 1,
           "default": 1
         },
-        "hiringManagerName": {
-          "type": "string",
-          "title": "Hiring Manager Name",
-          "description": "Enter the name of the hiring manager"
-        },
-        "hiringManagerDesignation": {
-          "type": "string",
-          "title": "Hiring Manager Designation",
-          "description": "Enter the designation of the hiring manager"
-        },
         "jobDetailsVideo": {
           "type": "array",
           "title": "Job Details Video",
@@ -193,7 +183,7 @@
           "properties": {
             "highestQualification": {
               "type": "array",
-              "title": "Highest Qualification",
+              "title": "Minimum educational qualification required",
               "description": "Select highest qualification(s)",
               "items": {
                 "type": "string",

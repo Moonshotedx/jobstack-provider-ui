@@ -52,16 +52,6 @@
           "minimum": 1,
           "default": 1
         },
-        "hiringManagerName": {
-          "type": "string",
-          "title": "Hiring Manager Name",
-          "description": "Enter the name of the hiring manager"
-        },
-        "hiringManagerDesignation": {
-          "type": "string",
-          "title": "Hiring Manager Designation",
-          "description": "Enter the designation of the hiring manager"
-        },
         "minMonthlyInHand": {
           "type": "number",
           "title": "Monthly minimum in-hand salary (INR)",
@@ -86,7 +76,7 @@
       "properties": {
         "highestQualificationAccepted": {
           "type": "array",
-          "title": "Highest Qualification Accepted",
+          "title": "Minimum educational qualification required",
           "description": "Select the highest qualifications accepted for this position",
           "items": {
             "type": "string",
