@@ -5,11 +5,6 @@
       "industry": "Customer Facing",
       "description": "Retail and promotional activities"
     },
-    "Recruitment Associate": {
-      "schemaFile": "recruitment-associate.json",
-      "industry": "Customer Facing",
-      "description": "HR and talent acquisition positions"
-    },
     "Electrician": {
       "schemaFile": "electrical.json",
       "industry": "ITI/Polytechnic",
