@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 import { CheckCircle, Mail, RefreshCw, Eye, EyeOff } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { openPolicyPopup } from '@/lib/popupWindow';
 
 const SignUpSchema = z.object({
   firstName: z.string()
@@ -369,8 +370,19 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   checked={watchedTerms}
                   onCheckedChange={(checked) => signUpForm.setValue('termsAccepted', checked === true)}
                 />
-                <Label htmlFor="reg-terms" className="text-sm">
-                  {t('register.termsAccept', { termsLink: t('register.termsAndConditions') })}
+                <Label htmlFor="reg-terms" className="text-sm cursor-pointer">
+                  {t('register.termsAccept', { termsLink: '' }).replace(/\{\{termsLink\}\}/g, '').trim()}{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openPolicyPopup('https://onest.network/terms-of-use', 'Terms and Conditions');
+                    }}
+                    className="text-primary underline hover:text-primary/80 cursor-pointer font-normal"
+                  >
+                    {t('register.termsAndConditions')}
+                  </button>
                 </Label>
               </div>
               {signUpForm.formState.errors.termsAccepted && (
@@ -385,8 +397,19 @@ const RegistrationDialog: React.FC<RegistrationDialogProps> = ({
                   checked={watchedPrivacy}
                   onCheckedChange={(checked) => signUpForm.setValue('privacyAccepted', checked === true)}
                 />
-                <Label htmlFor="reg-privacy" className="text-sm">
-                  {t('register.privacyConsent', { privacyLink: t('register.dataPrivacyPolicy') })}
+                <Label htmlFor="reg-privacy" className="text-sm cursor-pointer">
+                  {t('register.privacyConsent', { privacyLink: '' }).replace(/\{\{privacyLink\}\}/g, '').trim()}{' '}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      openPolicyPopup('https://onest.network/privacy-policy', 'Privacy Policy');
+                    }}
+                    className="text-primary underline hover:text-primary/80 cursor-pointer font-normal"
+                  >
+                    {t('register.dataPrivacyPolicy')}
+                  </button>
                 </Label>
               </div>
               {signUpForm.formState.errors.privacyAccepted && (

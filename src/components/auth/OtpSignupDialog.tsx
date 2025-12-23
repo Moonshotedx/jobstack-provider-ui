@@ -14,6 +14,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { requestOtp, verifyOtp } from '@/lib/api-client';
 import type { RequestOtpRequest, VerifyOtpRequest } from '@/lib/api-client';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { openPolicyPopup } from '@/lib/popupWindow';
 
 const OtpSignupSchema = z.object({
   firstName: z.string()
@@ -34,6 +35,9 @@ const OtpSignupSchema = z.object({
     }),
   termsAccepted: z.boolean().refine(val => val === true, {
     message: "Please accept the terms and conditions"
+  }),
+  privacyAccepted: z.boolean().refine(val => val === true, {
+    message: "Please consent to the privacy policy"
   }),
 });
 
@@ -68,7 +72,8 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
   const signupForm = useForm<OtpSignupInputs>({
     resolver: zodResolver(OtpSignupSchema),
     defaultValues: {
-      termsAccepted: false
+      termsAccepted: false,
+      privacyAccepted: false
     }
   });
 
@@ -245,7 +250,7 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
           </div>
         </div>
 
-        {/* Terms and Conditions */}
+        {/* Terms and Privacy */}
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <div className="[&>button]:!h-[14px] [&>button]:!w-[14px] [&>button]:!min-h-[14px] [&>button]:!min-w-[14px] [&>button_svg]:!h-[11px] [&>button_svg]:!w-[11px]">
@@ -257,14 +262,51 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
             </div>
             <Label htmlFor="otp-signup-terms" className="text-sm cursor-pointer">
               I accept the{' '}
-              <a href="#" className="text-primary underline hover:text-primary/80" onClick={(e) => e.preventDefault()}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openPolicyPopup('https://onest.network/terms-of-use', 'Terms and Conditions');
+                }}
+                className="text-primary underline hover:text-primary/80 cursor-pointer font-normal"
+              >
                 Terms and Conditions
-              </a>
+              </button>
             </Label>
           </div>
           {signupForm.formState.errors.termsAccepted && (
             <span className="text-sm text-destructive">
               {signupForm.formState.errors.termsAccepted.message}
+            </span>
+          )}
+          
+          <div className="flex items-center space-x-2">
+            <div className="[&>button]:!h-[14px] [&>button]:!w-[14px] [&>button]:!min-h-[14px] [&>button]:!min-w-[14px] [&>button_svg]:!h-[11px] [&>button_svg]:!w-[11px]">
+              <Checkbox
+                id="otp-signup-privacy"
+                checked={signupForm.watch('privacyAccepted')}
+                onCheckedChange={(checked) => signupForm.setValue('privacyAccepted', checked === true)}
+              />
+            </div>
+            <Label htmlFor="otp-signup-privacy" className="text-sm cursor-pointer">
+              I consent to{' '}
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  openPolicyPopup('https://onest.network/privacy-policy', 'Privacy Policy');
+                }}
+                className="text-primary underline hover:text-primary/80 cursor-pointer font-normal"
+              >
+                Data Privacy Policy
+              </button>
+            </Label>
+          </div>
+          {signupForm.formState.errors.privacyAccepted && (
+            <span className="text-sm text-destructive">
+              {signupForm.formState.errors.privacyAccepted.message}
             </span>
           )}
         </div>
