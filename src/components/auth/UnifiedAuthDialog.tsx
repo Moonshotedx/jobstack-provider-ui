@@ -20,18 +20,19 @@ const UnifiedAuthSchema = z.object({
     .min(1, "Please enter your email or phone number")
     .refine((val) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const isEmail = emailRegex.test(val);
+      if (emailRegex.test(val)) return true;
       
-      // If it's not an email, treat it as a phone number
-      if (!isEmail) {
-        // Remove common formatting characters to count raw digits
-        const digitsOnly = val.replace(/\D/g, "");
-        // If it starts with 91 (India), it might be 12 digits (91 + 10 digits)
-        // Adjust this logic if you want exactly 10 digits regardless of prefix
-        return digitsOnly.length === 10;
-      }
+      // Phone Validation: 
+      // 1. Strip the +91 prefix if it exists
+      const phoneWithoutPrefix = val.startsWith('+91') 
+        ? val.replace('+91', '') 
+        : val;
       
-      return true;
+      // 2. Remove any other non-digit formatting (spaces, dashes)
+      const digitsOnly = phoneWithoutPrefix.replace(/\D/g, "");
+      
+      // 3. Check if the remaining subscriber number is exactly 10 digits
+      return digitsOnly.length === 10;
     }, "Please enter exactly 10 digits for your phone number"),
 });
 
