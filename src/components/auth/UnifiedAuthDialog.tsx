@@ -19,15 +19,20 @@ const UnifiedAuthSchema = z.object({
   identifier: z.string()
     .min(1, "Please enter your email or phone number")
     .refine((val) => {
-      // Check if it's a valid email or phone number
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      // Updated phone regex to handle country codes and various formats
-      const phoneRegex = /^\+?[\d\s\-\(\)]{10,}$/;
-      const phoneWithCountryCodeRegex = /^\+\d{1,4}\s?[\d\s\-\(\)]{6,}$/;
-      const localPhoneRegex = /^\d{10,}$/;
+      const isEmail = emailRegex.test(val);
       
-      return emailRegex.test(val) || phoneRegex.test(val) || phoneWithCountryCodeRegex.test(val) || localPhoneRegex.test(val);
-    }, "Please enter a valid email or phone number"),
+      // If it's not an email, treat it as a phone number
+      if (!isEmail) {
+        // Remove common formatting characters to count raw digits
+        const digitsOnly = val.replace(/\D/g, "");
+        // If it starts with 91 (India), it might be 12 digits (91 + 10 digits)
+        // Adjust this logic if you want exactly 10 digits regardless of prefix
+        return digitsOnly.length === 10;
+      }
+      
+      return true;
+    }, "Please enter exactly 10 digits for your phone number"),
 });
 
 const OtpSchema = z.object({
@@ -307,10 +312,20 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
     // Determine the current input type based on what user is typing
     const currentValue = identifierForm.watch('identifier') || '';
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(currentValue);
-    const isPhone = /^\+?[\d\s\-\(\)]{10,}$/.test(currentValue) || currentValue.startsWith('+') || /^\d/.test(currentValue);
+    const isPhone = /^\+?[\d\s\-\(\)]{2,}$/.test(currentValue) || currentValue.startsWith('+') || /^\d/.test(currentValue);
+    const phoneValueWithoutPrefix = currentValue.startsWith('+91') 
+      ? currentValue.replace('+91', '') 
+      : currentValue;
+    const isPhoneValid = phoneValueWithoutPrefix.length === 10 && /^\d+$/.test(phoneValueWithoutPrefix);
+    const isTooLong = phoneValueWithoutPrefix.length > 10 && !isEmail;
     
     // Use the detected type, fallback to the selected type, or default to email
     const effectiveType = isEmail ? 'email' : (isPhone ? 'phone' : identifierType);
+
+    const isContinueDisabled = 
+      isCheckingUser || 
+      currentValue.trim() === '' || 
+      (effectiveType === 'phone' && !isPhoneValid);
     
     // Dynamic label and placeholder
     const getLabel = () => {
@@ -365,17 +380,23 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
                 </Button>
               </div>
             </div>
-            {identifierForm.formState.errors.identifier && (
-              <span className="text-sm text-destructive">
-                {identifierForm.formState.errors.identifier.message}
-              </span>
-            )}
+            <div className="min-h-[20px] mt-1">
+              {identifierForm.formState.errors.identifier ? (
+                <span className="text-sm text-destructive">
+                  {identifierForm.formState.errors.identifier.message}
+                </span>
+              ) : isTooLong ? (
+                <span className="text-sm text-destructive">
+                  Phone number should be 10 digits only
+                </span>
+              ) : null}
+            </div>
           </div>
 
           <Button 
             type="submit" 
             className="w-full" 
-            disabled={isCheckingUser}
+            disabled={isCheckingUser || isContinueDisabled}
           >
             {isCheckingUser ? (
               <>
