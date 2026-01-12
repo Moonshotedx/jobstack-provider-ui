@@ -294,7 +294,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
-            {job.title} - Job Details
+            {limitText(job.title,25)} - Job Details
           </DialogTitle>
         </DialogHeader>
 
@@ -366,7 +366,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderField('Job Provider Name', limitText(job.metadata?.basicInfo?.jobProviderName, 25), <Building2 className="h-4 w-4" />)}
+                  {renderField('Job Provider Name',job.metadata?.basicInfo?.jobProviderName, <Building2 className="h-4 w-4" />)}
                   {renderField('Registration Number', job.metadata?.basicInfo?.jobProviderRegistration, <FileText className="h-4 w-4" />)}
                   {renderField('Location', job.metadata?.basicInfo?.jobProviderLocation ? (job.metadata.basicInfo.jobProviderLocation.city || 'Unknown City') + ', ' + (job.metadata.basicInfo.jobProviderLocation.state || 'Unknown State') : 'Location not available', <MapPin className="h-4 w-4" />)}
                   {renderField('Contact Person', job.metadata?.basicInfo?.contactPersonName, <Users className="h-4 w-4" />)}
