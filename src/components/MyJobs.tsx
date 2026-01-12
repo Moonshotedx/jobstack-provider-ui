@@ -49,6 +49,9 @@ const MyJobs = () => {
   // Delete job mutation
   const deleteJobMutation = useDeleteJob();
 
+  const limitText = (text = '', max = 25) =>
+    text.length > max ? text.slice(0, max) + '…' : text;
+
   const getStatusColor = (status: string) => {
     const normalized = (status || '').toLowerCase();
     switch (normalized) {
@@ -183,7 +186,7 @@ const MyJobs = () => {
 
   // Helper function to get job provider name
   const getJobProviderName = (job: JobPosting) => {
-    return job.metadata?.basicInfo?.jobProviderName || 'Unknown Provider';
+    return limitText(job.metadata?.basicInfo?.jobProviderName || 'Unknown Provider', 25);
   };
 
   // Handler functions for dialogs
@@ -449,7 +452,7 @@ const MyJobs = () => {
                     {/* Header */}
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0 pr-2">
-                        <h3 className="text-lg font-semibold break-words">{job.title}</h3>
+                        <h3 className="text-lg font-semibold break-words">{limitText(job.title, 25)}</h3>
                         <div className="flex items-center gap-2 mt-2 flex-wrap">
                           <Badge className={`text-xs ${getStatusColor(jobStatus)}`}>
                             {t(`status.${jobStatus}`)}
@@ -548,7 +551,7 @@ const MyJobs = () => {
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-xl font-semibold">{job.title}</h3>
+                        <h3 className="text-xl font-semibold">{limitText(job.title, 25)}</h3>
                         <Badge className={getStatusColor(jobStatus)}>
                           {t(`status.${jobStatus}`)}
                         </Badge>
