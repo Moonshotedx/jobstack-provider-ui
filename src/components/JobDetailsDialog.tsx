@@ -47,6 +47,9 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
     return amount;
   };
 
+  const limitText = (text = '', max = 25) =>
+  text.length > max ? text.slice(0, max) + '…' : text;
+
   // Helper function to format paragraph text with bullet points and line breaks
   const formatParagraphText = (text: string) => {
     if (!text) return null;
@@ -363,7 +366,7 @@ const JobDetailsDialog: React.FC<JobDetailsDialogProps> = ({
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {renderField('Job Provider Name', job.metadata?.basicInfo?.jobProviderName, <Building2 className="h-4 w-4" />)}
+                  {renderField('Job Provider Name', limitText(job.metadata?.basicInfo?.jobProviderName, 25), <Building2 className="h-4 w-4" />)}
                   {renderField('Registration Number', job.metadata?.basicInfo?.jobProviderRegistration, <FileText className="h-4 w-4" />)}
                   {renderField('Location', job.metadata?.basicInfo?.jobProviderLocation ? (job.metadata.basicInfo.jobProviderLocation.city || 'Unknown City') + ', ' + (job.metadata.basicInfo.jobProviderLocation.state || 'Unknown State') : 'Location not available', <MapPin className="h-4 w-4" />)}
                   {renderField('Contact Person', job.metadata?.basicInfo?.contactPersonName, <Users className="h-4 w-4" />)}
