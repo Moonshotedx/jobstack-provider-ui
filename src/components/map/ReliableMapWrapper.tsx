@@ -692,28 +692,115 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
   };
 
   // Handle modal overlap management
-  const handleJobLocationClick = (jobLocation: JobLocation) => {
-    setSelectedJobLocation(jobLocation);
-    setSelectedMarker(null); // Close any applicant info window
-    if (mapRef) {
+const handleJobLocationClick = (jobLocation: JobLocation) => {
+  setSelectedJobLocation(jobLocation);
+  setSelectedMarker(null); // Close any applicant info window
+  
+  if (mapRef) {
+    const zoom = 12;
+    mapRef.setZoom(zoom);
+    
+    // Get map dimensions
+    const mapDiv = mapRef.getDiv();
+    const mapWidth = mapDiv.offsetWidth;
+    const mapHeight = mapDiv.offsetHeight;
+    
+    // Calculate offset to account for side panel and info window
+    // Info window appears above marker, typically 300px wide and 200px tall
+    const infoWindowWidth = 300;
+    const sidePanelWidth = window.innerWidth < 640 ? 0 : 320; // Check if side panel is visible
+    
+    // Calculate the available space and desired offset
+    const scale = Math.pow(2, zoom);
+    const worldCoordinate = mapRef.getProjection()?.fromLatLngToPoint(new google.maps.LatLng(jobLocation.lat, jobLocation.lng));
+    
+    if (worldCoordinate) {
+      // Calculate pixel offset to center considering side panel and info window
+      const pixelOffset = {
+        x: (sidePanelWidth + infoWindowWidth / 2) / 2,
+        y: -100 // Offset upward to show info window better
+      };
+      
+      // this Convert pixel offset to lat/lng offset
+      const pointOffsetX = pixelOffset.x / scale;
+      const pointOffsetY = pixelOffset.y / scale;
+      
+      const adjustedPoint = new google.maps.Point(
+        worldCoordinate.x - pointOffsetX / mapWidth,
+        worldCoordinate.y - pointOffsetY / mapHeight
+      );
+      
+      const adjustedLatLng = mapRef.getProjection()?.fromPointToLatLng(adjustedPoint);
+      
+      if (adjustedLatLng) {
+        mapRef.panTo(adjustedLatLng);
+      } else {
+        // Fallback to simple pan
+        mapRef.panTo({ lat: jobLocation.lat, lng: jobLocation.lng });
+      }
+    } else {
+      // Fallback to simple pan
       mapRef.panTo({ lat: jobLocation.lat, lng: jobLocation.lng });
-      mapRef.setZoom(12);
     }
-    // Show a subtle toast to explain the action
-    toast.info("Showing job location details");
-  };
+  }
+  
+  // Show a subtle toast to explain the action
+  toast.info("Showing job location details");
+};
 
-  const handleApplicantMarkerClick = (applicant: ApplicantLocation) => {
-    setSelectedMarker(applicant);
-    setSelectedJobLocation(null); // Close job location info window
-    if (mapRef) {
-      const isGroupCenter = applicant.groupIndex === 0 && (applicant.groupSize || 1) > 1;
-      const panLat = isGroupCenter ? applicant.originalLat! : applicant.lat;
-      const panLng = isGroupCenter ? applicant.originalLng! : applicant.lng;
+const handleApplicantMarkerClick = (applicant: ApplicantLocation) => {
+  setSelectedMarker(applicant);
+  setSelectedJobLocation(null); // Close job location info window
+  
+  if (mapRef) {
+    const isGroupCenter = applicant.groupIndex === 0 && (applicant.groupSize || 1) > 1;
+    const panLat = isGroupCenter ? applicant.originalLat! : applicant.lat;
+    const panLng = isGroupCenter ? applicant.originalLng! : applicant.lng;
+    const zoom = 15;
+    
+    mapRef.setZoom(zoom);
+    
+    // Get map dimensions
+    const mapDiv = mapRef.getDiv();
+    const mapWidth = mapDiv.offsetWidth;
+    const mapHeight = mapDiv.offsetHeight;
+    
+    // Calculate offset for side panel and info window
+    const infoWindowWidth = 320;
+    const sidePanelWidth = window.innerWidth < 640 ? 0 : 320;
+    
+    // Calculate the available space
+    const scale = Math.pow(2, zoom);
+    const worldCoordinate = mapRef.getProjection()?.fromLatLngToPoint(new google.maps.LatLng(panLat, panLng));
+    
+    if (worldCoordinate) {
+      // Calculate pixel offset
+      const pixelOffset = {
+        x: (sidePanelWidth + infoWindowWidth / 2) / 2,
+        y: -80
+      };
+      
+      // Convert to lat/lng offset
+      const pointOffsetX = pixelOffset.x / scale;
+      const pointOffsetY = pixelOffset.y / scale;
+      
+      const adjustedPoint = new google.maps.Point(
+        worldCoordinate.x - pointOffsetX / mapWidth,
+        worldCoordinate.y - pointOffsetY / mapHeight
+      );
+      
+      const adjustedLatLng = mapRef.getProjection()?.fromPointToLatLng(adjustedPoint);
+      
+      if (adjustedLatLng) {
+        mapRef.panTo(adjustedLatLng);
+      } else {
+        mapRef.panTo({ lat: panLat, lng: panLng });
+      }
+    } else {
       mapRef.panTo({ lat: panLat, lng: panLng });
-      mapRef.setZoom(15);
     }
-  };
+  }
+};
 
   const handleApplicantClickFromInfoWindow = (applicant: ApplicantLocation) => {
     setSelectedMarker(null); // Close info window
