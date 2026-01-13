@@ -1,7 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Building2, Edit, Globe, Phone, Mail, Crown } from 'lucide-react';
 // TODO: Move this interface to a separate employer types file when implementing employer store
 interface EmployerProfile {
