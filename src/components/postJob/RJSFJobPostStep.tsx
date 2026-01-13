@@ -1120,6 +1120,69 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
       }
     };
 
+    // Special handling for job title field with character limit
+    const isTitleField = fieldKey === 'title' || fieldKey.endsWith('.title');
+    const TITLE_MAX_LENGTH = 100;
+    
+    if (isTitleField) {
+      const currentLength = (value || '').length;
+      const isNearLimit = currentLength >= TITLE_MAX_LENGTH * 0.8; // 80% threshold
+      const isAtLimit = currentLength >= TITLE_MAX_LENGTH;
+      
+      const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const newValue = e.target.value;
+        
+        // Prevent exceeding character limit
+        if (newValue.length > TITLE_MAX_LENGTH) {
+          toast.error(`Job title cannot exceed ${TITLE_MAX_LENGTH} characters`);
+          return;
+        }
+        
+        updateFormData(sectionKey, fieldKey, newValue);
+      };
+      
+      return (
+        <div key={fieldKey} className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor={fieldId}>{fieldLabel}</Label>
+            <span 
+              className={`text-xs font-medium ${
+                isAtLimit ? 'text-destructive' : 
+                isNearLimit ? 'text-orange-500' : 
+                'text-muted-foreground'
+              }`}
+            >
+              {currentLength}/{TITLE_MAX_LENGTH}
+            </span>
+          </div>
+          <Input
+            id={fieldId}
+            value={value || ''}
+            onChange={handleTitleChange}
+            onBlur={handleStringBlur}
+            placeholder={fieldSchema.description}
+            maxLength={TITLE_MAX_LENGTH}
+            className={`${
+              isRequired && (!value || (typeof value === 'string' && value.trim() === '')) 
+                ? 'border-red-300' 
+                : isAtLimit 
+                ? 'border-destructive focus-visible:ring-destructive' 
+                : isNearLimit 
+                ? 'border-orange-300 focus-visible:ring-orange-500' 
+                : ''
+            }`}
+          />
+          {isNearLimit && (
+            <p className={`text-xs ${isAtLimit ? 'text-destructive' : 'text-orange-500'}`}>
+              {isAtLimit 
+                ? `Character limit reached (${TITLE_MAX_LENGTH} max)` 
+                : `Approaching character limit (${TITLE_MAX_LENGTH - currentLength} remaining)`}
+            </p>
+          )}
+        </div>
+      );
+    }
+
     return (
       <div key={fieldKey} className="space-y-2">
         <Label htmlFor={fieldId}>{fieldLabel}</Label>
