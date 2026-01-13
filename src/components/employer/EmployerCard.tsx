@@ -57,12 +57,11 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
               <p className="text-sm text-muted-foreground">{employer.contactPersonName}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            {isSelected && <Badge variant="default">Selected</Badge>}
-            {isDefault && <Badge variant="secondary">Default</Badge>}
-            <Badge variant={employer.isActive ? 'default' : 'secondary'}>
-              {employer.isActive ? 'Active' : 'Inactive'}
-            </Badge>
+          <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+            <Button variant="outline" size="sm" onClick={onEdit} className="flex items-center gap-2">
+              <Edit className="h-4 w-4" />
+              <span>Edit</span>
+            </Button>
           </div>
         </div>
       </CardHeader>
@@ -94,12 +93,6 @@ const EmployerCard: React.FC<EmployerCardProps> = ({
             {employer.description}
           </p>
         )}
-
-        <div className="flex gap-2 pt-2" onClick={(e) => e.stopPropagation()}>
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            <Edit className="h-4 w-4" />
-          </Button>
-        </div>
       </CardContent>
     </Card>
   );
