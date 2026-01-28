@@ -55,6 +55,12 @@
         "Packaging Operations Executive",
         "Plant Operations Executive"
       ]
+    },
+    "Any": {
+      "description": "Open to any sector or role",
+      "roles": [
+        "Any"
+      ]
     }
   }
 }

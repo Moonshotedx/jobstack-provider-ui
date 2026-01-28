@@ -178,6 +178,12 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             // Check required fields
             if (sectionSchema.required) {
               sectionSchema.required.forEach((requiredField: string) => {
+                 const fieldSchema = sectionSchema.properties[requiredField];
+    
+                // NEW: Skip validation if the field is hidden by logic
+                if (fieldSchema && !shouldShowField(sectionKey, fieldSchema)) {
+                  return;
+                }
                 const fieldValue = formData[sectionKey][requiredField];
                 
                 // Skip generalized location validation, but NOT jobProviderLocation when posting
@@ -285,6 +291,19 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
               const hasMaxSalary = formData[sectionKey]?.maxMonthlyInHand !== null && 
                                   formData[sectionKey]?.maxMonthlyInHand !== undefined && 
                                   formData[sectionKey]?.maxMonthlyInHand !== '';
+               const hasPhone = formData[sectionKey]?.hiringManagerPhoneNumber !== null && 
+                                formData[sectionKey]?.hiringManagerPhoneNumber !== undefined && 
+                                formData[sectionKey]?.hiringManagerPhoneNumber !== '';
+              const hasEmail = formData[sectionKey]?.hiringManagerEmail !== null && 
+                                formData[sectionKey]?.hiringManagerEmail !== undefined && 
+                                formData[sectionKey]?.hiringManagerEmail !== '';
+
+              const hasContactFields = sectionSchema.properties?.hiringManagerPhoneNumber || sectionSchema.properties?.hiringManagerEmail;
+  
+              if (hasContactFields && !hasPhone && !hasEmail) {
+                const sectionTitle = sectionSchema.title || sectionKey;
+                errors.push(`${sectionTitle}: At least one contact field (Hiring Manager Phone Number or Email) must be filled`);
+              }
               
               // Check if this section has salary fields
               const hasSalaryFields = sectionSchema.properties?.minMonthlyInHand || sectionSchema.properties?.maxMonthlyInHand;
@@ -345,22 +364,25 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
   };
 
   const updateFormData = (sectionKey: string, fieldKey: string, value: any) => {
-    // Handle nested field paths (e.g., "subsection.field")
-    const fieldPath = fieldKey.split('.');
+     // Handle nested field paths (e.g., "subsection.field")
+  const fieldPath = fieldKey.split('.');
+  
+  setFormData((prev: any) => {
+    let newData;
     
     if (fieldPath.length === 1) {
       // Regular field
-      setFormData((prev: any) => ({
+       newData = {
         ...prev,
         [sectionKey]: {
           ...prev[sectionKey],
           [fieldKey]: value
         }
-      }));
-    } else if (fieldPath.length === 2) {
-      // Subsection field
+      };
+    } else {
+      // Subsection field (fieldPath.length === 2)
       const [subsectionKey, actualFieldKey] = fieldPath;
-      setFormData((prev: any) => ({
+      newData = {
         ...prev,
         [sectionKey]: {
           ...prev[sectionKey],
@@ -369,9 +391,28 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
             [actualFieldKey]: value
           }
         }
-      }));
+       };
     }
-  };
+  // --- LOGIC FOR CLEARING DEPENDENT FIELDS ---
+    // If Candidate Type changes, reset all downstream education fields
+    if (fieldKey === 'candidateExperienceType') {
+      const section = { ...newData[sectionKey] };
+      delete section.minEducationalInstitute;
+      delete section.minQualification;
+      newData[sectionKey] = section;
+    }
+
+    // If Education Institute changes, reset only the specific Qualification
+    if (fieldKey === 'minEducationalInstitute') {
+      const section = { ...newData[sectionKey] };
+      delete section.minQualification;
+      newData[sectionKey] = section;
+    }
+
+    return newData;
+  });
+};
+
 
   const addArrayItem = (sectionKey: string, fieldKey: string) => {
     setFormData((prev: any) => ({
@@ -414,6 +455,22 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
     const sectionSchema = schema.properties[sectionKey] as any;
     return sectionSchema?.required?.includes(fieldKey) || false;
   };
+
+  // Helper to determine if a field should be visible based on other field values
+  const shouldShowField = (sectionKey: string, fieldSchema: any): boolean => {
+    const condition = fieldSchema['x-show-if'];
+    if (!condition) return true;
+
+    // Check every condition: { "otherField": ["value1", "value2"] }
+    return Object.entries(condition).every(([dependentKey, allowedValues]) => {
+      const currentValue = formData[sectionKey]?.[dependentKey];
+      if (Array.isArray(allowedValues)) {
+        return allowedValues.includes(currentValue);
+      }
+      return currentValue === allowedValues;
+    });
+  };
+
 
   // Helper function to check if a field is a location field
   const isLocationField = (fieldKey: string, fieldSchema: any): boolean => {
@@ -1283,6 +1340,9 @@ const RJSFJobPostStep: React.FC<RJSFJobPostStepProps> = ({
           {/* Render fields in the exact order they appear in the JSON schema */}
           <div className="space-y-6">
             {orderedFields.map(({ key: fieldKey, schema: fieldSchema, isSubsection }) => {
+               if (!shouldShowField(sectionKey, fieldSchema)) {
+                return null; // Don't render if condition isn't met
+              }
               if (isSubsection) {
                 // Render subsection
                 return renderSubsection(sectionKey, fieldKey, fieldSchema, sectionData[fieldKey] || {});

@@ -160,6 +160,11 @@
       "schemaFile": "plant-operations-executive.json",
       "industry": "Manufacturing and Industry",
       "description": "Plant operations executive positions"
+    },
+     "Any": {
+      "schemaFile": "any.json",
+      "industry": "Any",
+      "description": "Open to any sector or role"
     }
   }
 }
