@@ -208,18 +208,20 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       console.log('🗺️ Extracted location data:', locationData);
       
       // Transform RJSF form data to match backend API
-      const createJobRequest = {
-        title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
-        location: locationData, // This can be null for drafts
-        status: status, // Status moved outside of metadata
-        metadata: {
-          ...formData,
-          role: selectedJobRole,
-          industry: roleInfo.industry,
-          // Keep original jobProviderLocation in metadata for reference
-          jobProviderLocation: formData.basicInfo?.jobProviderLocation
-        }
-      };
+       const createJobRequest = {
+         title: formData.jobDetails?.title || formData.basicInfo?.title || selectedJobRole,
+         location: locationData, // This can be null for drafts
+         status: status, // Status moved outside of metadata
+         metadata: {
+           ...formData,
+           role: selectedJobRole,
+           industry: roleInfo.industry,
+           // Keep original jobProviderLocation in metadata for reference
+           jobProviderLocation: formData.basicInfo?.jobProviderLocation,
+           // Marker to indicate this payload originated from the application UI
+           source: editJobData?.metadata?.source || 'application-ui'
+         }
+       };
 
       console.log('🚀 Submitting job with payload:', createJobRequest);
 

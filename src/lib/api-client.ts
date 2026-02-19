@@ -277,6 +277,8 @@ export const jobsApi = {
       status: jobStatus, // Preserve the original job's status
       metadata: {
         ...metadataWithoutStatus,
+        // Marker to indicate this payload originated from the application UI
+        source: metadataWithoutStatus.source || 'application-ui',
         // Remove any job-specific IDs or timestamps that shouldn't be duplicated
         id: undefined,
         createdAt: undefined,
