@@ -16,6 +16,9 @@ function AuthModalRoute() {
   const navigate = useNavigate()
   const [isOpen, setIsOpen] = useState(true)
 
+  const identifier = (search as any).identifier;
+  const returnTo = (search as any).returnTo;
+
   // Ensure we have a valid action
   const isLogin = action.toLowerCase() === 'login'
   const isSignup = action.toLowerCase() === 'signup'
@@ -46,7 +49,11 @@ function AuthModalRoute() {
   const handleClose = () => {
     setIsOpen(false)
     // Navigate back to the previous page or home and clear any URL params
-    navigate({ to: '/', replace: true })
+    if (returnTo) {
+      navigate({ to: returnTo as any, replace: true })
+    } else {
+      navigate({ to: '/', replace: true })
+    }
   }
 
   const handleSwitchToLogin = () => {
@@ -70,8 +77,6 @@ function AuthModalRoute() {
     return null
   }
 
-  const identifier = (search as any).identifier;
-
   return (
     <>
       <LoginDialog
@@ -85,6 +90,7 @@ function AuthModalRoute() {
           isOpen={isOpen && isSignup}
           onClose={handleClose}
           identifier={identifier}
+          returnTo={returnTo}
         />
       ) : (
         <RegistrationDialog
@@ -96,4 +102,4 @@ function AuthModalRoute() {
       )}
     </>
   )
-} 
+}

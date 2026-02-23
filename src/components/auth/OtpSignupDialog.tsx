@@ -55,11 +55,13 @@ interface OtpSignupDialogProps {
   isOpen: boolean;
   onClose: () => void;
   identifier: string;
+  /** Optional URL to return to after successful signup (e.g. /join/:slug). */
+  returnTo?: string;
 }
 
 type SignupStep = 'details' | 'otp';
 
-const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, identifier }) => {
+const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, identifier, returnTo }) => {
 
   const navigate = useNavigate();
   const { handleOtpVerification } = useAuth();
@@ -141,6 +143,10 @@ const OtpSignupDialog: React.FC<OtpSignupDialogProps> = ({ isOpen, onClose, iden
         await handleOtpVerification(response);
         
         toast.success('Account created successfully!');
+        if (returnTo) {
+          onClose();
+          return;
+        }
         onClose();
         navigate({ to: '/dashboard', replace: true });
       } else {

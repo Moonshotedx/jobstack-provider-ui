@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
@@ -23,7 +23,8 @@ import { Label } from '@/components/ui/label';
 import { useTranslation } from 'react-i18next';
 import { getPresignedUrl, uploadFileToPresignedUrl, checkOrganizationSlugAvailability } from '@/lib/api-client';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useGetAssociations } from '@/hooks/useJobsApi';
+import { useGetAssociations, useGetOrgDetailsBySlug } from '@/hooks/useJobsApi';
+import { Building2 as BuildingIcon } from 'lucide-react';
 
 const FormSchema = z.object({
   name: z.string()
@@ -69,15 +70,20 @@ interface CreateOrgProps {
   isOpen?: boolean;
   onClose?: () => void;
   onSuccess?: () => void;
+  /** When provided, the MSME association is pre-filled from the URL join flow and locked. */
+  lockedAssociationSlug?: string;
 }
 
-export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps) {
+export function CreateOrg({ isOpen = true, onClose, onSuccess, lockedAssociationSlug }: CreateOrgProps) {
   const { t } = useTranslation(['organizations', 'common']);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const { updateProfile } = useUserStore();
   const contactEmailLabel = t('create.contactEmail').replace(/\s*\*$/, '');
-  const { data: associations, isLoading: isLoadingAssociations } = useGetAssociations(isOpen !== false);
+  // Only fetch associations from dropdown when there's no locked slug from the join flow
+  const { data: associations, isLoading: isLoadingAssociations } = useGetAssociations(isOpen !== false && !lockedAssociationSlug);
+  // Fetch display name for the locked association (join flow)
+  const { data: lockedOrgDetails } = useGetOrgDetailsBySlug(lockedAssociationSlug);
 
   const form = useForm<FormData>({
     resolver: zodResolver(FormSchema),
@@ -90,9 +96,16 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
       contactPhone: '',
       website: '',
       description: '',
-      associationslug: ''
+      associationslug: lockedAssociationSlug || ''
     }
   });
+
+  // Keep the locked slug in sync with the form (in case the prop arrives after mount)
+  useEffect(() => {
+    if (lockedAssociationSlug) {
+      form.setValue('associationslug', lockedAssociationSlug);
+    }
+  }, [lockedAssociationSlug, form]);
 
   const generateSlug = (): string => {
     // Generate crypto-based unique ID
@@ -354,24 +367,37 @@ export function CreateOrg({ isOpen = true, onClose, onSuccess }: CreateOrgProps)
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t('create.association')}</FormLabel>
-                    <Select 
-                      value={field.value || undefined} 
-                      onValueChange={(value) => field.onChange(value || undefined)}
-                      disabled={isLoadingAssociations}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('create.associationPlaceholder')} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {associations?.map((association) => (
-                          <SelectItem key={association.slug} value={association.slug}>
-                            {association.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    {lockedAssociationSlug ? (
+                      // Join-flow: show the MSME org as a locked read-only badge
+                      <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 text-sm">
+                        <BuildingIcon className="h-4 w-4 text-muted-foreground shrink-0" />
+                        <span className="font-medium">
+                          {lockedOrgDetails?.name ?? lockedAssociationSlug}
+                        </span>
+                        <span className="ml-auto text-xs text-muted-foreground">Pre-selected via invite link</span>
+                        {/* Keep hidden input so form value is submitted */}
+                        <input type="hidden" {...field} value={lockedAssociationSlug} />
+                      </div>
+                    ) : (
+                      <Select
+                        value={field.value || undefined}
+                        onValueChange={(value) => field.onChange(value || undefined)}
+                        disabled={isLoadingAssociations}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder={t('create.associationPlaceholder')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {associations?.map((association) => (
+                            <SelectItem key={association.slug} value={association.slug}>
+                              {association.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                     <FormMessage />
                   </FormItem>
                 )}

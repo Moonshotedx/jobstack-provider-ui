@@ -15,6 +15,7 @@ import { Route as DashboardImport } from './routes/dashboard'
 import { Route as AdminDashboardImport } from './routes/admin-dashboard'
 import { Route as IndexImport } from './routes/index'
 import { Route as VerifyEmailImport } from './routes/verify.email'
+import { Route as JoinAssociationSlugImport } from './routes/join.$associationSlug'
 import { Route as JobApplicantsJobIdImport } from './routes/job-applicants.$jobId'
 import { Route as AuthResetPasswordImport } from './routes/auth.reset-password'
 import { Route as AuthActionImport } from './routes/auth.$action'
@@ -43,6 +44,12 @@ const IndexRoute = IndexImport.update({
 const VerifyEmailRoute = VerifyEmailImport.update({
   id: '/verify/email',
   path: '/verify/email',
+  getParentRoute: () => rootRoute,
+} as any)
+
+const JoinAssociationSlugRoute = JoinAssociationSlugImport.update({
+  id: '/join/$associationSlug',
+  path: '/join/$associationSlug',
   getParentRoute: () => rootRoute,
 } as any)
 
@@ -116,6 +123,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof JobApplicantsJobIdImport
       parentRoute: typeof rootRoute
     }
+    '/join/$associationSlug': {
+      id: '/join/$associationSlug'
+      path: '/join/$associationSlug'
+      fullPath: '/join/$associationSlug'
+      preLoaderRoute: typeof JoinAssociationSlugImport
+      parentRoute: typeof rootRoute
+    }
     '/verify/email': {
       id: '/verify/email'
       path: '/verify/email'
@@ -154,6 +168,7 @@ export interface FileRoutesByFullPath {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/join/$associationSlug': typeof JoinAssociationSlugRoute
   '/verify/email': typeof VerifyEmailRouteWithChildren
   '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
@@ -165,6 +180,7 @@ export interface FileRoutesByTo {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/join/$associationSlug': typeof JoinAssociationSlugRoute
   '/verify/email': typeof VerifyEmailRouteWithChildren
   '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
@@ -177,6 +193,7 @@ export interface FileRoutesById {
   '/auth/$action': typeof AuthActionRoute
   '/auth/reset-password': typeof AuthResetPasswordRoute
   '/job-applicants/$jobId': typeof JobApplicantsJobIdRoute
+  '/join/$associationSlug': typeof JoinAssociationSlugRoute
   '/verify/email': typeof VerifyEmailRouteWithChildren
   '/verify/email/$error': typeof VerifyEmailErrorRoute
 }
@@ -190,6 +207,7 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/join/$associationSlug'
     | '/verify/email'
     | '/verify/email/$error'
   fileRoutesByTo: FileRoutesByTo
@@ -200,6 +218,7 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/join/$associationSlug'
     | '/verify/email'
     | '/verify/email/$error'
   id:
@@ -210,6 +229,7 @@ export interface FileRouteTypes {
     | '/auth/$action'
     | '/auth/reset-password'
     | '/job-applicants/$jobId'
+    | '/join/$associationSlug'
     | '/verify/email'
     | '/verify/email/$error'
   fileRoutesById: FileRoutesById
@@ -222,6 +242,7 @@ export interface RootRouteChildren {
   AuthActionRoute: typeof AuthActionRoute
   AuthResetPasswordRoute: typeof AuthResetPasswordRoute
   JobApplicantsJobIdRoute: typeof JobApplicantsJobIdRoute
+  JoinAssociationSlugRoute: typeof JoinAssociationSlugRoute
   VerifyEmailRoute: typeof VerifyEmailRouteWithChildren
 }
 
@@ -232,6 +253,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthActionRoute: AuthActionRoute,
   AuthResetPasswordRoute: AuthResetPasswordRoute,
   JobApplicantsJobIdRoute: JobApplicantsJobIdRoute,
+  JoinAssociationSlugRoute: JoinAssociationSlugRoute,
   VerifyEmailRoute: VerifyEmailRouteWithChildren,
 }
 
@@ -251,6 +273,7 @@ export const routeTree = rootRoute
         "/auth/$action",
         "/auth/reset-password",
         "/job-applicants/$jobId",
+        "/join/$associationSlug",
         "/verify/email"
       ]
     },
@@ -271,6 +294,9 @@ export const routeTree = rootRoute
     },
     "/job-applicants/$jobId": {
       "filePath": "job-applicants.$jobId.tsx"
+    },
+    "/join/$associationSlug": {
+      "filePath": "join.$associationSlug.tsx"
     },
     "/verify/email": {
       "filePath": "verify.email.tsx",

@@ -49,11 +49,13 @@ type OtpInputs = z.infer<typeof OtpSchema>;
 interface UnifiedAuthDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Optional URL to return to after successful auth (e.g. /join/:slug). */
+  returnTo?: string;
 }
 
 type AuthStep = 'identifier' | 'otp' | 'signup';
 
-const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }) => {
+const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose, returnTo }) => {
 
   const navigate = useNavigate();
   const { handleOtpVerification } = useAuth();
@@ -198,20 +200,28 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
         // Handle OTP verification response
         const result = await handleOtpVerification(response);
         
-        if (result.needsOrgSelection) {
-          // Show organization selection - we'll handle this in a separate state
-          // For now, redirect to dashboard and let the dashboard handle org selection
-          toast.success('Login successful!');
-          onClose();
-          navigate({ to: '/dashboard', replace: true });
+          if (result.needsOrgSelection) {
+            // Show organization selection - we'll handle this in a separate state
+            // For now, redirect to dashboard and let the dashboard handle org selection
+            toast.success('Login successful!');
+            onClose();
+            if (returnTo) {
+              navigate({ to: returnTo as any, replace: true });
+            } else {
+              navigate({ to: '/dashboard', replace: true });
+            }
+          } else {
+            toast.success('Login successful!');
+            onClose();
+            if (returnTo) {
+              navigate({ to: returnTo as any, replace: true });
+            } else {
+              navigate({ to: result.redirectPath || '/dashboard', replace: true });
+            }
+          }
         } else {
-          toast.success('Login successful!');
-          onClose();
-          navigate({ to: result.redirectPath || '/dashboard', replace: true });
+          toast.error('Invalid OTP. Please try again.');
         }
-      } else {
-        toast.error('Invalid OTP. Please try again.');
-      }
     } catch (error: any) {
       toast.error(error.response?.data?.message || 'Invalid OTP. Please try again.');
     } finally {
@@ -508,7 +518,7 @@ const UnifiedAuthDialog: React.FC<UnifiedAuthDialogProps> = ({ isOpen, onClose }
             navigate({ 
               to: '/auth/$action', 
               params: { action: 'signup' },
-              search: { identifier }
+              search: returnTo ? ({ identifier, returnTo } as any) : ({ identifier } as any)
             });
           }}
         >

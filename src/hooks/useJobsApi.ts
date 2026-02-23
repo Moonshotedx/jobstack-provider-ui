@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, getAssociations, getAssociationOverview } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, getAssociations, getAssociationOverview, getOrgDetailsBySlug } from '@/lib/api-client';
 import { useUserStore } from '@/stores/authStore';
 
 
@@ -267,11 +267,12 @@ export const useGetAssociations = (enabled: boolean = true) => {
 };
 
 // Organization hooks
-export const useGetOrganizationList = () => {
+export const useGetOrganizationList = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ['organizations'],
     queryFn: () => getOrganizationList(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled,
   });
 };
 
@@ -288,6 +289,20 @@ export const useAssociationOverview = (slug: string | undefined) => {
     enabled: !!slug,
     staleTime: 2 * 60 * 1000, // 2 minutes
     retry: 2,
+  });
+};
+
+// Hook to get org details by slug — used for MSME invite link / join flow
+export const useGetOrgDetailsBySlug = (slug: string | undefined) => {
+  return useQuery({
+    queryKey: ['org-details-by-slug', slug],
+    queryFn: () => {
+      if (!slug) throw new Error('Slug is required');
+      return getOrgDetailsBySlug(slug);
+    },
+    enabled: !!slug,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    retry: 1,
   });
 };
 

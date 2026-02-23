@@ -22,7 +22,7 @@ import {
   Mail, 
   RefreshCw,
   Menu,
-
+  X,
   Home,
   BriefcaseIcon,
   Settings,
@@ -30,13 +30,16 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
-import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId } from '@/hooks/useJobsApi'
+import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId, useGetOrgDetailsBySlug } from '@/hooks/useJobsApi'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 
 
 export const Route = createFileRoute('/dashboard')({
   component: DashboardComponent,
+  validateSearch: (search: Record<string, unknown>): { associationslug?: string } => ({
+    associationslug: typeof search.associationslug === 'string' ? search.associationslug : undefined,
+  }),
   beforeLoad: () => {
     // Clear any potential URL params that might interfere with modals
     if (typeof window !== 'undefined') {
@@ -60,11 +63,18 @@ function DashboardContent() {
   const [isResendingVerification, setIsResendingVerification] = useState(false)
   const [hasCheckedInitialVerification, setHasCheckedInitialVerification] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [showJoinBanner, setShowJoinBanner] = useState(true)
   
   const user = useUserStore((state) => state.user);
   const queryClient = useQueryClient();
   const { checkEmailVerification, resendVerificationEmail, checkSession } = useAuth();
   const isMobile = useIsMobile();
+
+  // Read associationslug from URL search params (set by the join flow)
+  const { associationslug: joinedAssociationSlug } = Route.useSearch();
+  const { data: joinedOrgDetails } = useGetOrgDetailsBySlug(
+    showJoinBanner ? joinedAssociationSlug : undefined
+  );
   
   // Get real-time jobs data
   const { data: jobs } = useCurrentOrganizationJobs();
@@ -356,6 +366,30 @@ function DashboardContent() {
   // Main dashboard for authenticated users with profiles
   return (
     <div className="min-h-screen bg-background">
+      {/* MSME join success banner — shown when arriving from /join/:associationSlug */}
+      {joinedAssociationSlug && showJoinBanner && (
+        <div className="bg-green-50 border-b border-green-200">
+          <div className="container mx-auto px-4 py-3 flex items-center gap-3">
+            <Building2 className="h-5 w-5 text-green-600 shrink-0" />
+            <p className="text-sm text-green-800 flex-1">
+              Your organization is now registered under{' '}
+              <span className="font-semibold">
+                {joinedOrgDetails?.name ?? joinedAssociationSlug}
+              </span>
+              .
+            </p>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0 text-green-700 hover:text-green-900 hover:bg-green-100"
+              onClick={() => setShowJoinBanner(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Mobile Header */}
       {isMobile && (
         <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">

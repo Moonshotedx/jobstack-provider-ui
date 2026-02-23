@@ -794,6 +794,36 @@ export interface CustomSessionResponse {
   };
 }
 
+// Org details by slug (used for join flow / MSME invite links)
+export interface OrgDetails {
+  name: string;
+  slug: string;
+  logo?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface OrgDetailsResponse {
+  statusCode: number;
+  message: string;
+  data: OrgDetails;
+}
+
+export const getOrgDetailsBySlug = async (orgSlug: string): Promise<OrgDetails> => {
+  const apiKey = import.meta.env.VITE_ORG_API_KEY;
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (apiKey) {
+    headers['x-api-key'] = apiKey;
+  }
+
+  const response = await apiClient.get<OrgDetailsResponse>(
+    `/admin/org-details?orgSlug=${encodeURIComponent(orgSlug)}`,
+    { headers }
+  );
+  return response.data.data;
+};
+
 // Custom Session API function
 export const getCustomSession = async (): Promise<CustomSessionResponse> => {
   const response = await apiClient.get('/auth/get-session');
