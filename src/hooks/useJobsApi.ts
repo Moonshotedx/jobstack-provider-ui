@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, getOrganizationList, getAssociations, getAssociationOverview, getOrgDetailsBySlug } from '@/lib/api-client';
+import { jobsApi, type CreateJobRequest, type JobPosting, type JobApplication, type ApplicationActionRequest, type JobApplicationsParams, getOrganizationList, getAssociations, getAssociationOverview, getOrgDetailsBySlug } from '@/lib/api-client';
 import { useUserStore } from '@/stores/authStore';
 
 
@@ -8,7 +8,8 @@ import { useUserStore } from '@/stores/authStore';
 export const jobsQueryKeys = {
   all: ['jobs'] as const,
   byOrg: (orgId: string) => ['jobs', orgId] as const,
-  applications: (orgId: string, jobId: string) => ['jobs', orgId, 'applications', jobId] as const,
+  applications: (orgId: string, jobId: string, params?: JobApplicationsParams) =>
+    ['jobs', orgId, 'applications', jobId, params] as const,
 };
 
 // Hook to get jobs for a specific organization
@@ -134,13 +135,18 @@ export const useDeleteJob = () => {
   });
 };
 
-// Hook to get job applications for a specific job
-export const useGetJobApplications = (organizationId: string, jobId: string) => {
+// Hook to get job applications for a specific job (with server-side pagination + filtering)
+export const useGetJobApplications = (
+  organizationId: string,
+  jobId: string,
+  params: JobApplicationsParams = {}
+) => {
   return useQuery({
-    queryKey: jobsQueryKeys.applications(organizationId, jobId),
-    queryFn: () => jobsApi.getJobApplications(organizationId, jobId),
+    queryKey: jobsQueryKeys.applications(organizationId, jobId, params),
+    queryFn: () => jobsApi.getJobApplications(organizationId, jobId, params),
     enabled: !!organizationId && !!jobId && organizationId.length > 0 && jobId.length > 0,
     staleTime: 30 * 1000, // 30 seconds
+    placeholderData: (previousData) => previousData, // keep previous page data while fetching next
     retry: (failureCount, error: any) => {
       if (error?.response?.status === 401 || error?.response?.status === 403) {
         return false;
@@ -371,7 +377,7 @@ export const useUpdateOrganization = () => {
 // Export types for use in components
 export type { CreateJobRequest, JobPosting, JobApplication, ApplicationActionRequest }; 
 
-// Helper function to get all applications for an organization across all jobs
+// Helper function to get all applications for an organization across all jobs (stats use only)
 export const useGetAllOrganizationApplications = (organizationId: string) => {
   const { data: jobs } = useGetJobs(organizationId);
   
@@ -380,14 +386,14 @@ export const useGetAllOrganizationApplications = (organizationId: string) => {
     queryFn: async () => {
       if (!jobs || jobs.length === 0) return [];
       
-      // Fetch applications for all jobs in parallel
-      const applicationPromises = jobs.map(job => 
-        jobsApi.getJobApplications(organizationId, job.id)
+      // Fetch applications for all jobs in parallel (page 1, large limit for stats)
+      const applicationPromises = jobs.map(job =>
+        jobsApi.getJobApplications(organizationId, job.id, { page: 1, limit: 1000 })
       );
       
-      const allApplicationsArrays = await Promise.all(applicationPromises);
-      // Flatten the arrays into a single array
-      return allApplicationsArrays.flat();
+      const allResults = await Promise.all(applicationPromises);
+      // Flatten the applications arrays into a single array
+      return allResults.flatMap(result => result.applications);
     },
     enabled: !!organizationId && !!jobs && jobs.length > 0,
     staleTime: 30 * 1000, // 30 seconds

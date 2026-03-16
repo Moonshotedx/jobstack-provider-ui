@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -12,6 +12,7 @@ import {
   Users,
   ArrowLeft,
   ChevronRight,
+  ChevronLeft,
   Loader2,
   CheckCircle,
   XCircle,
@@ -34,17 +35,56 @@ export const Route = createFileRoute('/job-applicants/$jobId')({
   component: JobApplicantsPage,
 });
 
+const PAGE_SIZE = 20;
+
 function JobApplicantsPage() {
   // All hooks at the top
   const { jobId } = Route.useParams();
   const { t } = useTranslation('candidates');
   const activeOrganizationId = useActiveOrganizationId();
+
+  // Pagination & server-side filter state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<string>('all');
+
+  // Debounced search — wait 400 ms before sending to API
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setCurrentPage(1); // reset to page 1 on new search
+    }, 400);
+    return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
+  }, [searchQuery]);
+
+  // Reset to page 1 when status filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter]);
+
   const { 
-    data: applications, 
+    data: queryData,
     isLoading, 
+    isFetching,
     error, 
     refetch 
-  } = useGetJobApplications(activeOrganizationId || '', jobId);
+  } = useGetJobApplications(activeOrganizationId || '', jobId, {
+    page: currentPage,
+    limit: PAGE_SIZE,
+    search: debouncedSearch || undefined,
+    status: statusFilter !== 'all' ? statusFilter : undefined,
+    sortBy: 'createdAt',
+    sortOrder: 'desc',
+  });
+
+  const applications = queryData?.applications ?? [];
+  const pagination = queryData?.pagination ?? { page: currentPage, limit: PAGE_SIZE, totalCount: 0 };
+  const totalPages = Math.max(1, Math.ceil(pagination.totalCount / PAGE_SIZE));
+
   const { data: jobs } = useGetJobs(activeOrganizationId || '');
   const jobDetails = jobs?.find(job => job.id === jobId);
   const takeActionMutation = useTakeApplicationAction();
@@ -227,8 +267,6 @@ function JobApplicantsPage() {
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
   }, [applications, jobId, jobDetails]);
   const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
   const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
   
@@ -382,37 +420,10 @@ function JobApplicantsPage() {
     }
   }, [applicantLocations, selectedMapApplicant]);
   
-  // Filter and sort applicants
+  // Filtering is now server-side; keep filteredApplicants in sync with the current page's applicants
   React.useEffect(() => {
-    let filtered = applicants;
-
-    // Apply search filter
-    if (searchQuery) {
-      filtered = filtered.filter(applicant =>
-        applicant.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.skills.some(skill => {
-          // Handle both string and object skills
-          if (typeof skill === 'string') {
-            return skill.toLowerCase().includes(searchQuery.toLowerCase());
-          } else if (skill && typeof skill === 'object' && 'name' in skill) {
-            return (skill as any).name.toLowerCase().includes(searchQuery.toLowerCase());
-          }
-          return false;
-        }) ||
-        applicant.whatIHave?.jukiMachineExperience?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.whatIWant?.stayPreferences?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        applicant.whatIWant?.readyToMigrate?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Apply status filter
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(applicant => applicant.status === statusFilter);
-    }
-
-    setFilteredApplicants(filtered);
-  }, [applicants, searchQuery, statusFilter]);
+    setFilteredApplicants(applicants);
+  }, [applicants]);
 
   const handleViewCandidate = (candidate: JobApplicant) => {
     // Find the original JobApplication data using the application ID
@@ -643,7 +654,7 @@ function JobApplicantsPage() {
   }
 
   // No applications state
-  if (!isLoading && (!applications || applications.length === 0)) {
+  if (!isLoading && pagination.totalCount === 0) {
     return (
       <div className="min-h-screen bg-background">
         <Header />
@@ -900,6 +911,53 @@ function JobApplicantsPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Pagination Controls */}
+            {pagination.totalCount > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4 px-1">
+                {/* Page info */}
+                <p className="text-sm text-muted-foreground order-2 sm:order-1">
+                  Showing{' '}
+                  <span className="font-medium">
+                    {Math.min((currentPage - 1) * PAGE_SIZE + 1, pagination.totalCount)}
+                  </span>
+                  {' '}–{' '}
+                  <span className="font-medium">
+                    {Math.min(currentPage * PAGE_SIZE, pagination.totalCount)}
+                  </span>
+                  {' '}of{' '}
+                  <span className="font-medium">{pagination.totalCount}</span>{' '}
+                  applicant{pagination.totalCount !== 1 ? 's' : ''}
+                </p>
+
+                {/* Prev / page indicator / Next */}
+                <div className="flex items-center gap-2 order-1 sm:order-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage <= 1 || isFetching}
+                  >
+                    <ChevronLeft className="h-4 w-4 mr-1" />
+                    Previous
+                  </Button>
+
+                  <span className="text-sm font-medium px-2">
+                    Page {currentPage} of {totalPages}
+                  </span>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage >= totalPages || isFetching}
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="map" className="mt-6">

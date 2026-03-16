@@ -232,8 +232,18 @@ export interface GetJobApplicationsResponse {
   pagination: {
     page: number;
     limit: number;
-    total: number;
+    totalCount: number;
   };
+}
+
+export interface JobApplicationsParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  applicationStatus?: string;
+  sortBy?: 'createdAt' | 'status';
+  sortOrder?: 'asc' | 'desc';
 }
 
 // Application Action types
@@ -319,29 +329,55 @@ export const jobsApi = {
   },
 
   // Get applications for a specific job
-  getJobApplications: async (organizationId: string, jobId: string): Promise<JobApplication[]> => {
+  getJobApplications: async (
+    organizationId: string,
+    jobId: string,
+    params: JobApplicationsParams = {}
+  ): Promise<GetJobApplicationsResponse> => {
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      applicationStatus,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = params;
+
+    const queryParams = new URLSearchParams({
+      jobId,
+      page: String(page),
+      limit: String(limit),
+      sortBy,
+      sortOrder,
+    });
+
+    if (search) queryParams.set('search', search);
+    if (status && status !== 'all') queryParams.set('status', status);
+    if (applicationStatus) queryParams.set('applicationStatus', applicationStatus);
+
+    const url = `/jobs/${organizationId}/applications?${queryParams.toString()}`;
+
     console.log('🚀 Making API call to get job applications:', {
       organizationId,
       jobId,
-      url: `/jobs/${organizationId}/applications?jobId=${jobId}`,
-      fullUrl: `${API_BASE_URL}/jobs/${organizationId}/applications?jobId=${jobId}`
+      params,
+      url,
+      fullUrl: `${API_BASE_URL}${url}`,
     });
-    
+
     try {
-      const response = await apiClient.get<ApiResponse<GetJobApplicationsResponse>>(
-        `/jobs/${organizationId}/applications?jobId=${jobId}`
-      );
-      
+      const response = await apiClient.get<ApiResponse<GetJobApplicationsResponse>>(url);
+
       console.log('📡 Job applications API response:', response.data);
-      
-      // Add null check for response data
+
       if (!response.data?.data?.applications) {
         console.warn('⚠️ No applications data in response:', response.data);
-        return [];
+        return { applications: [], pagination: { page, limit, totalCount: 0 } };
       }
-      
+
       console.log('✅ Successfully fetched applications:', response.data.data.applications.length);
-      return response.data.data.applications;
+      return response.data.data;
     } catch (error) {
       console.error('❌ Error fetching job applications:', error);
       throw error;
