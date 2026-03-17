@@ -36,6 +36,9 @@ export const Route = createFileRoute('/job-applicants/$jobId')({
 });
 
 const PAGE_SIZE = 20;
+const EMPTY_APPLICATIONS: JobApplication[] = [];
+const EMPTY_APPLICANTS: JobApplicant[] = [];
+const EMPTY_MAP_LOCATIONS: ApplicantLocation[] = [];
 
 function JobApplicantsPage() {
   // All hooks at the top
@@ -81,7 +84,7 @@ function JobApplicantsPage() {
     sortOrder: 'desc',
   });
 
-  const applications = queryData?.applications ?? [];
+  const applications = queryData?.applications ?? EMPTY_APPLICATIONS;
   const pagination = queryData?.pagination ?? { page: currentPage, limit: PAGE_SIZE, totalCount: 0 };
   const totalPages = Math.max(1, Math.ceil(pagination.totalCount / PAGE_SIZE));
 
@@ -90,7 +93,7 @@ function JobApplicantsPage() {
   const takeActionMutation = useTakeApplicationAction();
   const [loadingStates, setLoadingStates] = useState<Record<string, 'accept' | 'reject' | null>>({});
   const applicants: JobApplicant[] = React.useMemo(() => {
-    if (!applications) return [];
+    if (!applications) return EMPTY_APPLICANTS;
     
     console.log('🔄 Transforming applications:', applications.map(app => ({
       appId: app.id,
@@ -359,7 +362,7 @@ function JobApplicantsPage() {
   useEffect(() => {
     const convertToMapLocations = async () => {
       if (applicants.length === 0) {
-        setApplicantLocations([]);
+        setApplicantLocations((prev) => (prev.length === 0 ? prev : EMPTY_MAP_LOCATIONS));
         setIsLoadingMap(false); // Set to false when no applicants to process
         return;
       }
