@@ -110,6 +110,13 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
       setStep(editJobData ? 'jobPost' : (skipAuthSteps ? 'roleSelection' : 'login'));
     }
   }, [isOpen, editJobData, skipAuthSteps]);
+
+  // Avoid render-time state updates; transition edit flow to job form in an effect.
+  useEffect(() => {
+    if (step === 'roleSelection' && editJobData && selectedJobRole) {
+      setStep('jobPost');
+    }
+  }, [step, editJobData, selectedJobRole]);
   
   // API hooks
   const createJobMutation = useCreateJob();
@@ -278,7 +285,6 @@ const PostJobDialog: React.FC<PostJobDialogProps> = ({ isOpen, onClose, skipAuth
     // Skip role selection if we're editing and have a job role
     if (editJobData && selectedJobRole) {
       console.log('⏭️ Skipping role selection for edit mode, going directly to job form');
-      setStep('jobPost');
       return null;
     }
     

@@ -266,7 +266,7 @@ function JobApplicantsPage() {
       })
       .filter(Boolean) as JobApplicant[]; // Remove any null entries
   }, [applications, jobId, jobDetails]);
-  const [filteredApplicants, setFilteredApplicants] = useState<JobApplicant[]>(applicants);
+  const filteredApplicants = React.useMemo(() => applicants, [applicants]);
   const [selectedCandidate, setSelectedCandidate] = useState<JobApplication | null>(null);
   const [showCandidateDetails, setShowCandidateDetails] = useState(false);
   
@@ -274,7 +274,13 @@ function JobApplicantsPage() {
   const [applicantLocations, setApplicantLocations] = useState<ApplicantLocation[]>([]);
   const [mapCenter, setMapCenter] = useState({ lat: 20.5937, lng: 78.9629 });
   const [mapZoom, setMapZoom] = useState(5); // Default zoom level for India
-  const [selectedMapApplicant, setSelectedMapApplicant] = useState<ApplicantLocation | null>(null);
+  const [selectedMapApplicantId, setSelectedMapApplicantId] = useState<string | null>(null);
+  const selectedMapApplicant = React.useMemo(() => {
+    if (!selectedMapApplicantId) {
+      return null;
+    }
+    return applicantLocations.find((applicant) => applicant.id === selectedMapApplicantId) || null;
+  }, [applicantLocations, selectedMapApplicantId]);
   const [isLoadingMap, setIsLoadingMap] = useState(true); // Start with true to prevent early mounting
   const [jobLocationData, setJobLocationData] = useState<{ title: string; location: string; lat: number; lng: number } | null>(null);
   // --- DYNAMIC TABLE COLUMN LOGIC START ---
@@ -312,11 +318,6 @@ function JobApplicantsPage() {
       applicantsCount: applicants?.length || 0
     });
   }, [activeOrganizationId, jobId, jobDetails, applications, isLoading, error, applicants]);
-  // Update filtered applicants when applicants data changes
-  React.useEffect(() => {
-    setFilteredApplicants(applicants);
-  }, [applicants]);
-
   // Helper function to get job location (same logic as MyJobs component)
   const getJobLocation = (job: any) => {
     return job?.location?.city && job?.location?.state 
@@ -409,23 +410,6 @@ function JobApplicantsPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [applicants]); // mapCenter intentionally excluded: including it causes infinite re-runs
   
-  // Sync selectedMapApplicant with updated data after actions
-  useEffect(() => {
-    if (selectedMapApplicant && applicantLocations.length > 0) {
-      // Find the updated applicant data in applicantLocations
-      const updatedApplicant = applicantLocations.find(applicant => applicant.id === selectedMapApplicant.id);
-      if (updatedApplicant && updatedApplicant.status !== selectedMapApplicant.status) {
-        // Update the selected map applicant with the new status
-        setSelectedMapApplicant(updatedApplicant);
-      }
-    }
-  }, [applicantLocations, selectedMapApplicant]);
-  
-  // Filtering is now server-side; keep filteredApplicants in sync with the current page's applicants
-  React.useEffect(() => {
-    setFilteredApplicants(applicants);
-  }, [applicants]);
-
   const handleViewCandidate = (candidate: JobApplicant) => {
     // Find the original JobApplication data using the application ID
     const originalApplication = applications?.find(app => 
@@ -446,13 +430,13 @@ function JobApplicantsPage() {
   const handleMapApplicantClick = (applicant: ApplicantLocation | null) => {
     if (applicant === null) {
       // Clear the selected applicant
-      setSelectedMapApplicant(null);
+      setSelectedMapApplicantId(null);
       setSelectedCandidate(null);
       setShowCandidateDetails(false);
       return;
     }
     
-    setSelectedMapApplicant(applicant);
+    setSelectedMapApplicantId(applicant.id);
     
     // Find the corresponding JobApplicant but DON'T open the modal
     // Only set the candidate data for the map card display
@@ -504,8 +488,6 @@ function JobApplicantsPage() {
         action
       });
       
-      // Refetch the applications to get updated status from API
-      refetch();
     } catch (error) {
       console.error('Failed to take action on application:', error);
       // Show error toast
