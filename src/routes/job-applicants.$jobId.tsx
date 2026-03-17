@@ -286,7 +286,7 @@ function JobApplicantsPage() {
       // join object primitive values
       return Object.values(value).join(', ');
     }
-    return value;
+    return String(value);
   };
 
   // Collect all unique keys from whatIWant across all applicants
@@ -406,7 +406,8 @@ function JobApplicantsPage() {
     };
 
     convertToMapLocations();
-  }, [applicants, mapCenter]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [applicants]); // mapCenter intentionally excluded: including it causes infinite re-runs
   
   // Sync selectedMapApplicant with updated data after actions
   useEffect(() => {
