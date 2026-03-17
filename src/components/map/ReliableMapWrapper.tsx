@@ -39,6 +39,12 @@ import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import type { JobApplication } from '@/lib/api-client';
 
+// IMPORTANT: Must be defined outside the component as a stable reference.
+// Passing an inline array literal (e.g. libraries={["places"]}) to useJsApiLoader
+// creates a new reference on every render, causing @react-google-maps/api to reload
+// the Google Maps script on every render → React Error #185 (Maximum update depth exceeded).
+const GOOGLE_MAPS_LIBRARIES: ("places")[] = ["places"];
+
 interface ApplicantLocation {
   id: string;
   name: string;
@@ -356,7 +362,7 @@ const ReliableMapWrapper: React.FC<ReliableMapWrapperProps> = ({
   const { isLoaded, loadError } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places"]
+    libraries: GOOGLE_MAPS_LIBRARIES
   });
 
   const [mapRef, setMapRef] = useState<google.maps.Map | null>(null);
