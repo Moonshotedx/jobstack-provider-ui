@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Loader2, Scissors, Users, Monitor, Wrench, MoreHorizontal } from 'lucide-react';
-import { getRolesGroupedBySectors, getOrphanedRoles, type JobRoleName } from '@/lib/role-schema-loader';
+import { getRolesGroupedBySectors, type JobRoleName } from '@/lib/role-schema-loader';
 import { useTranslation } from 'react-i18next';
 
 interface RoleSelectionStepProps {
@@ -35,7 +35,6 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   const { t } = useTranslation('jobs');
   const [searchQuery, setSearchQuery] = useState('');
   const [sectorsWithRoles, setSectorsWithRoles] = useState<Record<string, SectorConfig>>({});
-  const [orphanedRoles, setOrphanedRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,12 +46,8 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
       try {
         setLoading(true);
         setError(null);
-        const [sectors, orphaned] = await Promise.all([
-          getRolesGroupedBySectors(),
-          getOrphanedRoles()
-        ]);
+        const sectors = await getRolesGroupedBySectors();
         setSectorsWithRoles(sectors);
-        setOrphanedRoles(orphaned);
       } catch (err) {
         console.error('Failed to load available roles:', err);
         setError('Failed to load job roles. Please try again.');
@@ -65,35 +60,13 @@ const RoleSelectionStep: React.FC<RoleSelectionStepProps> = ({
   }, [isOpen]);
 
   // Filter sectors and roles based on search query
-  const getFilteredSectors = () => {
-    if (!searchQuery) return sectorsWithRoles;
-    
-    const filtered: Record<string, SectorConfig> = {};
-    
-    Object.entries(sectorsWithRoles).forEach(([sectorName, sectorConfig]) => {
-      const filteredRoles = sectorConfig.roles.filter((role) =>
-        role.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sectorName.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      
-      if (filteredRoles.length > 0) {
-        filtered[sectorName] = {
-          ...sectorConfig,
-          roles: filteredRoles
-        };
-      }
-    });
-    
-    return filtered;
+  const getFilteredSectors = (): Record<string, { description: string; icon: string; roles: string[] }> => {
+    return { "Any": sectorsWithRoles["Any"] };
   };
 
   // Filter orphaned roles based on search query
   const getFilteredOrphanedRoles = () => {
-    if (!searchQuery) return orphanedRoles;
-    
-    return orphanedRoles.filter((role) =>
-      role.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    return [];
   };
 
   const filteredSectors = getFilteredSectors();
