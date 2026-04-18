@@ -120,7 +120,7 @@
             "type": "string",
             "title": "Min. Highest Educational Institute Attended",
             "description": "Please select the preferred minimum of the highest kind of educational institute they have attended",
-            "enum": ["School", "College", "ITI", "Other Vocational Training", "Certifications", "None"],
+            "enum": ["School", "College", "ITI", "Polytechnic/Diploma", "Other Vocational Training", "Certifications", "Learned Informally"],
             "x-show-if": { "candidateExperienceType": ["Fresher", "Returning after a break"] }
         },
         "minQualificationSchool": {
@@ -130,12 +130,24 @@
             "enum": ["10th", "12th", "Other"],
             "x-show-if": { "minEducationalInstitute": ["School"] }
         },
+        "minQualificationSchoolOther": {
+            "type": "string",
+            "title": "Specify Other School Qualification",
+            "description": "Please specify your other school qualification",
+            "x-show-if": { "minQualificationSchool": ["Other"] }
+        },
         "minQualificationCollege": {
             "type": "string",
             "title": "Min. Highest Qualification (College)",
             "description": "Select the highest degree completed",
             "enum": ["B.Tech/B.E.", "B.Com", "B.A.", "B.B.A", "Other"],
             "x-show-if": { "minEducationalInstitute": ["College"] }
+        },
+        "minQualificationCollegeOther": {
+            "type": "string",
+            "title": "Specify Other College Qualification",
+            "description": "Please specify your other college qualification",
+            "x-show-if": { "minQualificationCollege": ["Other"] }
         },
         "minQualificationVocational": {
             "type": "array",
@@ -315,11 +327,30 @@
             "uniqueItems": true,
             "minItems": 1
         },
+        "minQualificationPolytechnic": {
+            "type": "string",
+            "title": "Min. Highest Qualification (Polytechnic/Diploma)",
+            "description": "Select the diploma stream completed",
+            "enum": ["Diploma in Mechanical", "Diploma in Electrical", "Diploma in Electronics", "Diploma in Civil", "Diploma in Computer Science", "Diploma in Automobile", "Diploma in Others"],
+            "x-show-if": { "minEducationalInstitute": ["Polytechnic/Diploma"] }
+        },
+        "minQualificationPolytechnicOther": {
+            "type": "string",
+            "title": "Specify Other Polytechnic/Diploma Stream",
+            "description": "Please specify your other diploma stream",
+            "x-show-if": { "minQualificationPolytechnic": ["Diploma in Others"] }
+        },
         "minQualificationCert": {
             "type": "string",
             "title": "Certification / Skill Details",
             "description": "Enter the name of the certification or skill learned on the job",
             "x-show-if": { "minEducationalInstitute": ["Certifications"] }
+        },
+        "minQualificationInformal": {
+            "type": "string",
+            "title": "Skills Learned Informally",
+            "description": "Describe the skills learned informally (e.g., bicycle repair, tailoring at home)",
+            "x-show-if": { "minEducationalInstitute": ["Learned Informally"] }
         },
         "workExperienceYears": {
             "type": "string",
