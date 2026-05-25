@@ -8,7 +8,7 @@ import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useGetOrgDetailsBySlug, useUpdateOrganization, useGetOrganizationList } from '@/hooks/useJobsApi';
 import { CreateOrg } from '@/components/organisation/CreateOrg';
-import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
+import LoginDialog from '@/components/auth/LoginDialog';
 import { toast } from 'sonner';
 import type { OrganizationProfile } from '@/stores/authStore';
 
@@ -305,9 +305,17 @@ function JoinOrgRoute() {
           </div>
         </div>
 
-        <UnifiedAuthDialog
+        <LoginDialog
           isOpen={showAuthDialog}
           onClose={handleAuthSuccess}
+          onSwitchToRegister={() => {
+            setShowAuthDialog(false);
+            navigate({
+              to: '/auth/$action',
+              params: { action: 'signup' },
+              search: { returnTo: `/join/${associationSlug}` } as any,
+            });
+          }}
           returnTo={`/join/${associationSlug}`}
         />
       </div>

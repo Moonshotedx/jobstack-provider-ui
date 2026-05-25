@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Briefcase } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useUserStore } from '@/stores/authStore';
-import UnifiedAuthDialog from '@/components/auth/UnifiedAuthDialog';
+import LoginDialog from '@/components/auth/LoginDialog';
 
 export const Route = createFileRoute('/')({
   component: RouteComponent,
@@ -130,9 +130,13 @@ function RouteComponent() {
         </div>
       </div>
       
-      <UnifiedAuthDialog
+      <LoginDialog
         isOpen={showAuthDialog}
         onClose={() => setShowAuthDialog(false)}
+        onSwitchToRegister={() => {
+          setShowAuthDialog(false);
+          navigate({ to: '/auth/$action', params: { action: 'signup' } });
+        }}
       />
     </div>
   );

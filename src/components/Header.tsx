@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { User, LogOut, AlertCircle, Menu } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import { useUserStore } from '@/stores/authStore';
 import { useAuth } from '@/hooks/useAuth';
 import PostJobDialog from './PostJobDialog';
@@ -14,7 +14,7 @@ import { useQueryClient } from '@tanstack/react-query';
 
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
+import LoginDialog from './auth/LoginDialog';
 import { useDropdownIOSFix } from '@/hooks/use-ios-safari-fix';
 
 const Header = () => {
@@ -31,6 +31,7 @@ const Header = () => {
   const user = useUserStore((state) => state.user);
   const { checkSession, logout } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleCompleteProfile = () => {
     if (!user) return;
@@ -302,10 +303,14 @@ const Header = () => {
           }}
         />
 
-      {/* Unified Auth Dialog */}
-      <UnifiedAuthDialog
+      {/* Login Dialog (email + password) */}
+      <LoginDialog
         isOpen={showAuthDialog}
         onClose={() => setShowAuthDialog(false)}
+        onSwitchToRegister={() => {
+          setShowAuthDialog(false);
+          navigate({ to: '/auth/$action', params: { action: 'signup' } });
+        }}
       />
     </>
   );

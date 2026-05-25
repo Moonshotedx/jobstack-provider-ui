@@ -13,7 +13,8 @@ import { useUserStore } from '@/stores/authStore';
 import { useTranslation } from 'react-i18next';
 import { useCurrentOrganizationJobs, useOrganizationCandidateStats, useActiveOrganizationId, useGetOrganizationList } from '@/hooks/useJobsApi';
 import { SelectOrg } from './organisation/SelectOrg';
-import UnifiedAuthDialog from './auth/UnifiedAuthDialog';
+import LoginDialog from './auth/LoginDialog';
+import { useNavigate } from '@tanstack/react-router';
 
 const ProviderDashboard = () => {
   const { t } = useTranslation('dashboard');
@@ -24,6 +25,7 @@ const ProviderDashboard = () => {
   
   // const { user } = useAuth();
   const user = useUserStore((state) => state.user);
+  const navigate = useNavigate();
 
   
   // Get real-time jobs data
@@ -253,10 +255,14 @@ const ProviderDashboard = () => {
         onSuccess={() => setShowOrgSelector(false)}
       />
 
-      {/* Unified Auth Dialog */}
-      <UnifiedAuthDialog
+      {/* Login Dialog (email + password) */}
+      <LoginDialog
         isOpen={showAuthDialog}
         onClose={() => setShowAuthDialog(false)}
+        onSwitchToRegister={() => {
+          setShowAuthDialog(false);
+          navigate({ to: '/auth/$action', params: { action: 'signup' } });
+        }}
       />
     </div>
   );

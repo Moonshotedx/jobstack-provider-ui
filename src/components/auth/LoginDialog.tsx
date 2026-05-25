@@ -26,9 +26,11 @@ interface LoginDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSwitchToRegister: () => void;
+  /** Optional URL to return to after successful auth (overrides the default redirect). */
+  returnTo?: string;
 }
 
-const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister }) => {
+const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRegister, returnTo }) => {
   const { t } = useTranslation('auth');
   const navigate = useNavigate();
   const { login, isLoading } = useAuth();
@@ -55,7 +57,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       } else {
         onClose();
         // Clear any potential URL params before navigation
-        navigate({ to: result.redirectPath || '/dashboard', replace: true });
+        navigate({ to: (returnTo || result.redirectPath || '/dashboard') as any, replace: true });
         toast.success(t('login.signInSuccess'));
       }
     } catch (error: any) {
@@ -71,7 +73,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onSwitchToRe
       setShowOrgSelection(false);
       onClose();
       // Clear any potential URL params before navigation
-      navigate({ to: result.redirectPath || '/dashboard', replace: true });
+      navigate({ to: (returnTo || result.redirectPath || '/dashboard') as any, replace: true });
       toast.success(t('login.signInSuccess'));
     } catch (error: any) {
       toast.error(error.message || t('errors.loginFailed'));
