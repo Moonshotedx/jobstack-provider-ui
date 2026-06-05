@@ -166,6 +166,8 @@ export const useCurrentOrganizationJobs = () => {
     isLoading: !activeOrgId || jobsQuery.isLoading,
     error: !activeOrgId ? new Error('No active organization found') : jobsQuery.error,
     data: activeOrgId ? (jobsQuery.data || []).filter(job => {
+
+      console.log("data", job)
       const status = (job.status || job.metadata?.status || '').toLowerCase();
       // Filter out archived/deleted jobs from the UI
       return status !== 'archive' && status !== 'archived' && status !== 'deleted';

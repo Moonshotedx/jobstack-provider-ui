@@ -179,7 +179,16 @@ export const useAuth = (): UseAuthReturn => {
       
       if (loginRequest.data?.user) {
         const betterAuthUser = loginRequest.data.user;
-        
+
+        // Persist the bearer token so the API client sends `Authorization: Bearer`
+        // on subsequent requests. The backend authenticates via this token (same as
+        // the OTP flow); relying on the cross-site session cookie alone fails (401).
+        const authToken = (loginRequest.data as { token?: string }).token;
+        if (authToken) {
+          localStorage.setItem('auth-token', authToken);
+          sessionStorage.setItem('auth-token', authToken);
+        }
+
         // Update session manager with the new user data
         sessionManager.updateSession({
           id: betterAuthUser.id,
